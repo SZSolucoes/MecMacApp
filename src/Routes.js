@@ -6,14 +6,16 @@ import WelcomeScreen from './WelcomeScreen';
 //import TransitionsScreens from './screens/utils/TransitionsScreens';
 
 // Rotas do start na aplicacao
-const StartStack = createStackNavigator({ 
-    Loading: {
-        screen: LoadingScreen
-    },
-    Welcome: {
-        screen: WelcomeScreen
+const StartStack = createStackNavigator(
+    { 
+        Loading: {
+            screen: LoadingScreen
+        },
+        Welcome: {
+            screen: WelcomeScreen
+        }
     }
-});
+);
 
 // Rotas de autenticacao
 const AuthStack = createStackNavigator({ SignInScreen });

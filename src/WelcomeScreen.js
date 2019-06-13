@@ -88,7 +88,6 @@ export default class WelcomeScreen extends Component {
                         </View>
                         <Swiper
                             ref='ViewPager'
-                            loop
                             autoplay={false}
                             interval={2000}
                             scrollEnabled

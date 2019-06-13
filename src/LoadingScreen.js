@@ -38,6 +38,10 @@ export default class LoadingScreen extends React.Component {
                 justifyContent: 'center' 
             }}
         >
+            <StatusBar 
+                backgroundColor={'rgba(0, 0, 0, 0.5)'}
+                translucent
+            />
             <ActivityIndicator color={'white'} />
             <StatusBar barStyle="default" />
         </View>
