@@ -1,28 +1,60 @@
 import React from 'react';
 import { 
     View,
-    Button
+    Text,
+    StyleSheet,
+    BackHandler
 } from 'react-native';
-import AsyncStorage from '@react-native-community/async-storage';
+import { colorAppForeground } from '../utils/Constants';
 
 export default class HomeScreen extends React.Component {
     static navigationOptions = {
-        title: 'Welcome to the app!',
+        header: null
     };
 
-    showMoreApp = () => {
-        this.props.navigation.navigate('Other');
-    };
+    constructor(props) {
+        super(props);
+        this.didFocusSubscription = props.navigation.addListener('didFocus', () =>
+            BackHandler.addEventListener('hardwareBackPress', this.onBackButtonPressAndroid)
+        );
+    }
+    
+    componentDidMount = () => {
+        this.willBlurSubscription = this.props.navigation.addListener('willBlur', () =>
+          BackHandler.removeEventListener('hardwareBackPress', this.onBackButtonPressAndroid)
+        );
+    }
 
-    signOutAsync = async () => {
-        await AsyncStorage.clear();
-        this.props.navigation.navigate('Auth');
-    };
+    componentWillUnmount = () => {
+        if (this.didFocusSubscription) this.didFocusSubscription.remove();
+        if (this.willBlurSubscription) this.willBlurSubscription.remove();
+
+        BackHandler.removeEventListener('hardwareBackPress', this.onBackButtonPressAndroid);
+    }
+
+    onBackButtonPressAndroid = () => {
+        const routeName = this.props.navigation.state.routeName;
+
+        if (routeName === 'HomeTab') {
+            return true;
+        }
+
+        return false;
+    }
 
     render = () => (
-        <View>
-            <Button title="Show me more of the app" onPress={this.showMoreApp} />
-            <Button title="Actually, sign me out :)" onPress={this.signOutAsync} />
+        <View style={styles.mainView}>
+            <Text>Início</Text>
         </View>
     )
 }
+
+const styles = StyleSheet.create({
+    mainView: {
+        flex: 1,
+        alignItems: 'center',
+        justifyContent: 'center',
+        backgroundColor: colorAppForeground
+    }
+});
+
