@@ -5,6 +5,8 @@ import {
     StyleSheet,
     BackHandler
 } from 'react-native';
+import SplashScreen from 'react-native-splash-screen';
+
 import { colorAppForeground } from '../utils/Constants';
 
 export default class HomeScreen extends React.Component {
@@ -20,6 +22,7 @@ export default class HomeScreen extends React.Component {
     }
     
     componentDidMount = () => {
+        SplashScreen.hide();
         this.willBlurSubscription = this.props.navigation.addListener('willBlur', () =>
           BackHandler.removeEventListener('hardwareBackPress', this.onBackButtonPressAndroid)
         );

@@ -1,8 +1,11 @@
+/* eslint-disable max-len */
 import React from 'react';
 import { 
     View,
     Text,
-    ScrollView,
+    Image,
+    Platform,
+    StatusBar,
     StyleSheet,
     BackHandler,
     SafeAreaView
@@ -10,9 +13,14 @@ import {
 import AsyncStorage from '@react-native-community/async-storage';
 import { LoginManager, GraphRequest, GraphRequestManager, AccessToken } from 'react-native-fbsdk';
 import { GoogleSignin, statusCodes } from 'react-native-google-signin';
-import { Button, SocialIcon } from 'react-native-elements';
+import { Button, SocialIcon, Icon } from 'react-native-elements';
+import { Appbar, Divider } from 'react-native-paper';
+import SplashScreen from 'react-native-splash-screen';
 
-import { colorAppSecondary } from '../utils/Constants';
+import { colorAppPrimary } from '../utils/Constants';
+import imgLogo from '../../assets/images/logo.png';
+
+const STATUSBAR_HEIGHT = Platform.OS === 'ios' ? 20 : StatusBar.currentHeight;
 
 export default class SignInScreen extends React.Component {
     static navigationOptions = {
@@ -23,12 +31,12 @@ export default class SignInScreen extends React.Component {
         super(props);
 
         this.state = {
-            text: '',
-            userInfo: ''
+            disableButtons: false
         };
     }
 
     componentDidMount = () => {
+        SplashScreen.hide();
         BackHandler.addEventListener('hardwareBackPress', this.onHandleBackPress);
     }
 
@@ -44,10 +52,10 @@ export default class SignInScreen extends React.Component {
             null,
             (error, result) => {
                 if (error) {
-                    this.setState({ userInfo: `Error fetching data: ${error.toString()}` });
+                    this.setState({ userInfo: `Error fetching data: ${error.toString()}`, disableButtons: false });
                 } else {
-                    this.setState({ userInfo: JSON.stringify(result) });
                     this.signInAsync();
+                    this.setState({ userInfo: JSON.stringify(result), disableButtons: false });
                 }
             }
         );
@@ -55,20 +63,26 @@ export default class SignInScreen extends React.Component {
         new GraphRequestManager().addRequest(infoRequest).start();
     }
 
+    handleEmailLogin = () => this.signInAsync()
+
     handleFacebookLogin = () => {
+        this.setState({ disableButtons: true });
+
         LoginManager.logInWithReadPermissions(['public_profile', 'email']).then(
-            (result) => {
+            async (result) => {
                 if (result.isCancelled) {
-                    this.setState({ text: 'login is cancelled.' });
+                    this.setState({ text: 'login is cancelled.', disableButtons: false });
                 } else {
-                    AccessToken.getCurrentAccessToken().then(
+                    await AccessToken.getCurrentAccessToken().then(
                         (data) => {
                             this.handleGetUserInfo(data.accessToken.toString());
                         }
                     );
+
+                    this.setState({ disableButtons: false });
                 }
             },
-            (error) => this.setState({ text: `login has error: ${error}` })
+            (error) => this.setState({ text: `login has error: ${error}`, disableButtons: false })
         );
     }
 
@@ -96,6 +110,8 @@ export default class SignInScreen extends React.Component {
     }
 
     handleGoogleSignIn = async () => {
+        this.setState({ disableButtons: true });
+
         try {
             await GoogleSignin.hasPlayServices();
             const userInfo = await GoogleSignin.signIn();
@@ -112,6 +128,8 @@ export default class SignInScreen extends React.Component {
                 this.setState({ userInfo: JSON.stringify(error) });
             }
         }
+
+        this.setState({ disableButtons: false });
     };
 
     handleGoogleSignOut = async () => {
@@ -136,85 +154,163 @@ export default class SignInScreen extends React.Component {
     };
 
     render = () => (
-        <SafeAreaView style={[styles.viewMain, styles.center]}>
-            <SafeAreaView
+        <SafeAreaView style={styles.viewMain}>
+            <View style={{ height: STATUSBAR_HEIGHT }}>
+                <StatusBar 
+                    backgroundColor={'rgba(0, 0, 0, 0.3)'}
+                    translucent
+                />
+            </View>
+            <View
                 style={{
-                    flex: 3,
-                    padding: 10,
-                    flexDirection: 'row'
+                    ...StyleSheet.absoluteFillObject,
+                    alignItems: 'center',
+                    justifyContent: 'center'
                 }}
             >
-                <View
+                <Image source={imgLogo} resizeMode={'contain'} style={{ width: '80%', height: '80%', opacity: 0.2 }} />
+            </View>
+            <View style={{ width: '100%', height: 56 }}>
+                <Appbar.Content 
+                    title={'Entrar'} 
+                    titleStyle={{ textAlign: 'center', color: 'white' }} 
+                    style={{ alignItems: 'center', justifyContent: 'center' }} 
+                />
+            </View>
+            <SafeAreaView style={[{ flex: 1 }, styles.center]}>
+                <SafeAreaView
+                    style={{
+                        flex: 1.5,
+                        paddingHorizontal: 40,
+                        width: '100%',
+                        justifyContent: 'flex-end'
+                    }}
+                >
+                    <Button
+                        raised
+                        disabled={this.state.disableButtons}
+                        disabledStyle={{ backgroundColor: 'white' }}
+                        onPress={this.handleEmailLogin}
+                        icon={
+                            <Icon
+                                name={'email-outline'}
+                                type={'material-community'}
+                                color={colorAppPrimary}
+                                iconSize={28}
+                                containerStyle={{ marginHorizontal: 10 }}
+                            />
+                        }
+                        title="Entrar com tester  "
+                        titleStyle={{ color: 'black' }}
+                        buttonStyle={{
+                            backgroundColor: 'white',
+                            height: 52,
+                            width: '100%',
+                            justifyContent: 'center',
+                            paddingRight: 30
+                        }}
+                        ViewComponent={(props) => <View {...props} pointerEvents={'box-only'} />}
+                    />
+                </SafeAreaView>
+                <SafeAreaView
                     style={{
                         flex: 1,
-                        margin: 10,
-                        borderWidth: 1,
-                        borderRadius: 5,
-                        alignItems: 'center',
+                        padding: 20,
+                        flexDirection: 'row',
+                        alignItems: 'center', 
                         justifyContent: 'center'
                     }}
                 >
-                    <Text style={styles.logoText}>Logo</Text>
-                </View>
-            </SafeAreaView>
-            <SafeAreaView
-                style={{
-                    flex: 3,
-                    padding: 10
-                }}
-            >
-                <Button
-                    raised
-                    onPress={this.handleFacebookLogin}
-                    icon={
-                        <SocialIcon
-                            type={'facebook'}
-                            raised={false}
-                            iconSize={18}
-                            style={{ margin: 0, marginVertical: 7 }}
-                        />
-                    }
-                    title="Entrar com Facebook"
-                    buttonStyle={{
-                        backgroundColor: '#3A5998',
-                        height: 40,
+                    <Divider style={{ flex: 4, backgroundColor: 'white' }} />
+                    <View 
+                        style={{ 
+                            flex: 1, 
+                            alignItems: 'center', 
+                            justifyContent: 'center',
+                            paddingBottom: 4 
+                        }}
+                    >
+                        <Text style={{ color: 'white' }}>ou</Text>
+                    </View>
+                    <Divider style={{ flex: 4, backgroundColor: 'white' }} />
+                </SafeAreaView>
+                <SafeAreaView
+                    style={{
+                        flex: 2.5,
+                        paddingHorizontal: 40,
                         width: '100%',
                         justifyContent: 'flex-start'
                     }}
-                />
-                <View style={{ marginVertical: 5 }} />
-                <Button
-                    raised
-                    onPress={this.handleGoogleSignIn}
-                    icon={
-                        <SocialIcon
-                            type={'google'}
-                            raised={false}
-                            iconSize={18}
-                            style={{ margin: 0, marginVertical: 7 }}
-                        />
-                    }
-                    title="Entrar com Google"
-                    buttonStyle={{
-                        backgroundColor: '#ED3739',
-                        height: 40,
-                        width: '100%',
-                        justifyContent: 'flex-start'
+                >
+                    <Button
+                        raised
+                        disabled={this.state.disableButtons}
+                        disabledStyle={{ backgroundColor: '#3A5998' }}
+                        onPress={this.handleFacebookLogin}
+                        icon={
+                            <SocialIcon
+                                type={'facebook'}
+                                raised={false}
+                                iconSize={18}
+                                style={{ margin: 0, marginVertical: 7 }}
+                            />
+                        }
+                        title="Entrar com Facebook"
+                        buttonStyle={{
+                            backgroundColor: '#3A5998',
+                            height: 52,
+                            width: '100%',
+                            justifyContent: 'center'
+                        }}
+                        ViewComponent={(props) => <View {...props} pointerEvents={'box-only'} />}
+                    />
+                    <View style={{ marginVertical: 5 }} />
+                    <Button
+                        raised
+                        disabled={this.state.disableButtons}
+                        disabledStyle={{ backgroundColor: '#ED3739' }}
+                        onPress={this.handleGoogleSignIn}
+                        icon={
+                            <SocialIcon
+                                type={'google'}
+                                raised={false}
+                                iconSize={18}
+                                style={{ margin: 0, marginVertical: 7 }}
+                            />
+                        }
+                        title="Entrar com Google     "
+                        buttonStyle={{
+                            backgroundColor: '#ED3739',
+                            height: 52,
+                            width: '100%',
+                            justifyContent: 'center'
+                        }}
+                        ViewComponent={(props) => <View {...props} pointerEvents={'box-only'} />}
+                    />
+                </SafeAreaView>
+                <SafeAreaView
+                    style={{
+                        flex: 1,
+                        alignItems: 'center',
+                        justifyContent: 'flex-start',
+                        padding: 10
                     }}
-                />
-                <ScrollView>
-                    <Text>{this.state.userInfo}</Text>
-                </ScrollView>
-            </SafeAreaView>
-            <SafeAreaView
-                style={{
-                    flex: 0.5,
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    padding: 10
-                }}
-            >
-                <Text style={styles.devText}>Desenvolvido por SZ Soluções</Text>
+                >
+                    <Text 
+                        style={{ color: 'white' }}
+                    >É novo por aqui? <Text style={{ fontFamily: 'OpenSans-Bold' }}>Criar uma conta</Text>
+                    </Text>
+                </SafeAreaView>
+                <SafeAreaView
+                    style={{
+                        flex: 0.5,
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        padding: 10
+                    }}
+                >
+                    <Text style={styles.devText}>Desenvolvido por SZ Soluções</Text>
+                </SafeAreaView>
             </SafeAreaView>
         </SafeAreaView>
     )
@@ -223,7 +319,7 @@ export default class SignInScreen extends React.Component {
 const styles = StyleSheet.create({
     viewMain: {
         flex: 1,
-        backgroundColor: colorAppSecondary
+        backgroundColor: colorAppPrimary
     },
     center: {
         alignItems: 'center',
@@ -231,7 +327,8 @@ const styles = StyleSheet.create({
     },
     devText: {
         fontSize: 10,
-        fontFamily: 'Montserrat-Bold',
+        fontFamily: 'Montserrat-Thin',
+        color: 'white'
     },
     logoText: {
         fontFamily: 'OpenSans-Bold',

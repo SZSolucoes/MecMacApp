@@ -1,9 +1,26 @@
+/* eslint-disable max-len */
 import React from 'react';
-import { View, StyleSheet } from 'react-native';
-import { Text, TouchableRipple, Surface } from 'react-native-paper';
+import { View, StyleSheet, Animated, Easing } from 'react-native';
+import { Text, Surface } from 'react-native-paper';
+import Ripple from 'react-native-material-ripple';
+import { connect } from 'react-redux';
+
 import { colorAppPrimary } from '../utils/Constants';
+import { modifyAnimatedVisible } from '../../actions/CustomHomeTabBarActions';
+
+const AnimatedSurface = Animated.createAnimatedComponent(Surface);
+const tabBarHeight = 52;
 
 class CustomHomeTabBar extends React.Component {
+    
+    constructor(props) {
+        super(props);
+        
+        this.animTabBarTranslateY = new Animated.Value(0);
+    }
+    
+    componentDidMount = () => this.props.modifyAnimatedVisible && this.props.modifyAnimatedVisible(this.animateVisible)
+
     getLabelTab = (labelScreen) => {
         switch (labelScreen) {
             case 'HomeTab':
@@ -16,6 +33,31 @@ class CustomHomeTabBar extends React.Component {
                 return labelScreen;
         }
     }
+
+    animateVisible = (tabBarVisible = 'visible', duration = 200) => {
+        if (tabBarVisible === 'hide') {
+            Animated.timing(
+                this.animTabBarTranslateY,
+                {
+                    toValue: tabBarHeight,
+                    duration,
+                    easing: Easing.linear,
+                    useNativeDriver: true
+                }
+            ).start();
+        } else if (tabBarVisible === 'visible') {
+            Animated.timing(
+                this.animTabBarTranslateY,
+                {
+                    toValue: 0,
+                    duration,
+                    easing: Easing.linear,
+                    useNativeDriver: true
+                }
+            ).start();
+        }
+    }
+    
     render = () => { 
         const {
             renderIcon,
@@ -31,14 +73,14 @@ class CustomHomeTabBar extends React.Component {
         const { routes, index: activeRouteIndex } = navigation.state;
         
         return (
-            <Surface style={styles.container}>
+            <AnimatedSurface style={[styles.container, { transform: [{ translateY: this.animTabBarTranslateY }] }]}>
                 {routes.map((route, routeIndex) => {
                     const isRouteActive = routeIndex === activeRouteIndex;
                     const tintColor = isRouteActive ? activeTintColor : inactiveTintColor;
 
                     return (
-                    <TouchableRipple
-                        borderless
+                    <Ripple
+                        rippleCentered
                         rippleColor={colorAppPrimary}
                         key={routeIndex}
                         style={styles.tabButton}
@@ -56,18 +98,22 @@ class CustomHomeTabBar extends React.Component {
                                 {this.getLabelTab(getLabelText({ route }))}
                             </Text>
                         </View>
-                    </TouchableRipple>
+                    </Ripple>
                     );
                 })}
-            </Surface>
+            </AnimatedSurface>
         );
     }
 }
 
 const styles = StyleSheet.create({
-    container: { 
+    container: {
+        position: 'absolute',
+        right: 0,
+        bottom: 0,
+        left: 0,
         flexDirection: 'row', 
-        height: 52, 
+        height: tabBarHeight, 
         elevation: 8
     },
     tabButton: { 
@@ -80,4 +126,4 @@ const styles = StyleSheet.create({
     }
 });
 
-export default CustomHomeTabBar;
+export default connect(() => ({}), { modifyAnimatedVisible })(CustomHomeTabBar);

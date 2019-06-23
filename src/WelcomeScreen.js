@@ -12,7 +12,8 @@ import {
     TouchableWithoutFeedback
 } from 'react-native';
 import Video from 'react-native-video';
-import { Swiper } from 'react-native-awesome-viewpager';
+import { Pages } from 'react-native-pages';
+import SplashScreen from 'react-native-splash-screen';
 
 import welcomevideo from './assets/videos/welcomevideo.mp4';
 
@@ -52,7 +53,10 @@ export default class WelcomeScreen extends Component {
 
     onVideoBuffer = () => true
 
-    onVideoLoad = () => this.doAnimTabsOpacity()
+    onVideoLoad = () => {
+        SplashScreen.hide();
+        this.doAnimTabsOpacity();
+    }
 
     onVideoError = () => true
 
@@ -105,11 +109,8 @@ export default class WelcomeScreen extends Component {
                                 <Text style={{ fontSize: 13, color: 'white' }}>Logo Marca</Text>
                             </SafeAreaView>
                         </SafeAreaView>
-                        <Swiper
-                            ref='ViewPager'
-                            autoplay={false}
-                            interval={2000}
-                            scrollEnabled
+                        <Pages
+                            startPage={0}
                             style={{ 
                                 flex: 1
                             }}
@@ -154,7 +155,7 @@ export default class WelcomeScreen extends Component {
                                     Página 4
                                 </Text>
                             </View>
-                        </Swiper>
+                        </Pages>
                     </SafeAreaView>
                     <TouchableWithoutFeedback
                         onPress={() => this.props.navigation.navigate('SignIn')}
@@ -194,17 +195,19 @@ const styles = StyleSheet.create({
         right: 0,
     },
     center: {
+        flex: 1,
+        backgroundColor: 'transparent',
         alignItems: 'center',
         padding: 35
     },
     textCenterTitle: { 
         fontSize: 24,
-        fontFamily: 'Montserrat-Bold',
+        fontFamily: 'OpenSans-Bold',
         color: 'white', 
         textAlign: 'center' 
     },
     textCenterSubtitle: {
-        fontFamily: 'Montserrat-Medium',
+        fontFamily: 'OpenSans-SemiBold',
         color: 'white', 
         textAlign: 'center'
     },
@@ -213,7 +216,7 @@ const styles = StyleSheet.create({
         justifyContent: 'center'
     },
     textMontserrat: {
-        fontFamily: 'Montserrat-Regular',
+        fontFamily: 'OpenSans-Regular',
         color: 'white',
         textAlign: 'center'
     }

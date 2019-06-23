@@ -5,14 +5,14 @@ import {
     Text,
     StyleSheet
 } from 'react-native';
-import { colorAppForeground, colorAppPrimary } from '../utils/Constants';
+import { colorAppForeground } from '../utils/Constants';
 
 export default class ProfileScreenFragment extends React.Component {
     render = () => (
         <View style={styles.mainView}>
-            <Appbar style={{ backgroundColor: colorAppPrimary }}>
+            <Appbar.Header style={{ backgroundColor: 'white' }}>
                 <Appbar.BackAction onPress={() => this.props.backToProfile()} />
-            </Appbar>
+            </Appbar.Header>
             <Text onPress={() => this.props.backToProfile()}>Profile Fragment</Text>
         </View>
     )
