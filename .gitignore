@@ -59,9 +59,9 @@ android/app/google-services.json
 android/app/src/main/res/values/strings.xml
 android/gradle.properties
 ios/MecMacApp.xcodeproj/project.pbxproj
-ios/MecMacApp/Info.plist
 package-lock.json
 android/java_pid61680.hprof
 android/java_pid65296.hprof
 android/java_pid65632.hprof
 ios/MecMacApp/GoogleService-Info.plist
+ios/MecMacApp/Info.plist
