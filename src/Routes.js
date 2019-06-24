@@ -90,23 +90,23 @@ const AppStack = createStackNavigator(
                     header: null
                 },
                 defaultNavigationOptions: ({ navigation }) => ({
-                    tabBarIcon: ({ /* focused, horizontal, */ tintColor }) => {
+                    tabBarIcon: ({ focused, /* horizontal,*/ tintColor }) => {
                         const { routeName } = navigation.state;
                         const IconComponent = Icon;
                         let iconName;
                         if (routeName === 'HomeTab') {
-                            iconName = 'ios-home';
+                            iconName = `home${focused ? '' : '-outline'}`;
                             // Sometimes we want to add badges to some icons. 
                             // You can check the implementation below.
                             //IconComponent = HomeIconWithBadge; 
                         } else if (routeName === 'ServicesTab') {
-                            iconName = 'ios-construct';
+                            iconName = 'magnify';
                         } else if (routeName === 'ProfileTab') {
-                            iconName = 'md-person';
+                            iconName = `account${focused ? '' : '-outline'}`;
                         }
                         
                         // You can return any component that you like here!
-                        return (<IconComponent name={iconName} type='ionicon' size={25} color={tintColor} />);
+                        return (<IconComponent name={iconName} type='material-community' size={25} color={tintColor} />);
                     },
                 }),
                 tabBarOptions: {

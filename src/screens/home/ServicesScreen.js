@@ -2,7 +2,8 @@ import React from 'react';
 import { 
     View,
     Text,
-    StyleSheet
+    StyleSheet,
+    SafeAreaView
 } from 'react-native';
 import { colorAppForeground } from '../utils/Constants';
 
@@ -12,9 +13,9 @@ export default class ServicesScreen extends React.Component {
     };
 
     render = () => (
-        <View style={styles.mainView}>
+        <SafeAreaView style={styles.mainView}>
             <Text>Serviços</Text>
-        </View>
+        </SafeAreaView>
     )
 }
 

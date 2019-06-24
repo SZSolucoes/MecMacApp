@@ -52,10 +52,22 @@ export default class SignInScreen extends React.Component {
             null,
             (error, result) => {
                 if (error) {
-                    this.setState({ userInfo: `Error fetching data: ${error.toString()}`, disableButtons: false });
+                    this.setState({ disableButtons: false });
                 } else {
-                    this.signInAsync();
-                    this.setState({ userInfo: JSON.stringify(result), disableButtons: false });
+                    const userInfo = result;
+                    const userJson = {};
+
+                    if (userInfo && userInfo.email && userInfo.name) {
+                        userJson.email = userInfo.email;
+                        userJson.name = userInfo.name;
+
+                        if (userInfo.picture && userInfo.picture.data && userInfo.picture.data.url) {
+                            userJson.photourl = userInfo.picture.data.url;
+                        }
+                    }
+                     
+                    this.signInAsync(userJson);
+                    this.setState({ disableButtons: false });
                 }
             }
         );
@@ -115,17 +127,27 @@ export default class SignInScreen extends React.Component {
         try {
             await GoogleSignin.hasPlayServices();
             const userInfo = await GoogleSignin.signIn();
-            this.setState({ userInfo: JSON.stringify(userInfo) });
-            this.signInAsync();
+            const userJson = {};
+
+            if (userInfo && userInfo.user && userInfo.user.email && userInfo.user.name) {
+                userJson.email = userInfo.user.email;
+                userJson.name = userInfo.user.name;
+
+                if (userInfo.user.photo) {
+                    userJson.photourl = userInfo.user.photo;
+                }
+            }
+
+            this.signInAsync(userJson);
         } catch (error) {
             if (error.code === statusCodes.SIGN_IN_CANCELLED) {
-                this.setState({ userInfo: 'canceled' });
+                this.setState({ text: 'canceled' });
             } else if (error.code === statusCodes.IN_PROGRESS) {
-                this.setState({ userInfo: 'in progress' });
+                this.setState({ text: 'in progress' });
             } else if (error.code === statusCodes.PLAY_SERVICES_NOT_AVAILABLE) {
-                this.setState({ userInfo: 'not play services' });
+                this.setState({ text: 'not play services' });
             } else {
-                this.setState({ userInfo: JSON.stringify(error) });
+                this.setState({ text: JSON.stringify(error) });
             }
         }
 
@@ -136,16 +158,19 @@ export default class SignInScreen extends React.Component {
         try {
             await GoogleSignin.revokeAccess();
             await GoogleSignin.signOut();
-            this.setState({ userInfo: 'logout' });
+            this.setState({ text: 'logout' });
         } catch (error) {
-            this.setState({ userInfo: 'erro em logout' });
+            this.setState({ text: 'erro em logout' });
         }
     };
 
-    signInAsync = async () => {
+    signInAsync = async (userJson = {}) => {
         try {
             await AsyncStorage.setItem('@isFirstOpened', 'true');
             await AsyncStorage.setItem('@isUserLogged', 'true');
+            if (Object.keys(userJson).length) {
+                await AsyncStorage.setItem('@userProfileJson', JSON.stringify(userJson));
+            }
         } catch (e) {
             console.log('AsyncStorage error');
         }

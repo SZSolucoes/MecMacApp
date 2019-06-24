@@ -1,0 +1,1 @@
+cd android && gradlew clean && cd .. && adb connect 192.168.0.4 && react-native run-android

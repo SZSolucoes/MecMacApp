@@ -3,22 +3,28 @@ import {
     View,
     Text,
     StyleSheet,
-    BackHandler
+    BackHandler,
+    SafeAreaView
 } from 'react-native';
+import { connect } from 'react-redux';
 import SplashScreen from 'react-native-splash-screen';
 
 import { colorAppForeground } from '../utils/Constants';
 
-export default class HomeScreen extends React.Component {
+class HomeScreen extends React.Component {
     static navigationOptions = {
         header: null
     };
 
     constructor(props) {
         super(props);
-        this.didFocusSubscription = props.navigation.addListener('didFocus', () =>
-            BackHandler.addEventListener('hardwareBackPress', this.onBackButtonPressAndroid)
-        );
+        this.didFocusSubscription = props.navigation.addListener('didFocus', () => {
+            BackHandler.addEventListener('hardwareBackPress', this.onBackButtonPressAndroid);
+            
+            if (this.props.animatedVisible) {
+                this.props.animatedVisible('visible', 200);
+            }
+        });
     }
     
     componentDidMount = () => {
@@ -46,9 +52,9 @@ export default class HomeScreen extends React.Component {
     }
 
     render = () => (
-        <View style={styles.mainView}>
+        <SafeAreaView style={styles.mainView}>
             <Text>Início</Text>
-        </View>
+        </SafeAreaView>
     )
 }
 
@@ -61,3 +67,8 @@ const styles = StyleSheet.create({
     }
 });
 
+const mapStateToProps = (state) => ({
+    animatedVisible: state.CustomHomeTabBarReducer.animatedVisible
+});
+
+export default connect(mapStateToProps)(HomeScreen);
