@@ -18,7 +18,10 @@ import { Appbar, Divider } from 'react-native-paper';
 import SplashScreen from 'react-native-splash-screen';
 
 import { colorAppPrimary } from '../utils/Constants';
+import { getDeviceInfos } from '../utils/device/DeviceInfos';
+
 import imgLogo from '../../assets/images/logo.png';
+import { apiPostUser } from '../utils/api/ApiManagerConsumer';
 
 const STATUSBAR_HEIGHT = Platform.OS === 'ios' ? 20 : StatusBar.currentHeight;
 
@@ -35,7 +38,7 @@ export default class SignInScreen extends React.Component {
         };
     }
 
-    componentDidMount = () => {
+    componentDidMount = async () => {
         SplashScreen.hide();
         BackHandler.addEventListener('hardwareBackPress', this.onHandleBackPress);
     }
@@ -171,6 +174,22 @@ export default class SignInScreen extends React.Component {
             if (Object.keys(userJson).length) {
                 await AsyncStorage.setItem('@userProfileJson', JSON.stringify(userJson));
             }
+
+            const asyncFunExec = async () => {
+                const deviceInfos = await getDeviceInfos();
+                const params = {
+                    user_name: userJson.name,
+                    user_email: userJson.email,
+                    user_profile_url: userJson.photourl,
+                    device_user_name: userJson.name,
+                    device_user_email: userJson.email,
+                    ...deviceInfos
+                };
+
+                apiPostUser(params);
+            };
+
+            asyncFunExec();
         } catch (e) {
             console.log('AsyncStorage error');
         }

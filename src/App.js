@@ -7,8 +7,11 @@ import { GoogleSignin } from 'react-native-google-signin';
 
 import Reducers from './reducers';
 import Routes from './Routes';
+import { initConfigs } from './screens/utils/InitConfigs';
 
 export const store = createStore(Reducers, {}, applyMiddleware(ReduxThunk));
+
+initConfigs();
 
 class App extends React.Component {
     componentDidMount = () => {
