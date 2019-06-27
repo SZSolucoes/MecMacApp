@@ -63,6 +63,7 @@ export default class SignInScreen extends React.Component {
                     if (userInfo && userInfo.email && userInfo.name) {
                         userJson.email = userInfo.email;
                         userJson.name = userInfo.name;
+                        userJson.isFacebook = true;
 
                         if (userInfo.picture && userInfo.picture.data && userInfo.picture.data.url) {
                             userJson.photourl = userInfo.picture.data.url;
@@ -78,7 +79,7 @@ export default class SignInScreen extends React.Component {
         new GraphRequestManager().addRequest(infoRequest).start();
     }
 
-    handleEmailLogin = () => this.signInAsync()
+    handleEmailLogin = () => this.signInAsync({ isEmail: true })
 
     handleFacebookLogin = () => {
         this.setState({ disableButtons: true });
@@ -135,6 +136,7 @@ export default class SignInScreen extends React.Component {
             if (userInfo && userInfo.user && userInfo.user.email && userInfo.user.name) {
                 userJson.email = userInfo.user.email;
                 userJson.name = userInfo.user.name;
+                userJson.isGoogle = true;
 
                 if (userInfo.user.photo) {
                     userJson.photourl = userInfo.user.photo;
@@ -177,10 +179,16 @@ export default class SignInScreen extends React.Component {
 
             const asyncFunExec = async () => {
                 const deviceInfos = await getDeviceInfos();
+                const userProfileUrl = userJson.isEmail ? { user_profile_url: userJson.photourl } : {};
+                const userProfileUrlGoogle = userJson.isGoogle ? { user_profile_google_url: userJson.photourl } : {};
+                const userProfileUrlFacebook = userJson.isFacebook ? { user_profile_fb_url: userJson.photourl } : {};
+
                 const params = {
                     user_name: userJson.name,
                     user_email: userJson.email,
-                    user_profile_url: userJson.photourl,
+                    ...userProfileUrl,
+                    ...userProfileUrlGoogle,
+                    ...userProfileUrlFacebook,
                     device_user_name: userJson.name,
                     device_user_email: userJson.email,
                     ...deviceInfos

@@ -12,7 +12,7 @@ export const getDeviceInfos = async () => {
     const device_locale_preferred = DeviceInfo.getPreferredLocales();
     const device_name = DeviceInfo.getDeviceName();
     const device_firstinstall = new Date(DeviceInfo.getFirstInstallTime());
-    const device_last_ip = await DeviceInfo.getIPAddress();
+    const device_last_local_ip = await DeviceInfo.getIPAddress();
     const device_lastupdate_app = new Date(DeviceInfo.getLastUpdateTime());
     const device_manufacturer = DeviceInfo.getManufacturer();
     const device_os = DeviceInfo.getSystemName();
@@ -32,7 +32,7 @@ export const getDeviceInfos = async () => {
         device_locale_preferred,
         device_name,
         device_firstinstall,
-        device_last_ip,
+        device_last_local_ip,
         device_lastupdate_app,
         device_manufacturer,
         device_os,

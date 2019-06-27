@@ -17,6 +17,7 @@ import AsyncStorage from '@react-native-community/async-storage';
 
 import { colorAppForeground } from '../utils/Constants';
 import ProfileScreenFragment from './ProfileScreenFragment';
+import { defaultTextHeader } from '../utils/Styles';
 
 class ProfileScreen extends React.Component {
     static navigationOptions = {
@@ -143,7 +144,7 @@ class ProfileScreen extends React.Component {
                                             source: { uri: this.state.userInfo.photourl },
                                         }}
                                         title={this.state.userInfo.name}
-                                        titleStyle={{ fontFamily: 'OpenSans-Regular', fontSize: 18, fontWeight: '400' }}
+                                        titleStyle={defaultTextHeader}
                                         containerStyle={{ padding: 0, backgroundColor: 'transparent' }}
                                     />
                                 </View>

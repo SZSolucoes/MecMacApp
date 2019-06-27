@@ -23,10 +23,12 @@
     "react-native-material-ripple": "^0.8.0",
     "react-native-pages": "^0.7.0",
     "react-native-paper": "^2.16.0",
+    "react-native-reanimated": "^1.1.0",
     "react-native-splash-screen": "^3.2.0",
     "react-native-vector-icons": "^6.5.0",
     "react-native-video": "^4.4.1",
     "react-navigation": "^3.11.0",
+    "react-navigation-drawer": "^2.0.0",
     "react-redux": "^7.1.0",
     "redux": "^4.0.1",
     "redux-thunk": "^2.3.0"

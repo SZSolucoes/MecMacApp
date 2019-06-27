@@ -1,3 +1,4 @@
+/* eslint-disable max-len */
 import React from 'react';
 import { 
     View,
@@ -8,8 +9,11 @@ import {
 } from 'react-native';
 import { connect } from 'react-redux';
 import SplashScreen from 'react-native-splash-screen';
+import { Appbar } from 'react-native-paper';
+import { ListItem } from 'react-native-elements';
 
 import { colorAppForeground } from '../utils/Constants';
+import { defaultTextHeader } from '../utils/Styles';
 
 class HomeScreen extends React.Component {
     static navigationOptions = {
@@ -41,6 +45,10 @@ class HomeScreen extends React.Component {
         BackHandler.removeEventListener('hardwareBackPress', this.onBackButtonPressAndroid);
     }
 
+    onPressDrawerIcon = () => {
+        this.props.navigation.openDrawer();
+    }
+
     onBackButtonPressAndroid = () => {
         const routeName = this.props.navigation.state.routeName;
 
@@ -53,6 +61,30 @@ class HomeScreen extends React.Component {
 
     render = () => (
         <SafeAreaView style={styles.mainView}>
+            <Appbar.Header style={{ backgroundColor: 'white', overflow: 'hidden', height: 60, elevation: 0 }}>
+                <View style={{ width: '100%', justifyContent: 'center', paddingLeft: 10 }}>
+                    <ListItem
+                        leftAvatar={{ 
+                            source: { uri: null },
+                            editButton: {
+                                size: 14,
+                                color: 'black',
+                                name: 'ios-menu',
+                                type: 'ionicon',
+                                style: styles.iconDrawer,
+                                underlayColor: 'white'
+                            },
+                            showEditButton: true,
+                            activeOpacity: 1,
+                            onPress: () => this.onPressDrawerIcon(),
+                            onEditPress: () => this.onPressDrawerIcon()
+                        }}
+                        title={'Home'}
+                        titleStyle={defaultTextHeader}
+                        containerStyle={{ padding: 0, backgroundColor: 'transparent' }}
+                    />
+                </View>
+            </Appbar.Header>
             <Text>Início</Text>
         </SafeAreaView>
     )
@@ -61,9 +93,15 @@ class HomeScreen extends React.Component {
 const styles = StyleSheet.create({
     mainView: {
         flex: 1,
-        alignItems: 'center',
-        justifyContent: 'center',
         backgroundColor: colorAppForeground
+    },
+    iconDrawer: {
+        backgroundColor: 'white', 
+        borderColor: 'grey', 
+        borderWidth: 0.5, 
+        width: 18, 
+        height: 18, 
+        borderRadius: 9
     }
 });
 

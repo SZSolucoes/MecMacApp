@@ -5,7 +5,9 @@ import {
     createStackNavigator, 
     createSwitchNavigator,
     createBottomTabNavigator
+    /* createDrawerNavigator */
 } from 'react-navigation';
+import { createDrawerNavigator } from 'react-navigation-drawer';
 import { Icon } from 'react-native-elements';
 
 import { colorAppPrimary } from './screens/utils/Constants';
@@ -19,6 +21,8 @@ import HomeScreen from './screens/home/HomeScreen';
 import WelcomeScreen from './WelcomeScreen';
 import ServicesScreen from './screens/home/ServicesScreen';
 import ProfileScreen from './screens/home/ProfileScreen';
+import DrawerHome from './screens/tools/DrawerHome';
+import { getWindowWidthPortrait } from './screens/utils/Screen';
 //import TransitionsScreens from './screens/utils/TransitionsScreens';
 
 const styles = {
@@ -75,7 +79,7 @@ const AuthStack = createStackNavigator(
 // Rotas principais
 const AppStack = createStackNavigator(
     { 
-        Home: {
+        Home: createDrawerNavigator({
             screen: createBottomTabNavigator({
                 HomeTab: HomeScreen,
                 ServicesTab: ServicesScreen,
@@ -115,7 +119,15 @@ const AppStack = createStackNavigator(
                     style: { borderTopWidth: 0, elevation: 8 }
                 },
             }),
-        }
+        },
+        {
+            drawerWidth: (getWindowWidthPortrait() * 0.83),
+            edgeWidth: 80,
+            contentComponent: DrawerHome,
+            navigationOptions: {
+                header: null
+            }
+        }),
     },
     {
         initialRouteName: 'Home',
