@@ -1,12 +1,15 @@
 /* eslint-disable max-len */
 import React from 'react';
 import { View, ScrollView, StyleSheet } from 'react-native';
+import { connect } from 'react-redux';
 import { SafeAreaView } from 'react-navigation';
 import { Drawer } from 'react-native-paper';
 import { ListItem } from 'react-native-elements';
 import Ripple from 'react-native-material-ripple';
 import { colorAppPrimary } from '../utils/Constants';
 import { defaultTextHeader } from '../utils/Styles';
+
+import imgLogo from '../../assets/images/logo.png';
 
 class DrawerHome extends React.Component {
     constructor(props) {
@@ -23,7 +26,7 @@ class DrawerHome extends React.Component {
                     <View style={{ padding: 15, backgroundColor: colorAppPrimary }}>
                         <ListItem
                             leftAvatar={{ 
-                                source: { uri: null },
+                                source: this.props.userInfo.photourl ? { uri: this.props.userInfo.photourl } : imgLogo,
                                 editButton: {
                                     style: styles.iconDrawer,
                                     underlayColor: 'white'
@@ -33,18 +36,19 @@ class DrawerHome extends React.Component {
                                 onPress: () => this.onPressDrawerIcon(),
                                 onEditPress: () => this.onPressDrawerIcon()
                             }}
-                            title={'Roney Maia'}
+                            title={this.props.userInfo.name || 'MecMac'}
                             titleStyle={[defaultTextHeader, { color: 'white' }]}
-                            subtitle={'roneymaia@gmail.com'}
+                            subtitle={this.props.userInfo.email || null}
                             subtitleStyle={{ color: 'white' }}
                             containerStyle={{ padding: 0, backgroundColor: 'transparent' }}
                         />
                     </View>
-                    <Drawer.Section title="Some title">
+                    <Drawer.Section title={'Principal'} style={styles.section}>
                         <ListItem
                             Component={(props) => <Ripple rippleColor={colorAppPrimary} {...props} style={styles.listItem} />}
-                            leftAvatar={{ 
-                                source: { uri: null },
+                            leftIcon={{ 
+                                name: 'home-outline',
+                                type: 'material-community'
                             }}
                             title={'Home'}
                             titleStyle={styles.listItemTitle}
@@ -58,8 +62,12 @@ class DrawerHome extends React.Component {
 }
 
 const styles = StyleSheet.create({
+    section: {
+        padding: 5
+    },
     listItem: {
-        padding: 10
+        paddingVertical: 10,
+        paddingHorizontal: 15
     },
     listItemTitle: {
         fontFamily: 'OpenSans-SemiBold', 
@@ -68,5 +76,9 @@ const styles = StyleSheet.create({
     }
 });
 
-export default DrawerHome;
+const mapStateToProps = state => ({
+    userInfo: state.UserReducer.userInfo
+});
+
+export default connect(mapStateToProps)(DrawerHome);
 

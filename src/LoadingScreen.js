@@ -5,6 +5,7 @@ import {
     ActivityIndicator,
 } from 'react-native';
 import AsyncStorage from '@react-native-community/async-storage';
+import { initializeBatchs } from './screens/utils/InitConfigs';
 
 export default class LoadingScreen extends React.Component {
     static navigationOptions = {
@@ -26,6 +27,7 @@ export default class LoadingScreen extends React.Component {
                 this.props.navigation.navigate('Welcome');
             } else {
                 this.props.navigation.navigate(isUserLogged ? 'App' : 'Auth');
+                if (isUserLogged) initializeBatchs();
             }
         } catch (e) {
             console.log('AsyncStorage error');

@@ -4,8 +4,6 @@ import {
     View,
     Text,
     Image,
-    Platform,
-    StatusBar,
     StyleSheet,
     BackHandler,
     SafeAreaView
@@ -22,8 +20,8 @@ import { getDeviceInfos } from '../utils/device/DeviceInfos';
 
 import imgLogo from '../../assets/images/logo.png';
 import { apiPostUser } from '../utils/api/ApiManagerConsumer';
-
-const STATUSBAR_HEIGHT = Platform.OS === 'ios' ? 20 : StatusBar.currentHeight;
+import { initializeBatchs } from '../utils/InitConfigs';
+import { renderOpacityStatusBar } from '../utils/Screen';
 
 export default class SignInScreen extends React.Component {
     static navigationOptions = {
@@ -203,16 +201,12 @@ export default class SignInScreen extends React.Component {
         }
 
         this.props.navigation.navigate('App');
+        initializeBatchs();
     };
 
     render = () => (
         <SafeAreaView style={styles.viewMain}>
-            <View style={{ height: STATUSBAR_HEIGHT }}>
-                <StatusBar 
-                    backgroundColor={'rgba(0, 0, 0, 0.3)'}
-                    translucent
-                />
-            </View>
+            { renderOpacityStatusBar() }
             <View
                 style={{
                     ...StyleSheet.absoluteFillObject,

@@ -2,7 +2,6 @@
 import React from 'react';
 import { 
     View,
-    Text,
     StyleSheet,
     BackHandler,
     SafeAreaView
@@ -65,7 +64,16 @@ class HomeScreen extends React.Component {
                 <View style={{ width: '100%', justifyContent: 'center', paddingLeft: 10 }}>
                     <ListItem
                         leftAvatar={{ 
-                            source: { uri: null },
+                            icon: {
+                                name: 'ios-car',
+                                type: 'ionicon',
+                                size: 34,
+                                color: 'black'
+                            },
+                            overlayContainerStyle: {
+                                backgroundColor: 'white',
+                                borderWidth: 0.8
+                            },
                             editButton: {
                                 size: 14,
                                 color: 'black',
@@ -79,13 +87,20 @@ class HomeScreen extends React.Component {
                             onPress: () => this.onPressDrawerIcon(),
                             onEditPress: () => this.onPressDrawerIcon()
                         }}
-                        title={'Home'}
-                        titleStyle={defaultTextHeader}
-                        containerStyle={{ padding: 0, backgroundColor: 'transparent' }}
+                        rightIcon={{
+                            name: 'ios-arrow-down',
+                            type: 'ionicon',
+                            size: 20,
+                            color: 'black',
+                            onPress: () => alert('oi')
+                        }}
+                        title={'Meu incrível veículo'}
+                        subtitle={'Ano 2019'}
+                        titleStyle={StyleSheet.flatten([defaultTextHeader, styles.titleVehicle])}
+                        containerStyle={{ padding: 0, paddingRight: 15, backgroundColor: 'transparent' }}
                     />
                 </View>
             </Appbar.Header>
-            <Text>Início</Text>
         </SafeAreaView>
     )
 }
@@ -102,6 +117,9 @@ const styles = StyleSheet.create({
         width: 18, 
         height: 18, 
         borderRadius: 9
+    },
+    titleVehicle: {
+        fontSize: 16
     }
 });
 

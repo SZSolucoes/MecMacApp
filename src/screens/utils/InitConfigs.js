@@ -1,6 +1,9 @@
+import AsyncStorage from '@react-native-community/async-storage';
 import Axios from 'axios';
 import { decode, encode } from 'base-64';
 import _ from 'lodash';
+
+import { store } from '../../App';
 
 export const initConfigs = () => {
     if (!global.btoa) {
@@ -23,3 +26,20 @@ export const initConfigs = () => {
         }
     };
 };
+
+export const initializeBatchs = async () => {
+    // ######### USER INFO #########
+    const userInfoJsonString = await AsyncStorage.getItem('@userProfileJson');
+    if (userInfoJsonString) {
+        const userInfo = JSON.parse(userInfoJsonString);
+
+        if (userInfo) {
+            store.dispatch({
+                type: 'modify_userreducer_userinfo',
+                payload: userInfo
+            });
+        }
+    }
+    // ######### END #########
+};
+

@@ -5,7 +5,6 @@ import {
     Easing,
     Animated,
     AppState,
-    StatusBar,
     StyleSheet,
     BackHandler,
     SafeAreaView,
@@ -16,6 +15,7 @@ import { Pages } from 'react-native-pages';
 import SplashScreen from 'react-native-splash-screen';
 
 import welcomevideo from './assets/videos/welcomevideo.mp4';
+import { renderOpacityStatusBar } from './screens/utils/Screen';
 
 export default class WelcomeScreen extends Component {
     static navigationOptions = {
@@ -71,10 +71,7 @@ export default class WelcomeScreen extends Component {
 
     render = () => (
         <SafeAreaView style={styles.mainView}>
-            <StatusBar 
-                backgroundColor={'rgba(0, 0, 0, 0.5)'}
-                translucent
-            />
+            { renderOpacityStatusBar(0.6) }
             <Video 
                 source={welcomevideo}
                 ref={ref => (this.videoPlayer = ref)}

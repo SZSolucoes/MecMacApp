@@ -32,22 +32,9 @@ class ProfileScreen extends React.Component {
         this.didFocusSubscription = props.navigation.addListener('didFocus', () => {
             BackHandler.addEventListener('hardwareBackPress', this.onBackButtonPressAndroid);
         });
-
-        this.state = {
-            userInfo: {}
-        };
     }
 
     componentDidMount = async () => {
-        const userInfoJsonString = await AsyncStorage.getItem('@userProfileJson');
-        if (userInfoJsonString) {
-            const userInfo = JSON.parse(userInfoJsonString);
-
-            if (userInfo) {
-                this.setState({ userInfo });
-            }
-        }
-
         this.willBlurSubscription = this.props.navigation.addListener('willBlur', () =>
             BackHandler.removeEventListener('hardwareBackPress', this.onBackButtonPressAndroid)
         );
@@ -136,14 +123,14 @@ class ProfileScreen extends React.Component {
             >
                 <View style={{ flex: 1 }}>
                     <Appbar.Header style={{ backgroundColor: 'white', overflow: 'hidden', height: 60, elevation: 0 }}>
-                        { this.state.userInfo.name ? 
+                        { this.props.userInfo.name ? 
                             (
                                 <View style={{ flex: 1, justifyContent: 'center', paddingLeft: 10 }}>
                                     <ListItem
                                         leftAvatar={{ 
-                                            source: { uri: this.state.userInfo.photourl },
+                                            source: { uri: this.props.userInfo.photourl },
                                         }}
-                                        title={this.state.userInfo.name}
+                                        title={this.props.userInfo.name}
                                         titleStyle={defaultTextHeader}
                                         containerStyle={{ padding: 0, backgroundColor: 'transparent' }}
                                     />
@@ -211,7 +198,8 @@ const styles = StyleSheet.create({
 });
 
 const mapStateToProps = (state) => ({
-    animatedVisible: state.CustomHomeTabBarReducer.animatedVisible
+    animatedVisible: state.CustomHomeTabBarReducer.animatedVisible,
+    userInfo: state.UserReducer.userInfo
 });
 
 export default connect(mapStateToProps)(ProfileScreen);
