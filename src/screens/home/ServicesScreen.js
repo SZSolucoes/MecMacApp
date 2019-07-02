@@ -1,20 +1,23 @@
+/* eslint-disable max-len */
 import React from 'react';
-import { 
-    View,
+import {
     Text,
     StyleSheet,
     SafeAreaView
 } from 'react-native';
+import { Appbar } from 'react-native-paper';
 import { colorAppForeground } from '../utils/Constants';
 
-export default class ServicesScreen extends React.Component {
+export default class ServicesScreen extends React.PureComponent {
     static navigationOptions = {
         header: null
     };
 
     render = () => (
         <SafeAreaView style={styles.mainView}>
-            <Text>Serviços</Text>
+            <Appbar.Header style={{ backgroundColor: 'white', overflow: 'hidden', height: 60, elevation: 0 }}>
+                <Appbar.Content title={'Serviços'} titleStyle={{ fontFamily: 'OpenSans-Regular' }} />
+            </Appbar.Header>
         </SafeAreaView>
     )
 }
@@ -22,8 +25,6 @@ export default class ServicesScreen extends React.Component {
 const styles = StyleSheet.create({
     mainView: {
         flex: 1,
-        alignItems: 'center',
-        justifyContent: 'center',
         backgroundColor: colorAppForeground
     }
 });

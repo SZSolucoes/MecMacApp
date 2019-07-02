@@ -1,10 +1,11 @@
-import React, { Component } from 'react';
+import React from 'react';
 import {
     Text,
     View,
     Easing,
     Animated,
     AppState,
+    Platform,
     StyleSheet,
     BackHandler,
     SafeAreaView,
@@ -17,7 +18,7 @@ import SplashScreen from 'react-native-splash-screen';
 import welcomevideo from './assets/videos/welcomevideo.mp4';
 import { renderOpacityStatusBar } from './screens/utils/Screen';
 
-export default class WelcomeScreen extends Component {
+export default class WelcomeScreen extends React.PureComponent {
     static navigationOptions = {
         header: null
     }
@@ -49,6 +50,8 @@ export default class WelcomeScreen extends Component {
         }
     }
 
+    onPressInit = () => this.props.navigation.navigate('SignIn')
+
     onHandleBackPress = () => true
 
     onVideoBuffer = () => true
@@ -70,8 +73,7 @@ export default class WelcomeScreen extends Component {
     }
 
     render = () => (
-        <SafeAreaView style={styles.mainView}>
-            { renderOpacityStatusBar(0.6) }
+        <View style={styles.mainView}>
             <Video 
                 source={welcomevideo}
                 ref={ref => (this.videoPlayer = ref)}
@@ -83,99 +85,104 @@ export default class WelcomeScreen extends Component {
                 onError={this.onVideoError}
                 repeat
             />
-            <SafeAreaView style={{ flex: 1, backgroundColor: 'rgba(0, 0, 0, 0.5)' }}>
-                <Animated.View
-                    style={{ 
-                        flex: 1,
-                        opacity: this.animTabsOpacity
-                    }}
-                >  
-                    <SafeAreaView style={{ flex: 10, padding: 20 }}>
-                        <SafeAreaView style={{ marginVertical: 30 }} />
-                        <SafeAreaView style={styles.viewLogo}>
-                            <SafeAreaView 
+            <View style={{ flex: 1, backgroundColor: 'rgba(0, 0, 0, 0.5)' }}>
+                { renderOpacityStatusBar(0.1, Platform.OS === 'ios' ? 'light-content' : 'default') }
+                <SafeAreaView
+                    style={{ flex: 1 }}
+                >
+                    <Animated.View
+                        style={{ 
+                            flex: 1,
+                            opacity: this.animTabsOpacity
+                        }}
+                    >  
+                        <View style={{ flex: 10, padding: 20 }}>
+                            <View style={{ marginVertical: 30 }} />
+                            <View style={styles.viewLogo}>
+                                <View 
+                                    style={{ 
+                                        width: 80, 
+                                        height: 80, 
+                                        borderRadius: 40, 
+                                        borderWidth: 2, 
+                                        borderColor: 'white' 
+                                    }} 
+                                />
+                                <View style={{ position: 'absolute' }}>
+                                    <Text style={{ fontSize: 13, color: 'white' }}>Logo Marca</Text>
+                                </View>
+                            </View>
+                            <Pages
+                                startPage={0}
                                 style={{ 
-                                    width: 80, 
-                                    height: 80, 
-                                    borderRadius: 40, 
-                                    borderWidth: 2, 
-                                    borderColor: 'white' 
-                                }} 
-                            />
-                            <SafeAreaView style={{ position: 'absolute' }}>
-                                <Text style={{ fontSize: 13, color: 'white' }}>Logo Marca</Text>
-                            </SafeAreaView>
-                        </SafeAreaView>
-                        <Pages
-                            startPage={0}
-                            style={{ 
-                                flex: 1
-                            }}
-                        >
-                            <View style={styles.center}>
-                                <Text
-                                    style={styles.textCenterTitle}
-                                >
-                                    Bem-vindo ao
-                                </Text>
-                                <Text
-                                    style={styles.textCenterTitle}
-                                >
-                                    MecMac
-                                </Text>
-                                <View style={{ marginVertical: 10 }} />
-                                <Text
-                                    style={styles.textCenterSubtitle}
-                                >
-                                    Acompanhe a manutenção do seu veículo 
-                                    e encontre os melhores serviços disponíveis
-                                </Text>
-                            </View>
-                            <View style={styles.center}>
-                                <Text
-                                    style={styles.textCenterSubtitle}
-                                >
-                                    Página 2
-                                </Text>
-                            </View>
-                            <View style={styles.center}>
-                                <Text
-                                    style={styles.textCenterSubtitle}
-                                >
-                                    Página 3
-                                </Text>
-                            </View>
-                            <View style={styles.center}>
-                                <Text
-                                    style={styles.textCenterSubtitle}
-                                >
-                                    Página 4
-                                </Text>
-                            </View>
-                        </Pages>
-                    </SafeAreaView>
-                    <TouchableWithoutFeedback
-                        onPress={() => this.props.navigation.navigate('SignIn')}
-                    >
-                        <SafeAreaView 
-                            style={{ 
-                                flex: 1, 
-                                alignItems: 'center', 
-                                justifyContent: 'center', 
-                                borderTopColor: 'rgba(255, 255, 255, 0.6)', 
-                                borderTopWidth: 0.5
-                            }}
-                        >
-                            <Text
-                                style={{ color: 'white', textAlign: 'center' }}
+                                    flex: 1
+                                }}
                             >
-                                VAMOS COMEÇAR
-                            </Text>
-                        </SafeAreaView>
-                    </TouchableWithoutFeedback>
-                </Animated.View>
-            </SafeAreaView>
-        </SafeAreaView>
+                                <View style={styles.center}>
+                                    <Text
+                                        style={styles.textCenterTitle}
+                                    >
+                                        Bem-vindo ao
+                                    </Text>
+                                    <Text
+                                        style={styles.textCenterTitle}
+                                    >
+                                        MecMac
+                                    </Text>
+                                    <View style={{ marginVertical: 10 }} />
+                                    <Text
+                                        style={styles.textCenterSubtitle}
+                                    >
+                                        Acompanhe a manutenção do seu veículo 
+                                        e encontre os melhores serviços disponíveis
+                                    </Text>
+                                </View>
+                                <View style={styles.center}>
+                                    <Text
+                                        style={styles.textCenterSubtitle}
+                                    >
+                                        Página 2
+                                    </Text>
+                                </View>
+                                <View style={styles.center}>
+                                    <Text
+                                        style={styles.textCenterSubtitle}
+                                    >
+                                        Página 3
+                                    </Text>
+                                </View>
+                                <View style={styles.center}>
+                                    <Text
+                                        style={styles.textCenterSubtitle}
+                                    >
+                                        Página 4
+                                    </Text>
+                                </View>
+                            </Pages>
+                        </View>
+                        <TouchableWithoutFeedback
+                            onPress={this.onPressInit}
+                        >
+                            <View 
+                                style={{ 
+                                    flex: 1, 
+                                    alignItems: 'center', 
+                                    justifyContent: 'center', 
+                                    borderTopColor: 'rgba(255, 255, 255, 0.6)', 
+                                    borderTopWidth: 0.5
+                                }}
+                            >
+                                <Text
+                                    style={{ color: 'white', textAlign: 'center' }}
+                                >
+                                    VAMOS COMEÇAR
+                                </Text>
+                            </View>
+                        </TouchableWithoutFeedback>
+                    </Animated.View>
+                </SafeAreaView>
+            </View>
+        </View>
     )
 }
 

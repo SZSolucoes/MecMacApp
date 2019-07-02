@@ -19,7 +19,7 @@ import { colorAppForeground } from '../utils/Constants';
 import ProfileScreenFragment from './ProfileScreenFragment';
 import { defaultTextHeader } from '../utils/Styles';
 
-class ProfileScreen extends React.Component {
+class ProfileScreen extends React.PureComponent {
     static navigationOptions = {
         header: null
     };
@@ -32,6 +32,10 @@ class ProfileScreen extends React.Component {
         this.didFocusSubscription = props.navigation.addListener('didFocus', () => {
             BackHandler.addEventListener('hardwareBackPress', this.onBackButtonPressAndroid);
         });
+
+        this.state = {
+            fragmentScreen: 'default'
+        };
     }
 
     componentDidMount = async () => {
@@ -58,9 +62,8 @@ class ProfileScreen extends React.Component {
                     this.backToProfile();
                 } else {
                     this.swiperRef.scrollToPage(this.currentPage - 1);
+                    this.currentPage = pageToBack;
                 }
-
-                this.currentPage = pageToBack;
 
                 return true;
             }
@@ -70,7 +73,7 @@ class ProfileScreen extends React.Component {
     }
 
     onPressItemList = async (itemName) => {
-        if (itemName === 'profile_exit') {
+        if (itemName === 'exit') {
             try {
                 Alert.alert(
                     'Aviso', 
@@ -93,20 +96,42 @@ class ProfileScreen extends React.Component {
             } catch (e) {
                 console.log('AsyncStorage error');
             }
-        } else if (itemName === 'profile_next') {
+        } else if ('prefs|editprofile'.includes(itemName)) {
             if (this.swiperRef) {
+                this.setFragment({ type: itemName });
                 this.swiperRef.scrollToPage(1);
                 this.currentPage = 1;
+
+                if (this.props.animatedVisible) {
+                    this.props.animatedVisible('hide', 200);
+                }
             } 
-            if (this.props.animatedVisible) {
-                this.props.animatedVisible('hide', 200);
-            }
         }
     }
+
+    setFragment = ({ type }) => {
+        switch (type) {
+            case 'editprofile':
+                this.setState({ fragmentScreen: 'editprofile' });
+                break;
+            case 'prefs':
+                this.setState({ fragmentScreen: 'prefs' });
+                break;
+            default:
+                if (this.currentPage === 0) {
+                    this.setState({ fragmentScreen: 'default' });
+                }
+                break;
+        }
+    }
+
+    setDefaultFragment = () => this.setFragment('default')
 
     backToProfile = () => {
         if (this.swiperRef) {
             this.swiperRef.scrollToPage(0);
+
+            this.currentPage = 0;
             if (this.props.animatedVisible) {
                 this.props.animatedVisible('visible', 200);
             }
@@ -120,6 +145,7 @@ class ProfileScreen extends React.Component {
                 scrollEnabled={false}
                 style={{ flex: 1, backgroundColor: 'transparent' }}
                 indicatorPosition={'none'}
+                onScrollEnd={this.setDefaultFragment}
             >
                 <View style={{ flex: 1 }}>
                     <Appbar.Header style={{ backgroundColor: 'white', overflow: 'hidden', height: 60, elevation: 0 }}>
@@ -145,9 +171,9 @@ class ProfileScreen extends React.Component {
                     <ScrollView style={{ marginTop: 1 }}>
                         <View style={{ backgroundColor: 'white' }}>
                             <List.Item
-                                title="Item 1"
-                                onPress={() => this.onPressItemList('profile_next')}
-                                left={() => <List.Icon icon="folder" />}
+                                title="Editar Perfil"
+                                onPress={() => this.onPressItemList('editprofile')}
+                                left={() => <Icon size={28} color="black" name="ios-contact" type={'ionicon'} containerStyle={[styles.iconContainer, { marginLeft: 10 }]} />}
                                 right={() => <Icon size={20} color="gray" name="ios-arrow-forward" type={'ionicon'} containerStyle={styles.iconContainer} />}
                                 style={{ backgroundColor: 'white' }}
                             />
@@ -155,10 +181,10 @@ class ProfileScreen extends React.Component {
                                 <Divider />
                             </View>
                             <List.Item
-                                title="Item 2"
-                                onPress={() => this.onPressItemList('profile_next')}
+                                title="Preferências"
+                                onPress={() => this.onPressItemList('prefs')}
                                 titleStyle={{ color: 'black' }}
-                                left={() => <List.Icon color="#000" icon="folder" />}
+                                left={() => <Icon size={28} color="black" name="ios-cog" type={'ionicon'} containerStyle={[styles.iconContainer, { marginLeft: 10 }]} />}
                                 right={() => <Icon size={20} color="gray" name="ios-arrow-forward" type={'ionicon'} containerStyle={styles.iconContainer} />}
                                 style={{ backgroundColor: 'white' }}
                             />
@@ -167,16 +193,16 @@ class ProfileScreen extends React.Component {
                             </View>
                             <List.Item
                                 title="Sair"
-                                onPress={() => this.onPressItemList('profile_exit')}
+                                onPress={() => this.onPressItemList('exit')}
                                 titleStyle={{ color: 'red' }}
-                                left={() => <Icon size={26} name="ios-log-out" type={'ionicon'} containerStyle={[styles.iconContainer, { marginLeft: 10 }]} />}
+                                left={() => <Icon size={28} name="ios-log-out" type={'ionicon'} containerStyle={[styles.iconContainer, { marginLeft: 10 }]} />}
                             />
                         </View>
                         <View style={{ marginVertical: 60 }} />
                     </ScrollView>
                 </View>
                 <View style={{ flex: 1, backgroundColor: 'transparent' }}>
-                    <ProfileScreenFragment backToProfile={this.backToProfile} />
+                    <ProfileScreenFragment backToProfile={this.backToProfile} fragmentScreen={this.state.fragmentScreen} />
                 </View>
             </Pages>
         </SafeAreaView>

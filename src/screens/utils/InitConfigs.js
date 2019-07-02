@@ -28,18 +28,22 @@ export const initConfigs = () => {
 };
 
 export const initializeBatchs = async () => {
-    // ######### USER INFO #########
-    const userInfoJsonString = await AsyncStorage.getItem('@userProfileJson');
-    if (userInfoJsonString) {
-        const userInfo = JSON.parse(userInfoJsonString);
-
-        if (userInfo) {
-            store.dispatch({
-                type: 'modify_userreducer_userinfo',
-                payload: userInfo
-            });
+    try {
+        // ######### USER INFO #########
+        const userInfoJsonString = await AsyncStorage.getItem('@userProfileJson');
+        if (userInfoJsonString) {
+            const userInfo = JSON.parse(userInfoJsonString);
+    
+            if (userInfo) {
+                store.dispatch({
+                    type: 'modify_userreducer_userinfo',
+                    payload: userInfo
+                });
+            }
         }
+        // ######### END #########
+    } catch (e) {
+        console.log('Error initialize Batchs');
     }
-    // ######### END #########
 };
 

@@ -1,9 +1,9 @@
 /* eslint-disable max-len */
 import React from 'react';
 import { View, StyleSheet, Animated, Easing } from 'react-native';
+import { connect } from 'react-redux';
 import { Text, Surface } from 'react-native-paper';
 import Ripple from 'react-native-material-ripple';
-import { connect } from 'react-redux';
 
 import { colorAppPrimary } from '../utils/Constants';
 import { modifyAnimatedVisible } from '../../actions/CustomHomeTabBarActions';
@@ -11,7 +11,7 @@ import { modifyAnimatedVisible } from '../../actions/CustomHomeTabBarActions';
 const AnimatedSurface = Animated.createAnimatedComponent(Surface);
 const tabBarHeight = 52;
 
-class CustomHomeTabBar extends React.Component {
+class CustomHomeTabBar extends React.PureComponent {
     
     constructor(props) {
         super(props);
@@ -19,7 +19,9 @@ class CustomHomeTabBar extends React.Component {
         this.animTabBarTranslateY = new Animated.Value(0);
     }
     
-    componentDidMount = () => this.props.modifyAnimatedVisible && this.props.modifyAnimatedVisible(this.animateVisible)
+    componentDidMount = () => { 
+        if (this.props.modifyAnimatedVisible) this.props.modifyAnimatedVisible(this.animateVisible);
+    }
 
     getLabelTab = (labelScreen) => {
         switch (labelScreen) {
@@ -34,7 +36,7 @@ class CustomHomeTabBar extends React.Component {
         }
     }
 
-    animateVisible = (tabBarVisible = 'visible', duration = 200) => {
+    animateVisible = (tabBarVisible = 'visible', duration = 200, callBack = undefined, callBackParams = {}) => {
         if (tabBarVisible === 'hide') {
             Animated.timing(
                 this.animTabBarTranslateY,
@@ -44,7 +46,7 @@ class CustomHomeTabBar extends React.Component {
                     easing: Easing.linear,
                     useNativeDriver: true
                 }
-            ).start();
+            ).start(callBack && callBack(callBackParams));
         } else if (tabBarVisible === 'visible') {
             Animated.timing(
                 this.animTabBarTranslateY,
@@ -54,7 +56,7 @@ class CustomHomeTabBar extends React.Component {
                     easing: Easing.linear,
                     useNativeDriver: true
                 }
-            ).start();
+            ).start(callBack && callBack(callBackParams));
         }
     }
     

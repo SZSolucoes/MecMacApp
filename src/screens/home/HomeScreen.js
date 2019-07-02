@@ -9,12 +9,14 @@ import {
 import { connect } from 'react-redux';
 import SplashScreen from 'react-native-splash-screen';
 import { Appbar } from 'react-native-paper';
-import { ListItem } from 'react-native-elements';
+import { ListItem, Icon } from 'react-native-elements';
+import { TouchableOpacity } from 'react-native-gesture-handler';
+import Animated from 'react-native-reanimated';
 
 import { colorAppForeground } from '../utils/Constants';
 import { defaultTextHeader } from '../utils/Styles';
 
-class HomeScreen extends React.Component {
+class HomeScreen extends React.PureComponent {
     static navigationOptions = {
         header: null
     };
@@ -46,6 +48,16 @@ class HomeScreen extends React.Component {
 
     onPressDrawerIcon = () => {
         this.props.navigation.openDrawer();
+    }
+
+    onPressActionChooseVHC = () => {
+        if (this.props.bacChangePosition && this.props.getPositionHomeBottomActionSheet) {
+            if (this.props.getPositionHomeBottomActionSheet() === 0) {
+                this.props.bacChangePosition(1);
+            } else {
+                this.props.bacChangePosition(0);
+            }
+        }
     }
 
     onBackButtonPressAndroid = () => {
@@ -84,23 +96,47 @@ class HomeScreen extends React.Component {
                             },
                             showEditButton: true,
                             activeOpacity: 1,
-                            onPress: () => this.onPressDrawerIcon(),
-                            onEditPress: () => this.onPressDrawerIcon()
+                            onPress: this.onPressDrawerIcon,
+                            onEditPress: this.onPressDrawerIcon
                         }}
-                        rightIcon={{
-                            name: 'ios-arrow-down',
-                            type: 'ionicon',
-                            size: 20,
-                            color: 'black',
-                            onPress: () => alert('oi')
-                        }}
+                        rightIcon={() => 
+                            (
+                                <TouchableOpacity onPress={() => this.onPressActionChooseVHC()}>
+                                    <View style={{ width: 60, height: '100%', justifyContent: 'center' }}>
+                                        <Icon
+                                            name={'ios-arrow-down'}
+                                            type={'ionicon'}
+                                            size={20}
+                                            color={'black'}
+                                        />
+                                    </View>
+                                </TouchableOpacity>
+                            )
+                        }
                         title={'Meu incrível veículo'}
                         subtitle={'Ano 2019'}
                         titleStyle={StyleSheet.flatten([defaultTextHeader, styles.titleVehicle])}
-                        containerStyle={{ padding: 0, paddingRight: 15, backgroundColor: 'transparent' }}
+                        containerStyle={{ padding: 0, backgroundColor: 'transparent' }}
                     />
                 </View>
             </Appbar.Header>
+            <Animated.View 
+                style={{ 
+                    flex: 1,
+                    backgroundColor: this.props.fallHomeBottomActionSheet ?
+                    Animated.color(0, 0, 0, 
+                        Animated.interpolate(
+                            this.props.fallHomeBottomActionSheet, {
+                                inputRange: [0, 1],
+                                outputRange: [0.6, 0],
+                                extrapolate: Animated.Extrapolate.CLAMP
+                            }
+                        )
+                    ) 
+                    : 
+                    'transparent'
+                }} 
+            />
         </SafeAreaView>
     )
 }
@@ -124,7 +160,10 @@ const styles = StyleSheet.create({
 });
 
 const mapStateToProps = (state) => ({
-    animatedVisible: state.CustomHomeTabBarReducer.animatedVisible
+    animatedVisible: state.CustomHomeTabBarReducer.animatedVisible,
+    bacChangePosition: state.HomeBottomActionSheetReducer.bacChangePosition,
+    fallHomeBottomActionSheet: state.HomeBottomActionSheetReducer.fall,
+    getPositionHomeBottomActionSheet: state.HomeBottomActionSheetReducer.getPosition,
 });
 
 export default connect(mapStateToProps)(HomeScreen);

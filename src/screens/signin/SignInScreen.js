@@ -4,6 +4,7 @@ import {
     View,
     Text,
     Image,
+    Platform,
     StyleSheet,
     BackHandler,
     SafeAreaView
@@ -15,15 +16,19 @@ import { Button, SocialIcon, Icon } from 'react-native-elements';
 import { Appbar, Divider } from 'react-native-paper';
 import SplashScreen from 'react-native-splash-screen';
 
+import Images from '../utils/AssetsManager';
 import { colorAppPrimary } from '../utils/Constants';
 import { getDeviceInfos } from '../utils/device/DeviceInfos';
 
-import imgLogo from '../../assets/images/logo.png';
 import { apiPostUser } from '../utils/api/ApiManagerConsumer';
 import { initializeBatchs } from '../utils/InitConfigs';
 import { renderOpacityStatusBar } from '../utils/Screen';
 
-export default class SignInScreen extends React.Component {
+const { 
+    imgLogo 
+} = Images;
+
+export default class SignInScreen extends React.PureComponent {
     static navigationOptions = {
         header: null
     };
@@ -192,7 +197,11 @@ export default class SignInScreen extends React.Component {
                     ...deviceInfos
                 };
 
-                apiPostUser(params);
+                try {
+                    apiPostUser(params);
+                } catch (e) {
+                    console.log('apiPostUser error');
+                }
             };
 
             asyncFunExec();
@@ -205,8 +214,8 @@ export default class SignInScreen extends React.Component {
     };
 
     render = () => (
-        <SafeAreaView style={styles.viewMain}>
-            { renderOpacityStatusBar() }
+        <View style={styles.viewMain}>
+            { renderOpacityStatusBar(0.2, Platform.OS === 'ios' ? 'light-content' : 'default') }
             <View
                 style={{
                     ...StyleSheet.absoluteFillObject,
@@ -358,7 +367,7 @@ export default class SignInScreen extends React.Component {
                     <Text style={styles.devText}>Desenvolvido por SZ Soluções</Text>
                 </SafeAreaView>
             </SafeAreaView>
-        </SafeAreaView>
+        </View>
     )
 }
 
