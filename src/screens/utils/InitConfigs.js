@@ -1,4 +1,5 @@
 import AsyncStorage from '@react-native-community/async-storage';
+import Orientation from 'react-native-orientation';
 import Axios from 'axios';
 import { decode, encode } from 'base-64';
 import _ from 'lodash';
@@ -6,6 +7,8 @@ import _ from 'lodash';
 import { store } from '../../App';
 
 export const initConfigs = () => {
+    Orientation.lockToPortrait();
+    
     if (!global.btoa) {
         global.btoa = encode;
     }
