@@ -1,27 +1,32 @@
 /* eslint-disable max-len */
 import React from 'react';
-import { View, StyleSheet, Animated, Easing } from 'react-native';
+import { View, StyleSheet, Easing } from 'react-native';
 import { connect } from 'react-redux';
 import { Text, Surface } from 'react-native-paper';
 import Ripple from 'react-native-material-ripple';
+import Animated from 'react-native-reanimated';
 
-import { colorAppPrimary } from '../utils/Constants';
-import { modifyAnimatedVisible } from '../../actions/CustomHomeTabBarActions';
+import { colorAppPrimary, tabBarHeight } from '../utils/Constants';
+import { modifyAnimatedVisible, modifyGetAnimTabBarTranslateY } from '../../actions/CustomHomeTabBarActions';
 
 const AnimatedSurface = Animated.createAnimatedComponent(Surface);
-const tabBarHeight = 52;
+const { Value } = Animated;
 
 class CustomHomeTabBar extends React.PureComponent {
     
     constructor(props) {
         super(props);
         
-        this.animTabBarTranslateY = new Animated.Value(0);
+        this.animTabBarTranslateY = new Value(0);
+        this.touchEnabled = true;
     }
     
     componentDidMount = () => { 
         if (this.props.modifyAnimatedVisible) this.props.modifyAnimatedVisible(this.animateVisible);
+        if (this.props.modifyGetAnimTabBarTranslateY) this.props.modifyGetAnimTabBarTranslateY(this.getAnimTabBarTranslateY);
     }
+
+    getAnimTabBarTranslateY = () => this.animTabBarTranslateY
 
     getLabelTab = (labelScreen) => {
         switch (labelScreen) {
@@ -38,6 +43,7 @@ class CustomHomeTabBar extends React.PureComponent {
 
     animateVisible = (tabBarVisible = 'visible', duration = 200, callBack = undefined, callBackParams = {}) => {
         if (tabBarVisible === 'hide') {
+            this.touchEnabled = false;
             Animated.timing(
                 this.animTabBarTranslateY,
                 {
@@ -48,6 +54,7 @@ class CustomHomeTabBar extends React.PureComponent {
                 }
             ).start(callBack && callBack(callBackParams));
         } else if (tabBarVisible === 'visible') {
+            this.touchEnabled = true;
             Animated.timing(
                 this.animTabBarTranslateY,
                 {
@@ -87,10 +94,10 @@ class CustomHomeTabBar extends React.PureComponent {
                         key={routeIndex}
                         style={styles.tabButton}
                         onPress={() => {
-                            onTabPress({ route });
+                            if (this.touchEnabled) onTabPress({ route });
                         }}
                         onLongPress={() => {
-                            onTabLongPress({ route });
+                            if (this.touchEnabled) onTabLongPress({ route });
                         }}
                         accessibilityLabel={getAccessibilityLabel({ route })}
                     >
@@ -128,4 +135,7 @@ const styles = StyleSheet.create({
     }
 });
 
-export default connect(() => ({}), { modifyAnimatedVisible })(CustomHomeTabBar);
+export default connect(() => ({}), { 
+    modifyAnimatedVisible,
+    modifyGetAnimTabBarTranslateY 
+})(CustomHomeTabBar);

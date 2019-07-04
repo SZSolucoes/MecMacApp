@@ -2,6 +2,7 @@
 import React from 'react';
 import { 
     View,
+    Text,
     StyleSheet,
     BackHandler,
     SafeAreaView
@@ -11,10 +12,11 @@ import SplashScreen from 'react-native-splash-screen';
 import { Appbar } from 'react-native-paper';
 import { ListItem, Icon } from 'react-native-elements';
 import { TouchableOpacity } from 'react-native-gesture-handler';
-import Animated from 'react-native-reanimated';
 
+import HomeBottomActionSheet from './HomeBottomActionSheet';
 import { colorAppForeground } from '../utils/Constants';
 import { defaultTextHeader } from '../utils/Styles';
+import HomeOverlayTouchable from './HomeOverlayTouchable';
 
 class HomeScreen extends React.PureComponent {
     static navigationOptions = {
@@ -37,6 +39,10 @@ class HomeScreen extends React.PureComponent {
         this.willBlurSubscription = this.props.navigation.addListener('willBlur', () =>
           BackHandler.removeEventListener('hardwareBackPress', this.onBackButtonPressAndroid)
         );
+
+        if (this.props.bacChangePosition) {
+            this.props.bacChangePosition(0);
+        }
     }
 
     componentWillUnmount = () => {
@@ -53,10 +59,22 @@ class HomeScreen extends React.PureComponent {
     onPressActionChooseVHC = () => {
         if (this.props.bacChangePosition && this.props.getPositionHomeBottomActionSheet) {
             if (this.props.getPositionHomeBottomActionSheet() === 0) {
+                if (this.props.animatedVisible) {
+                    this.props.animatedVisible('hide', 120);
+                }
                 this.props.bacChangePosition(1);
             } else {
+                if (this.props.animatedVisible) {
+                    this.props.animatedVisible('visible', 200);
+                }
                 this.props.bacChangePosition(0);
             }
+        }
+    }
+
+    onManualCloseAS = () => {
+        if (this.props.animatedVisible) {
+            this.props.animatedVisible('visible', 200);
         }
     }
 
@@ -120,23 +138,15 @@ class HomeScreen extends React.PureComponent {
                     />
                 </View>
             </Appbar.Header>
-            <Animated.View 
-                style={{ 
-                    flex: 1,
-                    backgroundColor: this.props.fallHomeBottomActionSheet ?
-                    Animated.color(0, 0, 0, 
-                        Animated.interpolate(
-                            this.props.fallHomeBottomActionSheet, {
-                                inputRange: [0, 1],
-                                outputRange: [0.6, 0],
-                                extrapolate: Animated.Extrapolate.CLAMP
-                            }
-                        )
-                    ) 
-                    : 
-                    'transparent'
-                }} 
-            />
+            <View style={{ flex: 1 }}>
+                <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
+                    <Text>
+                        Início
+                    </Text>
+                </View>
+                <HomeOverlayTouchable onPressActionChooseVHC={this.onPressActionChooseVHC} />
+            </View>
+            <HomeBottomActionSheet getAnimTabBarTranslateY={this.props.getAnimTabBarTranslateY} onManualCloseAS={this.onManualCloseAS} />
         </SafeAreaView>
     )
 }
@@ -161,9 +171,9 @@ const styles = StyleSheet.create({
 
 const mapStateToProps = (state) => ({
     animatedVisible: state.CustomHomeTabBarReducer.animatedVisible,
+    getAnimTabBarTranslateY: state.CustomHomeTabBarReducer.getAnimTabBarTranslateY,
     bacChangePosition: state.HomeBottomActionSheetReducer.bacChangePosition,
-    fallHomeBottomActionSheet: state.HomeBottomActionSheetReducer.fall,
-    getPositionHomeBottomActionSheet: state.HomeBottomActionSheetReducer.getPosition,
+    getPositionHomeBottomActionSheet: state.HomeBottomActionSheetReducer.getPosition
 });
 
 export default connect(mapStateToProps)(HomeScreen);

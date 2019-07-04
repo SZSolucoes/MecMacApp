@@ -13,7 +13,6 @@ import HomeScreen from '../../screens/home/HomeScreen';
 import ServicesScreen from '../../screens/home/ServicesScreen';
 import ProfileScreen from '../../screens/home/ProfileScreen';
 import { colorAppPrimary } from '../utils/Constants';
-import HomeBottomActionSheet from './HomeBottomActionSheet';
 import { getWindowWidthPortrait, renderStatusBar } from '../utils/Screen';
 import DrawerHome from '../../screens/tools/DrawerHome';
 
@@ -81,7 +80,6 @@ class HomeNavigator extends React.PureComponent {
             <SafeAreaView style={{ flex: 1 }}>
                 <HomeNavigatorStack {...this.props} />
             </SafeAreaView>
-            <HomeBottomActionSheet callbackNode={this.fall} />
         </View>
     );
 }

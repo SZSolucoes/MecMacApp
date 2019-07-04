@@ -1,9 +1,4 @@
 import React from 'react';
-import {
-    View,
-    StatusBar,
-    ActivityIndicator,
-} from 'react-native';
 import AsyncStorage from '@react-native-community/async-storage';
 import { initializeBatchs } from './screens/utils/InitConfigs';
 
@@ -15,7 +10,7 @@ export default class LoadingScreen extends React.PureComponent {
     constructor(props) {
         super(props);
 
-        setTimeout(() => this.getTokensAsync(), 100);
+        setTimeout(() => this.getTokensAsync(), 1000);
     }
 
     getTokensAsync = async () => {
@@ -34,21 +29,5 @@ export default class LoadingScreen extends React.PureComponent {
         }
     };
 
-    render = () => (
-        <View 
-            style={{ 
-                flex: 1, 
-                backgroundColor: 'black', 
-                alignItems: 'center', 
-                justifyContent: 'center' 
-            }}
-        >
-            <StatusBar 
-                backgroundColor={'rgba(0, 0, 0, 0.5)'}
-                translucent
-            />
-            <ActivityIndicator color={'white'} />
-            <StatusBar barStyle="default" />
-        </View>
-    )
+    render = () => null
 }

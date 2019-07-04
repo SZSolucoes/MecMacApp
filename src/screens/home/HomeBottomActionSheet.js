@@ -13,7 +13,7 @@ import _ from 'lodash';
 
 import Images from '../utils/AssetsManager';
 
-import { modifyBacChangePosition, modifyFall, modifyGetPosition } from '../../actions/HomeBottomActionSheetActions';
+import { modifyBacChangePosition, modifyFall, modifyGetPosition, modifyPosition } from '../../actions/HomeBottomActionSheetActions';
 
 const { Value, block, cond, eq, call, ceil } = Animated;
 const { 
@@ -52,31 +52,41 @@ class HomeBottomActionSheet extends React.PureComponent {
         if (this.props.modifyBacChangePosition) this.props.modifyBacChangePosition(this.bacChangePosition);
         if (this.props.modifyFall) this.props.modifyFall(this.fall);
         if (this.props.modifyGetPosition) this.props.modifyGetPosition(this.getPosition);
+        if (this.props.modifyPosition) this.props.modifyPosition(this.position);
+    }
+
+    componentWillUnmount = () => {
+        if (this.props.modifyFall) this.props.modifyFall(null);
     }
 
     getPosition = () => this.position
 
     checkPosition = ([value]) => {
-        if (value === 0) {
-            this.position = 2;
-        } else if (value === 1) {
+        // close
+        if (value === 1) {
             this.position = 0;
+            if (this.props.onManualCloseAS) this.props.onManualCloseAS();
+        // open
         } else {
             this.position = 1;
         }
+
+        if (this.props.modifyPosition) this.props.modifyPosition(this.position);
     }
 
     bacChangePosition = (position) => {
         let pos = position;
         if (position < 0) {
             pos = 0;
-        } else if (position > 2) {
-            pos = 2;
+        } else if (position > 1) {
+            pos = 1;
         }
         if (this.bs) {
             this.bs.snapTo(pos);
             this.position = pos;
         }
+
+        if (this.props.modifyPosition) this.props.modifyPosition(this.position);
     }
 
     
@@ -116,14 +126,19 @@ class HomeBottomActionSheet extends React.PureComponent {
     render() {
         return (
             <React.Fragment>
-                <Animated.Code>
-                    { () =>
-                           block([
-                            cond(eq(ceil(this.fall), 0), call([this.fall], this.checkPosition)),
-                            cond(eq(this.fall, 1), call([this.fall], this.checkPosition)),
-                        ])
-                    }
-                </Animated.Code>
+                {
+                    this.props.getAnimTabBarTranslateY() &&
+                    (
+                        <Animated.Code>
+                            { () =>
+                                block([
+                                    cond(eq(this.fall, 1), call([this.fall], this.checkPosition)),
+                                    cond(eq(ceil(this.fall), 0), call([this.fall], this.checkPosition))
+                                ])
+                            }
+                        </Animated.Code>
+                    )
+                }
                 <BottomSheet
                     ref={ref => (this.bs = ref)}
                     snapPoints={[0, '70%']}
@@ -213,5 +228,6 @@ const mapStateToProps = () => ({
 export default connect(mapStateToProps, { 
     modifyBacChangePosition,
     modifyFall,
-    modifyGetPosition
+    modifyGetPosition,
+    modifyPosition
 })(HomeBottomActionSheet);

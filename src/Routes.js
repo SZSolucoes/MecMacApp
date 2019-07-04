@@ -1,11 +1,12 @@
 /* eslint-disable max-len */
+import React from 'react';
 import { 
     createAppContainer, 
-    createStackNavigator, 
-    createSwitchNavigator
+    createStackNavigator
     /* createDrawerNavigator */
 } from 'react-navigation';
-import { createDrawerNavigator } from 'react-navigation-drawer';
+import createAnimatedSwitchNavigator from 'react-navigation-animated-switch';
+import { Transition } from 'react-native-reanimated';
 
 import { colorAppPrimary } from './screens/utils/Constants';
 import { normalize } from './screens/utils/StringTextFormats';
@@ -82,7 +83,7 @@ const AppStack = createStackNavigator(
 );
 
 
-const Routes = createAppContainer(createSwitchNavigator(
+const Routes = createAppContainer(createAnimatedSwitchNavigator(
     {
         Start: StartStack,
         App: AppStack,
@@ -90,7 +91,9 @@ const Routes = createAppContainer(createSwitchNavigator(
     },
     {
         initialRouteName: 'Start',
-        //transitionConfig: TransitionsScreens
+        transition: (
+            <Transition.In type={'fade'} durationMs={200} delayMs={200} />
+        )
     }
 ));
 

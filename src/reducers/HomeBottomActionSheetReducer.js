@@ -1,7 +1,8 @@
 const INITIAL_STATE = {
     bacChangePosition: () => false,
     fall: null,
-    getPosition: () => false
+    getPosition: () => false,
+    position: 0
 };
 
 export default (state = INITIAL_STATE, action) => {
@@ -20,6 +21,11 @@ export default (state = INITIAL_STATE, action) => {
             return { 
                 ...state, 
                 getPosition: action.payload
+            };
+        case 'modify_homebottomactionsheet_position':
+            return { 
+                ...state, 
+                position: action.payload
             };
         default:
             return state;

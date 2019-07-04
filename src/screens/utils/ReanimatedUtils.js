@@ -13,7 +13,9 @@ const {
   stopClock
 } = Animated;
 
-export const runTiming = (value, dest) => {
+export const runTiming = (value, dest, duration = 200, easing = Easing.inOut(Easing.ease)) => {
+    if (!value) return;
+
     const clock = new Clock();
     const state = {
         finished: new Value(0),
@@ -23,29 +25,33 @@ export const runTiming = (value, dest) => {
     };
   
     const config = {
-        duration: 5000,
+        duration,
         toValue: new Value(0),
-        easing: Easing.inOut(Easing.ease),
+        easing
     };
   
     return block([
-        cond(clockRunning(clock), [
-            set(config.toValue, dest),
-        ], [
-            set(state.finished, 0),
-            set(state.time, 0),
-            set(state.position, value),
-            set(state.frameTime, 0),
-            set(config.toValue, dest),
-            startClock(clock),
-        ]),
+        cond(
+            clockRunning(clock), 
+                set(value, state.position), 
+            [
+                set(state.finished, 0),
+                set(state.time, 0),
+                set(state.position, value),
+                set(state.frameTime, 0),
+                set(config.toValue, dest),
+                startClock(clock)
+            ]
+        ),
         timing(clock, state, config),
         cond(state.finished, stopClock(clock)),
-        state.position,
+        state.position
     ]);
 };
 
 export const runSpring = (value, dest) => {
+    if (!value) return;
+    
     const clock = new Clock();
     const state = {
         finished: new Value(0),
@@ -65,16 +71,20 @@ export const runSpring = (value, dest) => {
     };
   
     return block([
-      cond(clockRunning(clock), 0, [
-            set(state.finished, 0),
-            set(state.time, 0),
-            set(state.position, value),
-            set(state.velocity, 0),
-            set(config.toValue, dest),
-            startClock(clock),
-      ]),
-      spring(clock, state, config),
-      cond(state.finished, stopClock(clock)),
-      set(value, state.position),
+        cond(
+            clockRunning(clock), 
+                set(value, state.position), 
+            [
+                set(state.finished, 0),
+                set(state.time, 0),
+                set(state.position, value),
+                set(state.velocity, 0),
+                set(config.toValue, dest),
+                startClock(clock),
+            ]
+        ),
+        spring(clock, state, config),
+        cond(state.finished, stopClock(clock)),
+        state.position
     ]);
 };
