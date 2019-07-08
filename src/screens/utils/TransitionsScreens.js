@@ -45,6 +45,17 @@ const screenInterpolatorTransitions = {
                 }),
             }]
         };
+    },
+    TransitionFadeIn: (sceneProps) => {
+        const { layout, position, scene } = sceneProps;
+        const { index } = scene;
+
+        return {
+            opacity: position.interpolate({
+                inputRange: [index - 1, index, index + 1],
+                outputRange: [0, 1, 1]
+            })
+        };
     }
 };
 
@@ -55,7 +66,8 @@ export default () => ({
             const transition = params.transition || 'default';
 
             return {
-                default: screenInterpolatorTransitions.TransitionBottomToTop(sceneProps),
+                default: {},
+                TransitionFadeIn: screenInterpolatorTransitions.TransitionFadeIn(sceneProps)
             }[transition];
         }
     }

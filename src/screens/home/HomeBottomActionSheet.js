@@ -44,11 +44,15 @@ class HomeBottomActionSheet extends React.PureComponent {
     constructor(props) {
         super(props);
 
+        this.refBS = React.createRef();
+
         this.fall = new Value(1);
         this.position = 0;
     }
 
     componentDidMount = () => {
+        this.bacChangePosition(0);
+        
         if (this.props.modifyBacChangePosition) this.props.modifyBacChangePosition(this.bacChangePosition);
         if (this.props.modifyFall) this.props.modifyFall(this.fall);
         if (this.props.modifyGetPosition) this.props.modifyGetPosition(this.getPosition);
@@ -76,16 +80,16 @@ class HomeBottomActionSheet extends React.PureComponent {
 
     bacChangePosition = (position) => {
         let pos = position;
+        
         if (position < 0) {
             pos = 0;
         } else if (position > 1) {
             pos = 1;
         }
-        if (this.bs) {
-            this.bs.snapTo(pos);
-            this.position = pos;
-        }
 
+        this.refBS.current.snapTo(pos);
+        this.position = pos;
+        
         if (this.props.modifyPosition) this.props.modifyPosition(this.position);
     }
 
@@ -140,7 +144,7 @@ class HomeBottomActionSheet extends React.PureComponent {
                     )
                 }
                 <BottomSheet
-                    ref={ref => (this.bs = ref)}
+                    ref={this.refBS}
                     snapPoints={[0, '70%']}
                     renderContent={this.renderInner}
                     renderHeader={this.renderHeader}

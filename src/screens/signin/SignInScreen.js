@@ -9,6 +9,7 @@ import {
     BackHandler,
     SafeAreaView
 } from 'react-native';
+import { connect } from 'react-redux';
 import AsyncStorage from '@react-native-community/async-storage';
 import { LoginManager, GraphRequest, GraphRequestManager, AccessToken } from 'react-native-fbsdk';
 import { GoogleSignin, statusCodes } from 'react-native-google-signin';
@@ -23,12 +24,13 @@ import { getDeviceInfos } from '../utils/device/DeviceInfos';
 import { apiPostUser } from '../utils/api/ApiManagerConsumer';
 import { initializeBatchs } from '../utils/InitConfigs';
 import { renderOpacityStatusBar } from '../utils/Screen';
+import { modifyHandleFacebookLogout, modifyHandleGoogleLogout } from '../../actions/SignInActions';
 
 const { 
     imgLogo 
 } = Images;
 
-export default class SignInScreen extends React.PureComponent {
+class SignInScreen extends React.PureComponent {
     static navigationOptions = {
         header: null
     };
@@ -44,6 +46,11 @@ export default class SignInScreen extends React.PureComponent {
     componentDidMount = async () => {
         SplashScreen.hide();
         BackHandler.addEventListener('hardwareBackPress', this.onHandleBackPress);
+
+        if (this.props.modifyHandleFacebookLogout && this.props.modifyHandleGoogleLogout) {
+            this.props.modifyHandleFacebookLogout(this.handleFacebookLogout);
+            this.props.modifyHandleGoogleLogout(this.handleGoogleSignOut);
+        }
     }
 
     componentWillUnmount = () => {
@@ -90,7 +97,8 @@ export default class SignInScreen extends React.PureComponent {
         LoginManager.logInWithReadPermissions(['public_profile', 'email']).then(
             async (result) => {
                 if (result.isCancelled) {
-                    this.setState({ text: 'login is cancelled.', disableButtons: false });
+                    console.log('Facebook: login cancelado');
+                    this.setState({ disableButtons: false });
                 } else {
                     await AccessToken.getCurrentAccessToken().then(
                         (data) => {
@@ -101,30 +109,37 @@ export default class SignInScreen extends React.PureComponent {
                     this.setState({ disableButtons: false });
                 }
             },
-            (error) => this.setState({ text: `login has error: ${error}`, disableButtons: false })
+            () => { console.log('Facebook: erro em logout'); this.setState({ disableButtons: false }); }
         );
     }
 
     handleFacebookLogout = async () => {
-        const token = await AccessToken.getCurrentAccessToken()
-        .then((data) => data.accessToken.toString());
-
-        if (token) {
-            const logoutInfo = new GraphRequest(
-                    'me/permissions/',
-                    {
-                        accessToken: token,
-                        httpMethod: 'DELETE'
-                    },
-                    (error/* , result */) => {
-                        if (error) {
-                            this.setState({ text: 'erro no logout' });
-                        } else {
-                            LoginManager.logOut();
-                            this.setState({ text: 'logout com sucesso' });
-                        }
-                    });
-            new GraphRequestManager().addRequest(logoutInfo).start();
+        try {
+            const token = await AccessToken.getCurrentAccessToken()
+            .then((data) => {
+                if (data && data.accessToken) return data.accessToken.toString();
+            });
+    
+            if (token) {
+                const logoutInfo = new GraphRequest(
+                        'me/permissions/',
+                        {
+                            accessToken: token,
+                            httpMethod: 'DELETE'
+                        },
+                        (error/* , result */) => {
+                            if (error) {
+                                console.log('Facebook: erro em logout');
+                            } else {
+                                LoginManager.logOut();
+                            }
+                        });
+                new GraphRequestManager().addRequest(logoutInfo).start();
+            } else {
+                LoginManager.logOut();
+            }
+        } catch (e) {
+            console.log('Facebook: erro em logout');
         }
     }
 
@@ -149,13 +164,13 @@ export default class SignInScreen extends React.PureComponent {
             this.signInAsync(userJson);
         } catch (error) {
             if (error.code === statusCodes.SIGN_IN_CANCELLED) {
-                this.setState({ text: 'canceled' });
+                console.log('Google: login cancelado');
             } else if (error.code === statusCodes.IN_PROGRESS) {
-                this.setState({ text: 'in progress' });
+                console.log('Google: login em progresso');
             } else if (error.code === statusCodes.PLAY_SERVICES_NOT_AVAILABLE) {
-                this.setState({ text: 'not play services' });
+                console.log('Google: google play service não disponivel');
             } else {
-                this.setState({ text: JSON.stringify(error) });
+                console.log('Google: erro desconhecido em login');
             }
         }
 
@@ -166,9 +181,8 @@ export default class SignInScreen extends React.PureComponent {
         try {
             await GoogleSignin.revokeAccess();
             await GoogleSignin.signOut();
-            this.setState({ text: 'logout' });
         } catch (error) {
-            this.setState({ text: 'erro em logout' });
+            console.log('Google: erro em logout');
         }
     };
 
@@ -390,3 +404,10 @@ const styles = StyleSheet.create({
         textAlign: 'center'
     }
 });
+
+const mapStateToProps = () => ({});
+
+export default connect(mapStateToProps, {
+    modifyHandleFacebookLogout, 
+    modifyHandleGoogleLogout
+})(SignInScreen);

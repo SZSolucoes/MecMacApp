@@ -25,7 +25,12 @@ class HomeScreen extends React.PureComponent {
 
     constructor(props) {
         super(props);
+
+        this.enabledVHC = true;
+
         this.didFocusSubscription = props.navigation.addListener('didFocus', () => {
+            if (this.props.bacChangePosition) this.props.bacChangePosition(0);
+            this.enabledVHC = true; // Libera toque no botao de troca de veiculo durante transicao de tela
             BackHandler.addEventListener('hardwareBackPress', this.onBackButtonPressAndroid);
             
             if (this.props.animatedVisible) {
@@ -36,13 +41,11 @@ class HomeScreen extends React.PureComponent {
     
     componentDidMount = () => {
         SplashScreen.hide();
-        this.willBlurSubscription = this.props.navigation.addListener('willBlur', () =>
-          BackHandler.removeEventListener('hardwareBackPress', this.onBackButtonPressAndroid)
-        );
-
-        if (this.props.bacChangePosition) {
-            this.props.bacChangePosition(0);
-        }
+        this.willBlurSubscription = this.props.navigation.addListener('willBlur', () => {
+            this.enabledVHC = false; // Bloqueia toque no botao de troca de veiculo durante transicao de tela
+            if (this.props.bacChangePosition) this.props.bacChangePosition(0);
+            BackHandler.removeEventListener('hardwareBackPress', this.onBackButtonPressAndroid);
+        });
     }
 
     componentWillUnmount = () => {
@@ -57,17 +60,19 @@ class HomeScreen extends React.PureComponent {
     }
 
     onPressActionChooseVHC = () => {
-        if (this.props.bacChangePosition && this.props.getPositionHomeBottomActionSheet) {
-            if (this.props.getPositionHomeBottomActionSheet() === 0) {
-                if (this.props.animatedVisible) {
-                    this.props.animatedVisible('hide', 120);
+        if (this.enabledVHC) {
+            if (this.props.bacChangePosition && this.props.getPositionHomeBottomActionSheet) {
+                if (this.props.getPositionHomeBottomActionSheet() === 0) {
+                    if (this.props.animatedVisible) {
+                        this.props.animatedVisible('hide', 120);
+                    }
+                    this.props.bacChangePosition(1);
+                } else {
+                    if (this.props.animatedVisible) {
+                        this.props.animatedVisible('visible', 200);
+                    }
+                    this.props.bacChangePosition(0);
                 }
-                this.props.bacChangePosition(1);
-            } else {
-                if (this.props.animatedVisible) {
-                    this.props.animatedVisible('visible', 200);
-                }
-                this.props.bacChangePosition(0);
             }
         }
     }
@@ -80,8 +85,15 @@ class HomeScreen extends React.PureComponent {
 
     onBackButtonPressAndroid = () => {
         const routeName = this.props.navigation.state.routeName;
+        const drawer = this.props.navigation.dangerouslyGetParent().dangerouslyGetParent();
+
+        if (drawer.state.isDrawerOpen) {
+            this.props.navigation.closeDrawer();
+            return true;
+        }
 
         if (routeName === 'HomeTab') {
+            if (this.props.getPositionHomeBottomActionSheet() !== 0) this.props.bacChangePosition(0); 
             return true;
         }
 

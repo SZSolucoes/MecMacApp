@@ -27,6 +27,7 @@ class ProfileScreen extends React.PureComponent {
     constructor(props) {
         super(props);
 
+        this.refSwiper = React.createRef();
         this.currentPage = 0;
 
         this.didFocusSubscription = props.navigation.addListener('didFocus', () => {
@@ -61,7 +62,7 @@ class ProfileScreen extends React.PureComponent {
                 if (pageToBack === 0) {
                     this.backToProfile();
                 } else {
-                    this.swiperRef.scrollToPage(this.currentPage - 1);
+                    this.refSwiper.current.scrollToPage(this.currentPage - 1);
                     this.currentPage = pageToBack;
                 }
 
@@ -86,6 +87,8 @@ class ProfileScreen extends React.PureComponent {
                                 await AsyncStorage.removeItem('@isFirstOpened');
                                 await AsyncStorage.removeItem('@isUserLogged');
                                 await AsyncStorage.removeItem('@userProfileJson');
+                                await this.props.handleFacebookLogout();
+                                await this.props.handleGoogleLogout();
 
                                 this.props.navigation.navigate('Auth');
                             }
@@ -97,15 +100,13 @@ class ProfileScreen extends React.PureComponent {
                 console.log('AsyncStorage error');
             }
         } else if ('prefs|editprofile'.includes(itemName)) {
-            if (this.swiperRef) {
-                this.setFragment({ type: itemName });
-                this.swiperRef.scrollToPage(1);
-                this.currentPage = 1;
+            this.setFragment({ type: itemName });
+            this.refSwiper.current.scrollToPage(1);
+            this.currentPage = 1;
 
-                if (this.props.animatedVisible) {
-                    this.props.animatedVisible('hide', 200);
-                }
-            } 
+            if (this.props.animatedVisible) {
+                this.props.animatedVisible('hide', 200);
+            }
         }
     }
 
@@ -128,20 +129,18 @@ class ProfileScreen extends React.PureComponent {
     setDefaultFragment = () => this.setFragment('default')
 
     backToProfile = () => {
-        if (this.swiperRef) {
-            this.swiperRef.scrollToPage(0);
+        this.refSwiper.current.scrollToPage(0);
 
-            this.currentPage = 0;
-            if (this.props.animatedVisible) {
-                this.props.animatedVisible('visible', 200);
-            }
+        this.currentPage = 0;
+        if (this.props.animatedVisible) {
+            this.props.animatedVisible('visible', 200);
         }
     }
 
     render = () => (
         <SafeAreaView style={styles.mainView}>
             <Pages
-                ref={ref => (this.swiperRef = ref)}
+                ref={this.refSwiper}
                 scrollEnabled={false}
                 style={{ flex: 1, backgroundColor: 'transparent' }}
                 indicatorPosition={'none'}
@@ -225,7 +224,9 @@ const styles = StyleSheet.create({
 
 const mapStateToProps = (state) => ({
     animatedVisible: state.CustomHomeTabBarReducer.animatedVisible,
-    userInfo: state.UserReducer.userInfo
+    userInfo: state.UserReducer.userInfo,
+    handleFacebookLogout: state.SignInReducer.handleFacebookLogout,
+    handleGoogleLogout: state.SignInReducer.handleGoogleLogout
 });
 
 export default connect(mapStateToProps)(ProfileScreen);

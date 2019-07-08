@@ -76,7 +76,6 @@ export default class WelcomeScreen extends React.PureComponent {
         <View style={styles.mainView}>
             <Video 
                 source={welcomevideo}
-                ref={ref => (this.videoPlayer = ref)}
                 paused={this.state.videoPaused}
                 style={styles.backgroundVideo}
                 resizeMode={'cover'}
