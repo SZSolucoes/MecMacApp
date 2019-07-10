@@ -10,7 +10,8 @@ const {
   startClock,
   spring,
   timing,
-  stopClock
+  stopClock,
+  SpringUtils
 } = Animated;
 
 export const runTiming = (value, dest, duration = 200, easing = Easing.inOut(Easing.ease)) => {
@@ -60,16 +61,12 @@ export const runSpring = (value, dest) => {
         time: new Value(0),
     };
   
-    const config = {
-        toValue: new Value(0),
-        damping: 10,
-        mass: 1,
-        stiffness: 100,
-        overshootClamping: false,
-        restSpeedThreshold: 0.001,
-        restDisplacementThreshold: 0.001,
-    };
-  
+    const config = SpringUtils.makeConfigFromBouncinessAndSpeed({
+        ...SpringUtils.makeDefaultConfig(),
+        bounciness: 0,
+        speed: 12
+    });
+
     return block([
         cond(
             clockRunning(clock), 

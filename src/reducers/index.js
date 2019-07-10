@@ -4,11 +4,13 @@ import UserReducer from './UserReducer';
 import CustomHomeTabBarReducer from './CustomHomeTabBarReducer';
 import HomeBottomActionSheetReducer from './HomeBottomActionSheetReducer';
 import SignInReducer from './SignInReducer';
+import HomeDrawerReducer from './HomeDrawerReducer';
 
 export default combineReducers({
     SystemEventsReducer,
     UserReducer,
     CustomHomeTabBarReducer,
     HomeBottomActionSheetReducer,
-    SignInReducer
+    SignInReducer,
+    HomeDrawerReducer
 });

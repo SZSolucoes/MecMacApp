@@ -16,6 +16,7 @@ import HomeNavigator from './screens/home/HomeNavigator';
 import LoadingScreen from './LoadingScreen';
 import SignInScreen from './screens/signin/SignInScreen';
 import WelcomeScreen from './WelcomeScreen';
+import AddVehicleScreen from './screens/home/drawer_vehicles/AddVehicleScreen';
 //import TransitionsScreens from './screens/utils/TransitionsScreens';
 
 const styles = {
@@ -74,6 +75,9 @@ const AppStack = createStackNavigator(
     { 
         Home: {
             screen: HomeNavigator
+        },
+        AddVehicle: {
+            screen: AddVehicleScreen
         }
     },
     {

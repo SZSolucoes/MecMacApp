@@ -1,20 +1,17 @@
 /* eslint-disable max-len */
 import React from 'react';
-import { Appbar } from 'react-native-paper';
 import { 
     StyleSheet,
     SafeAreaView
 } from 'react-native';
 import { colorAppForeground } from '../utils/Constants';
+import HeaderDefault from '../tools/HeaderDefault';
 
 export default class ProfileScreenFragment extends React.PureComponent {
     onPressBack = () => this.props.backToProfile()
 
     renderHeader = (title = '') => (
-        <Appbar.Header style={{ backgroundColor: 'white', overflow: 'hidden', height: 60, elevation: 0 }}>
-            <Appbar.BackAction onPress={this.onPressBack} />
-            <Appbar.Content title={title} titleStyle={{ fontFamily: 'OpenSans-Regular' }} />
-        </Appbar.Header>
+        <HeaderDefault backActionProps={{ onPress: this.onPressBack }} title={title} />
     )
 
     renderDefault = () => this.renderHeader()

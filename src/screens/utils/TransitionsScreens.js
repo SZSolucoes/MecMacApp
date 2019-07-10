@@ -46,28 +46,35 @@ const screenInterpolatorTransitions = {
             }]
         };
     },
-    TransitionFadeIn: (sceneProps) => {
-        const { layout, position, scene } = sceneProps;
-        const { index } = scene;
-
+    TransitionFade: (sceneProps) => {
+        const { position, scene } = sceneProps;
+    
+        const index = scene.index;
+    
+        const translateX = 0;
+        const translateY = 0;
+    
+        const opacity = position.interpolate({
+            inputRange: [index - 0.7, index, index + 0.7],
+            outputRange: [0.3, 1, 0.3]
+        });
+    
         return {
-            opacity: position.interpolate({
-                inputRange: [index - 1, index, index + 1],
-                outputRange: [0, 1, 1]
-            })
+            opacity,
+            transform: [{ translateX }, { translateY }]
         };
     }
 };
 
-export default () => ({
+export default (transitionType) => ({
         //transitionSpec: transitionSpecTransitions.default,
         screenInterpolator: (sceneProps) => {
             const params = sceneProps.scene.route.params || {}; 
-            const transition = params.transition || 'default';
+            const transition = transitionType || params.transition || 'default';
 
             return {
                 default: {},
-                TransitionFadeIn: screenInterpolatorTransitions.TransitionFadeIn(sceneProps)
+                TransitionFade: screenInterpolatorTransitions.TransitionFade(sceneProps)
             }[transition];
         }
     }

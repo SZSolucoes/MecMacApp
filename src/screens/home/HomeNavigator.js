@@ -14,7 +14,7 @@ import ServicesScreen from '../../screens/home/ServicesScreen';
 import ProfileScreen from '../../screens/home/ProfileScreen';
 import { colorAppPrimary } from '../utils/Constants';
 import { getWindowWidthPortrait, renderStatusBar } from '../utils/Screen';
-import DrawerHome from './DrawerHome';
+import HomeDrawer from './HomeDrawer';
 
 const BottomTabNavigator = createMaterialTopTabNavigator({
     HomeTab: HomeScreen,
@@ -66,7 +66,7 @@ const HomeNavigatorStack = createDrawerNavigator({
     {
         drawerWidth: (getWindowWidthPortrait() * 0.83),
         edgeWidth: 80,
-        contentComponent: DrawerHome,
+        contentComponent: HomeDrawer,
         navigationOptions: {
             header: null
         }
