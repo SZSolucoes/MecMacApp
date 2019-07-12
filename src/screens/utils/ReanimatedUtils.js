@@ -50,7 +50,7 @@ export const runTiming = (value, dest, duration = 200, easing = Easing.inOut(Eas
     ]);
 };
 
-export const runSpring = (value, dest) => {
+export const runSpring = (value, dest, speed = 12) => {
     if (!value) return;
     
     const clock = new Clock();
@@ -64,7 +64,7 @@ export const runSpring = (value, dest) => {
     const config = SpringUtils.makeConfigFromBouncinessAndSpeed({
         ...SpringUtils.makeDefaultConfig(),
         bounciness: 0,
-        speed: 12
+        speed
     });
 
     return block([

@@ -5,6 +5,7 @@ import CustomHomeTabBarReducer from './CustomHomeTabBarReducer';
 import HomeBottomActionSheetReducer from './HomeBottomActionSheetReducer';
 import SignInReducer from './SignInReducer';
 import HomeDrawerReducer from './HomeDrawerReducer';
+import AddVehicleReducer from './AddVehicleReducer';
 
 export default combineReducers({
     SystemEventsReducer,
@@ -12,5 +13,6 @@ export default combineReducers({
     CustomHomeTabBarReducer,
     HomeBottomActionSheetReducer,
     SignInReducer,
-    HomeDrawerReducer
+    HomeDrawerReducer,
+    AddVehicleReducer
 });

@@ -3,7 +3,7 @@ import { Animated, Easing } from 'react-native';
 
 const transitionSpecTransitions = {
     default: {
-        duration: 1000,
+        duration: 500,
         easing: Easing.bezier(0.2833, 0.99, 0.31833, 0.99),
         timing: Animated.timing
     }
@@ -66,16 +66,22 @@ const screenInterpolatorTransitions = {
     }
 };
 
-export default (transitionType) => ({
-        //transitionSpec: transitionSpecTransitions.default,
-        screenInterpolator: (sceneProps) => {
-            const params = sceneProps.scene.route.params || {}; 
-            const transition = transitionType || params.transition || 'default';
-
-            return {
-                default: {},
-                TransitionFade: screenInterpolatorTransitions.TransitionFade(sceneProps)
-            }[transition];
-        }
+export default (obj) => {
+    if (obj.scene.route.params) {
+        return ({
+            transitionSpec: transitionSpecTransitions.default,
+            screenInterpolator: (sceneProps) => {
+                const params = sceneProps.scene.route.params || {}; 
+                const transition = params.transition || 'default';
+    
+                return {
+                    default: {},
+                    TransitionFade: screenInterpolatorTransitions.TransitionFade(sceneProps)
+                }[transition];
+            }
+        });
     }
-);
+
+    return null;
+};
+

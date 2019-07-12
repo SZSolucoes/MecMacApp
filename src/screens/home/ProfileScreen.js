@@ -126,8 +126,6 @@ class ProfileScreen extends React.PureComponent {
         }
     }
 
-    setDefaultFragment = () => this.setFragment('default')
-
     backToProfile = () => {
         this.refSwiper.current.scrollToPage(0);
 
@@ -144,7 +142,6 @@ class ProfileScreen extends React.PureComponent {
                 scrollEnabled={false}
                 style={{ flex: 1, backgroundColor: 'transparent' }}
                 indicatorPosition={'none'}
-                onScrollEnd={this.setDefaultFragment}
             >
                 <View style={{ flex: 1 }}>
                     <Appbar.Header style={{ backgroundColor: 'white', overflow: 'hidden', height: 60, elevation: 0 }}>

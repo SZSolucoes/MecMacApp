@@ -17,6 +17,8 @@ import LoadingScreen from './LoadingScreen';
 import SignInScreen from './screens/signin/SignInScreen';
 import WelcomeScreen from './WelcomeScreen';
 import AddVehicleScreen from './screens/home/drawer_vehicles/AddVehicleScreen';
+import AddVehicleFragmentScreen from './screens/home/drawer_vehicles/AddVehicleFragmentScreen';
+import TransitionsScreens from './screens/utils/TransitionsScreens';
 //import TransitionsScreens from './screens/utils/TransitionsScreens';
 
 const styles = {
@@ -78,14 +80,16 @@ const AppStack = createStackNavigator(
         },
         AddVehicle: {
             screen: AddVehicleScreen
+        },
+        AddVehicleFragment: {
+            screen: AddVehicleFragmentScreen
         }
     },
     {
-        initialRouteName: 'Home',
-        //transitionConfig: TransitionsScreens
+        initialRouteName: 'AddVehicle',
+        transitionConfig: TransitionsScreens
     }
 );
-
 
 const Routes = createAppContainer(createAnimatedSwitchNavigator(
     {
