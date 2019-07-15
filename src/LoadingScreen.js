@@ -10,7 +10,9 @@ export default class LoadingScreen extends React.PureComponent {
     constructor(props) {
         super(props);
 
-        setTimeout(() => this.getTokensAsync(), 1000);
+        setTimeout(() => {
+            this.getTokensAsync();
+        }, 1000);
     }
 
     getTokensAsync = async () => {

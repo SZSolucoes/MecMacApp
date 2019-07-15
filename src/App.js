@@ -6,11 +6,12 @@ import ReduxThunk from 'redux-thunk';
 
 import Reducers from './reducers';
 import Routes from './Routes';
-import { initConfigs } from './screens/utils/InitConfigs';
+import { initConfigs, initAsyncFetchs } from './screens/utils/InitConfigs';
 
 export const store = createStore(Reducers, {}, applyMiddleware(ReduxThunk));
 
 initConfigs();
+initAsyncFetchs();
 
 class App extends React.Component {
     render = () => (

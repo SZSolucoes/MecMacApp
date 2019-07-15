@@ -58,3 +58,7 @@ export const normalize = size => {
     // if older device ie pixelRatio !== 2 || 3 || 3.5
     return size;
 };
+
+export const limitDotText = (text, maxSize) => (
+    text.length > maxSize ? `${text.substring(0, maxSize - 3).trim()}...` : text
+);

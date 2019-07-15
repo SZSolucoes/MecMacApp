@@ -6,12 +6,15 @@ import { decode, encode } from 'base-64';
 import _ from 'lodash';
 
 import { store } from '../../App';
+import { realmFetchsInit } from '../../storage/RealmManager';
+import { checkIsConnected } from './device/DeviceInfos';
 
 export const initConfigs = () => {
     GoogleSignin.configure({
         scopes: ['https://www.googleapis.com/auth/drive.readonly']
     });
     
+    // Travar orientacao em portrait
     Orientation.lockToPortrait();
     
     if (!global.btoa) {
@@ -52,6 +55,15 @@ export const initializeBatchs = async () => {
         // ######### END #########
     } catch (e) {
         console.log('Error initialize Batchs');
+    }
+};
+
+export const initAsyncFetchs = async () => {
+    // Realm fetchs
+    const isConnected = await checkIsConnected();
+
+    if (isConnected) {
+        realmFetchsInit();
     }
 };
 
