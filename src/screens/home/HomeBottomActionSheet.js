@@ -51,8 +51,6 @@ class HomeBottomActionSheet extends React.PureComponent {
     }
 
     componentDidMount = () => {
-        this.bacChangePosition(0);
-        
         if (this.props.modifyBacChangePosition) this.props.modifyBacChangePosition(this.bacChangePosition);
         if (this.props.modifyFall) this.props.modifyFall(this.fall);
         if (this.props.modifyGetPosition) this.props.modifyGetPosition(this.getPosition);
@@ -127,33 +125,31 @@ class HomeBottomActionSheet extends React.PureComponent {
         </View>
     )
 
-    render() {
-        return (
-            <React.Fragment>
-                {
-                    this.props.getAnimTabBarTranslateY() &&
-                    (
-                        <Animated.Code>
-                            { () =>
-                                block([
-                                    cond(eq(this.fall, 1), call([this.fall], this.checkPosition)),
-                                    cond(eq(ceil(this.fall), 0), call([this.fall], this.checkPosition))
-                                ])
-                            }
-                        </Animated.Code>
-                    )
-                }
-                <BottomSheet
-                    ref={this.refBS}
-                    snapPoints={[0, '70%']}
-                    renderContent={this.renderInner}
-                    renderHeader={this.renderHeader}
-                    initialSnap={0}
-                    callbackNode={this.fall}
-                />
-            </React.Fragment>
-        );
-    }
+    render = () => (
+        <React.Fragment>
+            {
+                this.props.getAnimTabBarTranslateY() &&
+                (
+                    <Animated.Code>
+                        { () =>
+                            block([
+                                cond(eq(this.fall, 1), call([this.fall], this.checkPosition)),
+                                cond(eq(ceil(this.fall), 0), call([this.fall], this.checkPosition))
+                            ])
+                        }
+                    </Animated.Code>
+                )
+            }
+            <BottomSheet
+                ref={this.refBS}
+                snapPoints={[0, '70%']}
+                renderContent={this.renderInner}
+                renderHeader={this.renderHeader}
+                initialSnap={0}
+                callbackNode={this.fall}
+            />
+        </React.Fragment>
+    )
 }
 
 const IMAGE_SIZE = 200;
@@ -226,8 +222,7 @@ const styles = StyleSheet.create({
     },
 });
 
-const mapStateToProps = () => ({
-});
+const mapStateToProps = () => ({});
 
 export default connect(mapStateToProps, { 
     modifyBacChangePosition,

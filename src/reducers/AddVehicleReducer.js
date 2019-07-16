@@ -9,7 +9,15 @@ const INITIAL_STATE = {
     screenFragment: '',
     manufacturers: [],
     models: [],
-    vehicleTypeSelected: 0
+    vehicleTypeSelected: 0,
+    bannerVisible: false,
+    bannerText: '',
+    quilometers: '',
+    alertVisible: false,
+    alertTitle: '',
+    alertMessage: '',
+    alertConfirmFunction: null,
+    alertCancelFunction: null
 };
 
 export default (state = INITIAL_STATE, action) => {
@@ -69,12 +77,57 @@ export default (state = INITIAL_STATE, action) => {
                 ...state, 
                 vehicleTypeSelected: action.payload
             };
+        case 'modify_addvehicle_bannervisible':
+            return { 
+                ...state, 
+                bannerVisible: action.payload
+            };
+        case 'modify_addvehicle_bannertext':
+            return { 
+                ...state, 
+                bannerText: action.payload
+            };
+        case 'modify_addvehicle_quilometers':
+            return { 
+                ...state, 
+                quilometers: action.payload
+            };
+        case 'modify_addvehicle_alertvisible':
+            return { 
+                ...state, 
+                alertVisible: action.payload
+            };
+        case 'modify_addvehicle_alerttitle':
+            return { 
+                ...state, 
+                alertTitle: action.payload
+            };
+        case 'modify_addvehicle_alertmessage':
+            return { 
+                ...state, 
+                alertMessage: action.payload
+            };
+        case 'modify_addvehicle_alertconfirmfunction':
+            return { 
+                ...state, 
+                alertConfirmFunction: action.payload
+            };
+        case 'modify_addvehicle_alertcancelfunction':
+            return { 
+                ...state, 
+                alertCancelFunction: action.payload
+            };
         case 'modify_addvehicle_clearmmc':
             return { 
                 ...state, 
                 manufacturer: '',
                 model: '',
                 fuel: ''
+            };
+        case 'modify_addvehicle_resetreducer':
+            return {
+                ...state,
+                ...INITIAL_STATE
             };
         default:
             return state;

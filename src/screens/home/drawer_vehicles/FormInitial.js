@@ -67,7 +67,7 @@ class FormInitial extends React.PureComponent {
             console.log(e);
         }
 
-        DefaultTheme.colors.primary = colorAppPrimary;
+        this.props.modifyVehicleTypeSelected(VEHICLES_TYPES.car);
     }
 
     componentDidUpdate = async (prevProps) => {
@@ -240,8 +240,8 @@ class FormInitial extends React.PureComponent {
                 )}
                 {eletricChecked && (
                     <View style={{ flexDirection: 'row', alignItems: 'center', marginLeft: 10 }}>
-                        <Icon name={'battery-charging-50'} type={'material-community'} size={24} />
-                        <Text style={{ fontWeight: '500', fontSize: 16 }}>EL</Text>
+                        <Icon name={'ev-station'} type={'material-community'} size={24} />
+                        <Text style={{ fontWeight: '500', fontSize: 16 }}>EV</Text>
                     </View>
                 )}
             </React.Fragment>
@@ -554,7 +554,7 @@ class FormInitial extends React.PureComponent {
                         </TouchableOpacity>
                     </Card.Content>
                 </Card>
-                <View style={{ height: tabBarHeight }} />
+                <View style={{ height: tabBarHeight + 20 }} />
             </ScrollView>
         </View>
     );

@@ -1,6 +1,7 @@
 import AsyncStorage from '@react-native-community/async-storage';
 import Orientation from 'react-native-orientation';
 import { GoogleSignin } from 'react-native-google-signin';
+import { DefaultTheme } from 'react-native-paper';
 import Axios from 'axios';
 import { decode, encode } from 'base-64';
 import _ from 'lodash';
@@ -8,6 +9,7 @@ import _ from 'lodash';
 import { store } from '../../App';
 import { realmFetchsInit } from '../../storage/RealmManager';
 import { checkIsConnected } from './device/DeviceInfos';
+import { colorAppPrimary } from './Constants';
 
 export const initConfigs = () => {
     GoogleSignin.configure({
@@ -26,6 +28,8 @@ export const initConfigs = () => {
     }
     
     Axios.defaults.timeout = 80000; // Timeout default para o Axios
+
+    DefaultTheme.colors.primary = colorAppPrimary;
     
     console.disableYellowBox = true;
 

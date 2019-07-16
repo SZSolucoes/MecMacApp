@@ -12,3 +12,12 @@ export const modifyManufacturers = (value) => ({ type: 'modify_addvehicle_fragma
 export const modifyModels = (value) => ({ type: 'modify_addvehicle_fragmodels', payload: value });
 export const modifyVehicleTypeSelected = (value) => ({ type: 'modify_addvehicle_fragvehicletypeselected', payload: value });
 export const modifyClearMMC = () => ({ type: 'modify_addvehicle_clearmmc' });
+export const modifyResetFields = () => ({ type: 'modify_addvehicle_resetreducer' });
+export const modifyBannerVisible = (value) => ({ type: 'modify_addvehicle_bannervisible', payload: value });
+export const modifyBannerText = (value) => ({ type: 'modify_addvehicle_bannertext', payload: value });
+export const modifyQuilometers = (value) => ({ type: 'modify_addvehicle_quilometers', payload: value });
+export const modifyAlertVisible = (value) => ({ type: 'modify_addvehicle_alertvisible', payload: value });
+export const modifyAlertTitle = (value) => ({ type: 'modify_addvehicle_alerttitle', payload: value });
+export const modifyAlertMessage = (value) => ({ type: 'modify_addvehicle_alertmessage', payload: value });
+export const modifyAlertConfirmFunction = (value) => ({ type: 'modify_addvehicle_alertconfirmfunction', payload: value });
+export const modifyAlertCancelFunction = (value) => ({ type: 'modify_addvehicle_alertcancelfunction', payload: value });

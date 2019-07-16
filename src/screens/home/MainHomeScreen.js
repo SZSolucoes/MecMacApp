@@ -23,8 +23,13 @@ class MainHomeScreen extends React.PureComponent {
 
         this.enabledVHC = true;
 
-        this.didFocusSubscription = props.navigation.addListener('didFocus', () => {
-            if (this.props.bacChangePosition) this.props.bacChangePosition(0);
+        this.state = {
+            enabledRenderBS: false
+        };
+    }
+    
+    componentDidMount = () => {
+        this.didFocusSubscription = this.props.navigation.addListener('didFocus', () => {
             this.enabledVHC = true; // Libera toque no botao de troca de veiculo durante transicao de tela
             BackHandler.addEventListener('hardwareBackPress', this.onBackButtonPressAndroid);
             
@@ -32,14 +37,14 @@ class MainHomeScreen extends React.PureComponent {
                 this.props.animatedVisible('visible', 200);
             }
         });
-    }
-    
-    componentDidMount = () => {
+
         this.willBlurSubscription = this.props.navigation.addListener('willBlur', () => {
             this.enabledVHC = false; // Bloqueia toque no botao de troca de veiculo durante transicao de tela
             if (this.props.bacChangePosition) this.props.bacChangePosition(0);
             BackHandler.removeEventListener('hardwareBackPress', this.onBackButtonPressAndroid);
         });
+
+        setTimeout(() => this.setState({ enabledRenderBS: true }), 1000);
     }
 
     componentWillUnmount = () => {
@@ -122,8 +127,10 @@ class MainHomeScreen extends React.PureComponent {
                     </Text>
                 </View>
                 <HomeOverlayTouchable onPressActionChooseVHC={this.onPressActionChooseVHC} />
+                {this.state.enabledRenderBS && (
+                    <HomeBottomActionSheet getAnimTabBarTranslateY={this.props.getAnimTabBarTranslateY} onManualCloseAS={this.onManualCloseAS} />
+                )}
             </View>
-            <HomeBottomActionSheet getAnimTabBarTranslateY={this.props.getAnimTabBarTranslateY} onManualCloseAS={this.onManualCloseAS} />
         </SafeAreaView>
     )
 }

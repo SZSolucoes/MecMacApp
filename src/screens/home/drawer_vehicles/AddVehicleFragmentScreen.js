@@ -25,11 +25,6 @@ class AddVehicleFragmentScreen extends React.PureComponent {
     constructor(props) {
         super(props);
 
-        this.manufacturerLabel = '';
-        this.manufacturerValue = '';
-        this.modelLabel = '';
-        this.modelValue = '';
-
         this.Manufacturer = React.memo(this.renderManufacturer);
         this.Model = React.memo(this.renderModel);
 
@@ -59,20 +54,6 @@ class AddVehicleFragmentScreen extends React.PureComponent {
         if (this.willBlurSubscription) this.willBlurSubscription.remove();
         
         BackHandler.removeEventListener('hardwareBackPress', this.onBackButtonPressAndroid);
-
-        if (this.props.screenFragment === 'manufacturer' && 
-        this.manufacturerLabel && 
-        (this.props.manufacturer !== this.manufacturerLabel)) {
-            this.props.modifyManufacturer(this.manufacturerLabel);
-            this.props.modifyManufacturerValue(this.manufacturerValue);
-            this.props.modifyModel('');
-            this.props.modifyModelValue('');
-        } else if (this.props.screenFragment === 'model' && 
-        this.modelLabel && 
-        (this.props.model !== this.modelLabel)) {
-            this.props.modifyModel(this.modelLabel);
-            this.props.modifyModelValue(this.modelValue);
-        }
     }
 
     onBackButtonPressAndroid = () => {
@@ -184,9 +165,15 @@ class AddVehicleFragmentScreen extends React.PureComponent {
         <Card 
             style={{ marginVertical: 2, marginHorizontal: 8 }}
             onPress={() => {
-                this.manufacturerLabel = propsItem.item.label;
-                this.manufacturerValue = propsItem.item.value;
                 this.onPressBackButton();
+
+                this.props.modifyManufacturer(propsItem.item.label);
+                this.props.modifyManufacturerValue(propsItem.item.value);
+
+                if (this.props.manufacturer !== propsItem.item.label) {
+                    this.props.modifyModel('');
+                    this.props.modifyModelValue('');
+                }
             }}
         >
             <Card.Content>
@@ -205,9 +192,10 @@ class AddVehicleFragmentScreen extends React.PureComponent {
         <Card 
             style={{ marginVertical: 2, marginHorizontal: 8 }}
             onPress={() => {
-                this.modelLabel = propsItem.item.label;
-                this.modelValue = propsItem.item.value;
                 this.onPressBackButton();
+
+                this.props.modifyModel(propsItem.item.label);
+                this.props.modifyModelValue(propsItem.item.value);
             }}
         >
             <Card.Content>
@@ -283,7 +271,7 @@ class AddVehicleFragmentScreen extends React.PureComponent {
             <Card.Content>
                 <List.Item
                     title={'GNV'}
-                    left={() => (<Icon name={'gas-cylinder'} color={'#55A9CE'} type={'material-community'} size={32} containerStyle={styles.iconContainer} />)}
+                    left={() => (<Icon name={'gas-cylinder'} color={'#55A9CE'} type={'material-community'} size={32} containerStyle={[styles.iconContainer, { paddingRight: 5 }]} />)}
                     right={() => (<Checkbox status={propsItem.checked} color={colorAppPrimary} />)}
                 />
             </Card.Content>
@@ -300,7 +288,7 @@ class AddVehicleFragmentScreen extends React.PureComponent {
             <Card.Content>
                 <List.Item
                     title={'Elétrico'}
-                    left={() => (<Icon name={'battery-charging-50'} type={'material-community'} size={26} containerStyle={styles.iconContainer} />)}
+                    left={() => (<Icon name={'ev-station'} type={'material-community'} size={30} containerStyle={styles.iconContainer} />)}
                     right={() => (<Checkbox status={propsItem.checked} color={colorAppPrimary} />)}
                 />
             </Card.Content>

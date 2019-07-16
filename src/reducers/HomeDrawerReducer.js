@@ -9,6 +9,11 @@ export default (state = INITIAL_STATE, action) => {
                 ...state, 
                 menuChoosed: action.payload
             };
+        case 'modify_homedrawer_resetreducer':
+            return { 
+                ...state, 
+                ...INITIAL_STATE
+            };
         default:
             return state;
     }

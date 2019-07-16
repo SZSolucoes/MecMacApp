@@ -9,12 +9,14 @@ import { colorAppPrimary } from '../utils/Constants';
 import { defaultTextHeader } from '../utils/Styles';
 
 import Images from '../utils/AssetsManager';
-import { modifyMenuChoosed } from '../../actions/HomeDrawerActions';
+import { modifyMenuChoosed, modifyResetDefault } from '../../actions/HomeDrawerActions';
 import ListAccordion from '../tools/ListAccordion';
 
 const { imgLogo } = Images;
 
 class HomeDrawer extends React.PureComponent {
+    componentWillUnmount = () => this.props.modifyResetDefault()
+
     onPressAvatar = () => false
 
     onMenuChoosed = (value) => {
@@ -151,5 +153,8 @@ const mapStateToProps = state => ({
     menuChoosed: state.HomeDrawerReducer.menuChoosed
 });
 
-export default connect(mapStateToProps, { modifyMenuChoosed })(HomeDrawer);
+export default connect(mapStateToProps, { 
+    modifyMenuChoosed,
+    modifyResetDefault
+})(HomeDrawer);
 
