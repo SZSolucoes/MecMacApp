@@ -27,7 +27,7 @@ export const initConfigs = () => {
         global.atob = decode;
     }
     
-    Axios.defaults.timeout = 80000; // Timeout default para o Axios
+    Axios.defaults.timeout = 10000; // Timeout default para o Axios
 
     DefaultTheme.colors.primary = colorAppPrimary;
     
@@ -64,12 +64,12 @@ export const initializeBatchs = async () => {
 
 export const initAsyncFetchs = async () => {
     // Realm fetchs
-    /* const isConnected = await checkIsConnected();
+    const isConnected = await checkIsConnected();
 
     console.log(isConnected);
-    
+
     if (isConnected) {
         realmFetchsInit();
-    } */
+    }
 };
 

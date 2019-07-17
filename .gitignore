@@ -71,3 +71,6 @@ devWirelessRelease.bat
 src/assets/images/bugatti.jpg
 src/assets/images/kawasaki.png
 src/assets/images/spider.jpg
+
+# CocoaPods
+/ios/Pods/

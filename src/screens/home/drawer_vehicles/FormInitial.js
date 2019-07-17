@@ -21,13 +21,11 @@ import {
     modifyFuel,
     modifyFuelValue
 } from '../../../actions/AddVehicleActions';
-import { AllSchemasArray } from '../../../storage/RealmSchemas';
+import { realmAllSchemesInstance } from '../../../storage/RealmManager';
 
 class FormInitial extends React.PureComponent {
     constructor(props) {
         super(props);
-
-        this.realmInstance = null;
 
         this.history = {
             [VEHICLES_TYPES.car]: { 
@@ -59,16 +57,6 @@ class FormInitial extends React.PureComponent {
     }
 
     componentDidMount = async () => {
-        try {
-            this.realmInstance = new Realm({
-                schema: AllSchemasArray,
-                schemaVersion: 1
-            });
-        } catch (e) {
-            if (this.realmInstance && !this.realmInstance.isClosed) this.realmInstance.close();
-            console.log(e);
-        }
-
         this.props.modifyVehicleTypeSelected(VEHICLES_TYPES.car);
     }
 
@@ -104,10 +92,6 @@ class FormInitial extends React.PureComponent {
         if (fuel.length) {
             this.history[vehicleTypeSelected].fuel = [...fuel];
         }
-    }
-
-    componentWillUnmount = () => {
-        this.closeRealm();
     }
 
     onPressManufacturer = () => {
@@ -157,11 +141,9 @@ class FormInitial extends React.PureComponent {
 
     onChangeNickname = (value) => this.props.modifyNickname(value)
 
-    closeRealm = () => this.realmInstance && !this.realmInstance.isClosed && this.realmInstance.close();
-
     mapManufacturesToProps = (vehicleTypeSelected) => {
         try {
-            const realmFipeMarcas = this.realmInstance.objects('FipeMarcas');
+            const realmFipeMarcas = realmAllSchemesInstance.objects('FipeMarcas');
         
             if (realmFipeMarcas && realmFipeMarcas.length) {
                 let manufacturers = null;
@@ -194,7 +176,7 @@ class FormInitial extends React.PureComponent {
 
     mapModelsToProps = (vehicleTypeSelected, manufacturerValue) => {
         try {
-            const realmFipeModelos = this.realmInstance
+            const realmFipeModelos = realmAllSchemesInstance
             .objects('FipeModelo')
             .filtered(`fipeVHCType == ${vehicleTypeSelected} AND marcaValue == '${manufacturerValue}'`);
         

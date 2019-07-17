@@ -11,30 +11,23 @@ import { ListItem } from 'react-native-elements';
 import Animated from 'react-native-reanimated';
 import _ from 'lodash';
 
-import Images from '../utils/AssetsManager';
-
 import { modifyBacChangePosition, modifyFall, modifyGetPosition, modifyPosition } from '../../actions/HomeBottomActionSheetActions';
 
 const { Value, block, cond, eq, call, ceil } = Animated;
-const { 
-    imgBugatti,
-    imgSpider,
-    imgKawasaki 
-} = Images;
 
 const myVHCs = [
     {
-        image: { source: imgBugatti, size: 'medium' },
+        image: { source: null, size: 'medium' },
         name: 'Passeio com a família',
         subtitle: null
     },
     {
-        image: { source: imgSpider, size: 'medium' },
+        image: { source: null, size: 'medium' },
         name: 'Só para fim de semana',
         subtitle: null
     },
     {
-        image: { source: imgKawasaki, size: 'medium' },
+        image: { source: null, size: 'medium' },
         name: 'Curtir com os amigos',
         subtitle: 'fúria em duas rodas'
     }
