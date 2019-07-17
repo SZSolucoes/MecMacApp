@@ -21,6 +21,8 @@ class FormKM extends React.PureComponent {
         };
     }
 
+    onChangeQuilometers = (value) => this.props.modifyQuilometers(value.replace(/\D/gm, ''))
+
     render = () => (
         <View style={styles.mainView}>
             <ScrollView
@@ -41,16 +43,14 @@ class FormKM extends React.PureComponent {
                             <TextInput
                                 mode={'outlined'}
                                 label='Quilometragem'
+                                keyboardType={'numeric'}
                                 value={this.props.quilometers}
-                                onChangeText={value => this.props.modifyQuilometers(value.replace(/\D/gm, ''))}
+                                onChangeText={this.onChangeQuilometers}
                                 style={{
                                     backgroundColor: 'white',
                                     marginBottom: 5
                                 }}
-                                keyboardType={'numeric'}
                                 maxLength={20}
-                                onFocus={this.onFocusChangeTheme}
-                                onBlur={this.onBlurChangeTheme}
                                 render={props =>
                                     <RNTextInput
                                         {...props}
@@ -94,7 +94,7 @@ const styles = StyleSheet.create({
     }
 });
 
-const mapStateToProps = state => ({
+const mapStateToProps = (state) => ({
     quilometers: state.AddVehicleReducer.quilometers
 });
 

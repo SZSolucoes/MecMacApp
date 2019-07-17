@@ -1,5 +1,5 @@
 /* eslint-disable camelcase */
-import { NetInfo } from 'react-native';
+//import NetInfo from '@react-native-community/netinfo';
 import DeviceInfo from 'react-native-device-info';
 
 export const getDeviceInfos = async () => {
@@ -48,12 +48,8 @@ export const getDeviceInfos = async () => {
     }
 };
 
-export const checkIsConnected = async () => (NetInfo.getConnectionInfo()
-    .then((conInfo) => {
-        if (conInfo.type === 'none' || conInfo.type === 'unknown') return false;
-    
-        return true;
-    })
+/* export const checkIsConnected = async () => (NetInfo.fetch()
+    .then((state) => state.isInternetReachable)
     .catch(() => false)
-);
+); */
 

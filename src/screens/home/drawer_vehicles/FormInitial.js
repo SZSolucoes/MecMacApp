@@ -22,11 +22,12 @@ import {
     modifyFuelValue
 } from '../../../actions/AddVehicleActions';
 import { AllSchemasArray } from '../../../storage/RealmSchemas';
-import { limitDotText } from '../../utils/StringTextFormats';
 
 class FormInitial extends React.PureComponent {
     constructor(props) {
         super(props);
+
+        this.realmInstance = null;
 
         this.history = {
             [VEHICLES_TYPES.car]: { 
@@ -64,6 +65,7 @@ class FormInitial extends React.PureComponent {
                 schemaVersion: 1
             });
         } catch (e) {
+            if (this.realmInstance && !this.realmInstance.isClosed) this.realmInstance.close();
             console.log(e);
         }
 
@@ -153,7 +155,9 @@ class FormInitial extends React.PureComponent {
         }
     }
 
-    closeRealm = () => this.realmInstance && this.realmInstance.close();
+    onChangeNickname = (value) => this.props.modifyNickname(value)
+
+    closeRealm = () => this.realmInstance && !this.realmInstance.isClosed && this.realmInstance.close();
 
     mapManufacturesToProps = (vehicleTypeSelected) => {
         try {
@@ -248,6 +252,138 @@ class FormInitial extends React.PureComponent {
         );
     }
 
+    renderChooseVehicleType = () => (
+        <View style={{ flexDirection: 'row', justifyContent: 'space-around', marginTop: 5, marginBottom: 10 }}>
+            <Card 
+                elevation={2} 
+                style={{ 
+                    flex: 1,
+                    marginLeft: 5, 
+                    flexDirection: 'row',
+                    paddingVertical: 5,
+                    ...(this.props.vehicleTypeSelected === VEHICLES_TYPES.car ? { borderWidth: 1.5, borderColor: colorAppPrimary } : { borderWidth: 1.5, borderColor: 'transparent' }) 
+                }}
+                onPress={this.onPressCardCar}
+            >
+                <View 
+                    style={{
+                        flex: 1,
+                        alignItems: 'center', 
+                        justifyContent: 'center'
+                    }}
+                >
+                    <Icon 
+                        name={'car-sports'} 
+                        type={'material-community'} 
+                        size={36} 
+                        color={this.props.vehicleTypeSelected === VEHICLES_TYPES.car ? colorAppPrimary : DefaultTheme.colors.placeholder} 
+                    />
+                    <Text 
+                        numberOfLines={1} 
+                        style={{ 
+                            textAlign: 'center', 
+                            ...(
+                                this.props.vehicleTypeSelected === VEHICLES_TYPES.car ? 
+                                {
+                                    color: colorAppPrimary,
+                                    fontWeight: '400'
+                                } : 
+                                { color: DefaultTheme.colors.placeholder }
+                            )
+                        }}
+                    >
+                        Carro
+                    </Text>
+                </View>
+            </Card>
+            <Card 
+                elevation={2} 
+                style={{ 
+                    flex: 1, 
+                    marginLeft: 5, 
+                    flexDirection: 'row',
+                    paddingVertical: 5,
+                    ...(this.props.vehicleTypeSelected === VEHICLES_TYPES.motorbike ? { borderWidth: 1.5, borderColor: colorAppPrimary } : { borderWidth: 1.5, borderColor: 'transparent' }) 
+                }}
+                onPress={this.onPressCardMotorbike}
+            >
+                <View 
+                    style={{
+                        flex: 1,
+                        alignItems: 'center', 
+                        justifyContent: 'center'
+                    }}
+                >
+                    <Icon 
+                        name={'motorbike'} 
+                        type={'material-community'} 
+                        size={36} 
+                        color={this.props.vehicleTypeSelected === VEHICLES_TYPES.motorbike ? colorAppPrimary : DefaultTheme.colors.placeholder} 
+                    />
+                    <Text 
+                        numberOfLines={1} 
+                        style={{ 
+                            textAlign: 'center', 
+                            ...(
+                                this.props.vehicleTypeSelected === VEHICLES_TYPES.motorbike ? 
+                                {
+                                    color: colorAppPrimary,
+                                    fontWeight: '400'
+                                } : 
+                                { color: DefaultTheme.colors.placeholder }
+                            )
+                        }}
+                    >
+                        Moto
+                    </Text>
+                </View>
+            </Card>
+            <Card 
+                elevation={2} 
+                style={{ 
+                    flex: 1, 
+                    marginLeft: 5, 
+                    marginRight: 5, 
+                    flexDirection: 'row',
+                    paddingVertical: 5,
+                    ...(this.props.vehicleTypeSelected === VEHICLES_TYPES.truck ? { borderWidth: 1.5, borderColor: colorAppPrimary } : { borderWidth: 1.5, borderColor: 'transparent' }) 
+                }}
+                onPress={this.onPressCardTruck}
+            >
+                <View 
+                    style={{
+                        flex: 1,
+                        alignItems: 'center', 
+                        justifyContent: 'center'
+                    }}
+                >
+                    <Icon 
+                        name={'truck'} 
+                        type={'material-community'} 
+                        size={34} 
+                        color={this.props.vehicleTypeSelected === VEHICLES_TYPES.truck ? colorAppPrimary : DefaultTheme.colors.placeholder} 
+                    />
+                    <Text 
+                        numberOfLines={3} 
+                        style={{ 
+                            textAlign: 'center', 
+                            ...(
+                                this.props.vehicleTypeSelected === VEHICLES_TYPES.truck ? 
+                                {
+                                    color: colorAppPrimary,
+                                    fontWeight: '400'
+                                } : 
+                                { color: DefaultTheme.colors.placeholder }
+                            )
+                        }}
+                    >
+                        Caminhão e Micro-Ônibus
+                    </Text>
+                </View>
+            </Card>
+        </View>
+    )
+
     render = () => (
         <View style={styles.mainView}>
             <ScrollView
@@ -255,176 +391,9 @@ class FormInitial extends React.PureComponent {
                     paddingVertical: 10
                 }}
             >
-                <View style={{ flexDirection: 'row', justifyContent: 'space-around', marginTop: 5, marginBottom: 10 }}>
-                    <Card 
-                        elevation={2} 
-                        style={{ 
-                            flex: 1,
-                            marginLeft: 5, 
-                            flexDirection: 'row',
-                            paddingVertical: 5,
-                            ...(this.props.vehicleTypeSelected === VEHICLES_TYPES.car ? { borderWidth: 1.5, borderColor: colorAppPrimary } : { borderWidth: 1.5, borderColor: 'transparent' }) 
-                        }}
-                        onPress={this.onPressCardCar}
-                    >
-                        <View 
-                            style={{
-                                flex: 1,
-                                alignItems: 'center', 
-                                justifyContent: 'center'
-                            }}
-                        >
-                            <Icon 
-                                name={'car-sports'} 
-                                type={'material-community'} 
-                                size={36} 
-                                color={this.props.vehicleTypeSelected === VEHICLES_TYPES.car ? colorAppPrimary : DefaultTheme.colors.placeholder} 
-                            />
-                            <Text 
-                                numberOfLines={1} 
-                                style={{ 
-                                    textAlign: 'center', 
-                                    ...(
-                                        this.props.vehicleTypeSelected === VEHICLES_TYPES.car ? 
-                                        {
-                                            color: colorAppPrimary,
-                                            fontWeight: '400'
-                                        } : 
-                                        { color: DefaultTheme.colors.placeholder }
-                                    )
-                                }}
-                            >
-                                Carro
-                            </Text>
-                        </View>
-                    </Card>
-                    <Card 
-                        elevation={2} 
-                        style={{ 
-                            flex: 1, 
-                            marginLeft: 5, 
-                            flexDirection: 'row',
-                            paddingVertical: 5,
-                            ...(this.props.vehicleTypeSelected === VEHICLES_TYPES.motorbike ? { borderWidth: 1.5, borderColor: colorAppPrimary } : { borderWidth: 1.5, borderColor: 'transparent' }) 
-                        }}
-                        onPress={this.onPressCardMotorbike}
-                    >
-                        <View 
-                            style={{
-                                flex: 1,
-                                alignItems: 'center', 
-                                justifyContent: 'center'
-                            }}
-                        >
-                            <Icon 
-                                name={'motorbike'} 
-                                type={'material-community'} 
-                                size={36} 
-                                color={this.props.vehicleTypeSelected === VEHICLES_TYPES.motorbike ? colorAppPrimary : DefaultTheme.colors.placeholder} 
-                            />
-                            <Text 
-                                numberOfLines={1} 
-                                style={{ 
-                                    textAlign: 'center', 
-                                    ...(
-                                        this.props.vehicleTypeSelected === VEHICLES_TYPES.motorbike ? 
-                                        {
-                                            color: colorAppPrimary,
-                                            fontWeight: '400'
-                                        } : 
-                                        { color: DefaultTheme.colors.placeholder }
-                                    )
-                                }}
-                            >
-                                Moto
-                            </Text>
-                        </View>
-                    </Card>
-                    <Card 
-                        elevation={2} 
-                        style={{ 
-                            flex: 1, 
-                            marginLeft: 5, 
-                            marginRight: 5, 
-                            flexDirection: 'row',
-                            paddingVertical: 5,
-                            ...(this.props.vehicleTypeSelected === VEHICLES_TYPES.truck ? { borderWidth: 1.5, borderColor: colorAppPrimary } : { borderWidth: 1.5, borderColor: 'transparent' }) 
-                        }}
-                        onPress={this.onPressCardTruck}
-                    >
-                        <View 
-                            style={{
-                                flex: 1,
-                                alignItems: 'center', 
-                                justifyContent: 'center'
-                            }}
-                        >
-                            <Icon 
-                                name={'truck'} 
-                                type={'material-community'} 
-                                size={34} 
-                                color={this.props.vehicleTypeSelected === VEHICLES_TYPES.truck ? colorAppPrimary : DefaultTheme.colors.placeholder} 
-                            />
-                            <Text 
-                                numberOfLines={3} 
-                                style={{ 
-                                    textAlign: 'center', 
-                                    ...(
-                                        this.props.vehicleTypeSelected === VEHICLES_TYPES.truck ? 
-                                        {
-                                            color: colorAppPrimary,
-                                            fontWeight: '400'
-                                        } : 
-                                        { color: DefaultTheme.colors.placeholder }
-                                    )
-                                }}
-                            >
-                                Caminhão e Micro-Ônibus
-                            </Text>
-                        </View>
-                    </Card>
-                </View>
+                {/* this.renderChooseVehicleType() */}
                 <Card elevation={2}>
                     <Card.Content>
-                        <View>
-                            <TextInput
-                                mode={'outlined'}
-                                label='Apelido'
-                                value={this.props.nickname}
-                                onChangeText={value => this.props.modifyNickname(value)}
-                                style={{
-                                    backgroundColor: 'white',
-                                    marginBottom: 5
-                                }}
-                                maxLength={20}
-                                onFocus={this.onFocusChangeTheme}
-                                onBlur={this.onBlurChangeTheme}
-                                render={props =>
-                                    <RNTextInput
-                                        {...props}
-                                        style={[...props.style, { paddingRight: 60 }]}
-                                    />
-                                }
-                            />
-                            <View
-                                style={{
-                                    position: 'absolute',
-                                    top: 0,
-                                    right: 20,
-                                    bottom: 0,
-                                    alignItems: 'center',
-                                    justifyContent: 'center'
-                                }}
-                                pointerEvents='none'
-                            >
-                                <Icon 
-                                    name='keyboard-outline' 
-                                    type='material-community' 
-                                    color={this.state.themecolor} 
-                                    size={28} 
-                                />
-                            </View>
-                        </View>
                         <TouchableOpacity
                             onPress={this.onPressManufacturer}
                             activeOpacity={0.6}
@@ -435,7 +404,7 @@ class FormInitial extends React.PureComponent {
                                     editable={false}
                                     selectTextOnFocus={false}
                                     label='Marca'
-                                    value={limitDotText(this.props.manufacturer, 30)}
+                                    value={this.props.manufacturer}
                                     style={{
                                         backgroundColor: 'white',
                                         marginBottom: 5
@@ -471,12 +440,13 @@ class FormInitial extends React.PureComponent {
                                     editable={false}
                                     selectTextOnFocus={false}
                                     label='Modelo'
-                                    value={limitDotText(this.props.model, 30)}
+                                    value={this.props.model}
                                     style={{
                                         backgroundColor: 'white',
                                         marginBottom: 5,
                                         textAlign: 'left'
                                     }}
+                                    multiline
                                     render={props =>
                                         <RNTextInput
                                             {...props}
@@ -552,6 +522,45 @@ class FormInitial extends React.PureComponent {
                                 </View>
                             </View>
                         </TouchableOpacity>
+                        <View>
+                            <TextInput
+                                mode={'outlined'}
+                                label='Apelido'
+                                value={this.props.nickname}
+                                onChangeText={this.onChangeNickname}
+                                style={{
+                                    backgroundColor: 'white',
+                                    marginBottom: 5
+                                }}
+                                maxLength={20}
+                                onFocus={this.onFocusChangeTheme}
+                                onBlur={this.onBlurChangeTheme}
+                                render={props =>
+                                    <RNTextInput
+                                        {...props}
+                                        style={[...props.style, { paddingRight: 60 }]}
+                                    />
+                                }
+                            />
+                            <View
+                                style={{
+                                    position: 'absolute',
+                                    top: 0,
+                                    right: 20,
+                                    bottom: 0,
+                                    alignItems: 'center',
+                                    justifyContent: 'center'
+                                }}
+                                pointerEvents='none'
+                            >
+                                <Icon 
+                                    name='keyboard-outline' 
+                                    type='material-community' 
+                                    color={this.state.themecolor} 
+                                    size={28} 
+                                />
+                            </View>
+                        </View>
                     </Card.Content>
                 </Card>
                 <View style={{ height: tabBarHeight + 20 }} />

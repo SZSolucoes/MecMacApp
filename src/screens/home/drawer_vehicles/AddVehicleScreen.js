@@ -27,6 +27,7 @@ import {
 } from '../../../actions/AddVehicleActions';
 import AddVehicleBanner from './AddVehicleBanner';
 import AddVehicleAlert from './AddVehicleAlert';
+import { store } from '../../../App';
 
 const PAGEINITIAL = 0;
 const PAGEKM = 1;
@@ -187,8 +188,9 @@ class AddVehicleScreen extends React.PureComponent {
         const {
             manufacturer,
             model,
-            quilometers
         } = this.props;
+
+        const quilometers = store.getState().AddVehicleReducer.quilometers;
 
         const { currentPage } = this.state;
 
@@ -446,8 +448,7 @@ const mapStateToProps = state => ({
     manufacturer: state.AddVehicleReducer.manufacturer,
     manufacturerValue: state.AddVehicleReducer.manufacturerValue,
     model: state.AddVehicleReducer.model,
-    modelValue: state.AddVehicleReducer.modelValue,
-    quilometers: state.AddVehicleReducer.quilometers
+    modelValue: state.AddVehicleReducer.modelValue
 });
 
 export default connect(mapStateToProps, {

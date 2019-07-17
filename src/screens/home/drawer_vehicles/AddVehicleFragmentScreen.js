@@ -1,9 +1,9 @@
 /* eslint-disable max-len */
 import React from 'react';
-import { BackHandler, StyleSheet } from 'react-native';
+import { BackHandler, StyleSheet, Text, View } from 'react-native';
 import { connect } from 'react-redux';
 import { FlatList } from 'react-native-gesture-handler';
-import { List, Card, Checkbox } from 'react-native-paper';
+import { List, Card, Checkbox, DefaultTheme } from 'react-native-paper';
 import { SearchBar, Icon } from 'react-native-elements';
 import _ from 'lodash';
 
@@ -199,13 +199,26 @@ class AddVehicleFragmentScreen extends React.PureComponent {
             }}
         >
             <Card.Content>
-                <List.Item
-                    title={propsItem.item.label}
+                <View style={{ flexDirection: 'row', margin: 14 }}>
+                    <View style={{ flex: 6, alignItems: 'flex-start', justifyContent: 'center' }}>
+                        <Text 
+                            style={{
+                                fontSize: 16,
+                                color: DefaultTheme.colors.text
+                            }}
+                        >
+                            {propsItem.item.label}
+                        </Text>
+                    </View>
                     {
-                        ...(this.props.model === propsItem.item.label ? 
-                        { right: () => (<Checkbox status={'checked'} color={colorAppPrimary} />) } : {})
+                        this.props.model === propsItem.item.label && 
+                        (
+                            <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
+                                <Checkbox status={'checked'} color={colorAppPrimary} />
+                            </View>
+                        )
                     }
-                />
+                </View>
             </Card.Content>
         </Card>
     )

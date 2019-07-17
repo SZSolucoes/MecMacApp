@@ -66,3 +66,8 @@ android/java_pid65632.hprof
 ios/MecMacApp/GoogleService-Info.plist
 ios/MecMacApp/Info.plist
 src/screens/utils/api/ApiManagerConsumer.js
+devWirelessDebug.bat
+devWirelessRelease.bat
+src/assets/images/bugatti.jpg
+src/assets/images/kawasaki.png
+src/assets/images/spider.jpg

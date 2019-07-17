@@ -4,8 +4,9 @@ import { apiGetManufacturesAndModels } from '../screens/utils/api/ApiManagerCons
 import { AllSchemasArray } from './RealmSchemas';
 
 export const realmFetchsInit = async () => {
+    let realmInstance = null;
     try {
-        const realmInstance = new Realm({
+        realmInstance = new Realm({
             schema: AllSchemasArray,
             schemaVersion: 1,
             deleteRealmIfMigrationNeeded: true
@@ -33,6 +34,7 @@ export const realmFetchsInit = async () => {
         
         realmInstance.close();
     } catch (e) {
+        if (realmInstance && !realmInstance.isClosed) realmInstance.close();
         console.log(e);
     }
 };
