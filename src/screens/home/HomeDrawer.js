@@ -5,7 +5,7 @@ import { connect } from 'react-redux';
 import { Drawer } from 'react-native-paper';
 import { ListItem, Icon } from 'react-native-elements';
 import Ripple from 'react-native-material-ripple';
-import { colorAppPrimary } from '../utils/Constants';
+import { colorAppPrimary, HOMEDRAWERMENU } from '../utils/Constants';
 import { defaultTextHeader } from '../utils/Styles';
 
 import Images from '../utils/AssetsManager';
@@ -19,10 +19,22 @@ class HomeDrawer extends React.PureComponent {
 
     onPressAvatar = () => false
 
-    onMenuChoosed = (value) => {
-        this.props.navigation.closeDrawer();
-        this.props.modifyMenuChoosed(value);
+    onMenuChooseMain = () => {
+        this.closeDrawer();
+        this.props.modifyMenuChoosed(HOMEDRAWERMENU.MAIN);
     }
+
+    onMenuChooseMainAddVehicle = () => {
+        this.closeDrawer();
+        this.props.navigation.navigate('AddVehicle');
+    }
+
+    onMenuChooseMyVehicle = () => {
+        this.closeDrawer();
+        this.props.modifyMenuChoosed(HOMEDRAWERMENU.MYVEHICLE);
+    }
+    
+    closeDrawer = () => this.props.navigation.closeDrawer()
 
     render() {
         return (
@@ -52,7 +64,7 @@ class HomeDrawer extends React.PureComponent {
                                             rippleCentered
                                             rippleColor={colorAppPrimary}
                                             style={styles.listItem}
-                                            onPress={() => this.onMenuChoosed('main')}
+                                            onPress={this.onMenuChooseMain}
                                         />
                                 }
                                 leftIcon={{ 
@@ -85,7 +97,7 @@ class HomeDrawer extends React.PureComponent {
                                                 rippleCentered
                                                 rippleColor={colorAppPrimary} 
                                                 style={styles.listItem}
-                                                onPress={() => this.props.navigation.navigate('AddVehicle')}
+                                                onPress={this.onMenuChooseMainAddVehicle}
                                             />
                                     }
                                     leftIcon={{ 
@@ -105,7 +117,7 @@ class HomeDrawer extends React.PureComponent {
                                                 rippleCentered
                                                 rippleColor={colorAppPrimary} 
                                                 style={styles.listItem}
-                                                onPress={() => this.onMenuChoosed('myvehicle')}
+                                                onPress={this.onMenuChooseMyVehicle}
                                             />
                                     }
                                     leftIcon={{ 

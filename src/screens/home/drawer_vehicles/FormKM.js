@@ -4,7 +4,7 @@ import { View, Text, TextInput as RNTextInput, StyleSheet } from 'react-native';
 import { connect } from 'react-redux';
 import { Icon } from 'react-native-elements';
 import { Card, Title, Paragraph, TextInput, DefaultTheme } from 'react-native-paper';
-import { ScrollView } from 'react-native-gesture-handler';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 
 import { tabBarHeight } from '../../utils/Constants';
 import { modifyQuilometers } from '../../../actions/AddVehicleActions';
@@ -25,7 +25,8 @@ class FormKM extends React.PureComponent {
 
     render = () => (
         <View style={styles.mainView}>
-            <ScrollView
+            <KeyboardAwareScrollView
+                extraScrollHeight={8}
                 contentContainerStyle={{
                     paddingVertical: 10
                 }}
@@ -83,7 +84,7 @@ class FormKM extends React.PureComponent {
                     </Card.Content>
                 </Card>
                 <View style={{ height: tabBarHeight + 20 }} />
-            </ScrollView>
+            </KeyboardAwareScrollView>
         </View>
     );
 }

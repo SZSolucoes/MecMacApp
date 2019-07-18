@@ -86,7 +86,7 @@ const AppStack = createStackNavigator(
         }
     },
     {
-        initialRouteName: 'Home',
+        initialRouteName: 'AddVehicle',
         transitionConfig: TransitionsScreens
     }
 );

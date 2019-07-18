@@ -12,3 +12,9 @@ export const VEHICLES_TYPES = {
     motorbike: 2,
     truck: 3
 };
+
+export const HOMEDRAWERMENU = {
+    MAIN: 0,
+    ADDVEHICLE: 1,
+    MYVEHICLE: 2
+};

@@ -8,7 +8,7 @@ import { connect } from 'react-redux';
 import SplashScreen from 'react-native-splash-screen';
 import Animated from 'react-native-reanimated';
 
-import { colorAppForeground } from '../utils/Constants';
+import { colorAppForeground, HOMEDRAWERMENU } from '../utils/Constants';
 import MainHomeScreen from './MainHomeScreen';
 import HomeMyVehicleFragment from './screens_fragment/HomeMyVehicleFragment';
 import { runSpring } from '../utils/ReanimatedUtils';
@@ -32,12 +32,12 @@ class HomeScreen extends React.PureComponent {
 
     renderScreensManager = () => {
         switch (this.props.menuChoosed) {
-            case 'main':
+            case HOMEDRAWERMENU.MAIN:
                 return (<MainHomeScreen navigation={this.props.navigation} />);
-            case 'myvehicle':
+            case HOMEDRAWERMENU.MYVEHICLE:
                 return (<HomeMyVehicleFragment navigation={this.props.navigation} />);
             default:
-                return (<MainHomeScreen navigation={this.props.navigation} />);
+                break;
         }
     }
 

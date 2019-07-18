@@ -1,5 +1,6 @@
 const INITIAL_STATE = {
     nickname: '',
+    nicknameHasUpdated: false,
     manufacturer: '',
     manufacturerValue: '',
     model: '',
@@ -26,6 +27,11 @@ export default (state = INITIAL_STATE, action) => {
             return { 
                 ...state, 
                 nickname: action.payload
+            };
+        case 'modify_addvehicle_nicknamehasupdated':
+            return { 
+                ...state, 
+                nicknameHasUpdated: action.payload
             };
         case 'modify_addvehicle_manufacturer':
             return { 

@@ -9,11 +9,13 @@ import _ from 'lodash';
 
 import { DefaultScreenAndHeaderContainer } from '../../tools/Screens';
 import { 
-    modifyManufacturer, 
+    modifyNickname,
+    modifyManufacturer,
     modifyManufacturerValue, 
     modifyModel,
     modifyModelValue,
-    modifyFuel
+    modifyFuel,
+    modifyNicknameHasUpdated
 } from '../../../actions/AddVehicleActions';
 import { colorAppPrimary } from '../../utils/Constants';
 
@@ -74,7 +76,7 @@ class AddVehicleFragmentScreen extends React.PureComponent {
     onRenderManufacturer = () => {
         const manufacturersFiltred = _.filter(
             this.props.manufacturers, 
-            ita => ita.label.toLowerCase().includes(this.state.manufacturerSearchValue.toLowerCase())
+            ita => this.searchMatchKeys(ita.label, this.state.manufacturerSearchValue)
         );
         
         return (
@@ -102,7 +104,7 @@ class AddVehicleFragmentScreen extends React.PureComponent {
     onRenderModel = () => {
         const modelsFiltred = _.filter(
             this.props.models, 
-            ita => ita.label.toLowerCase().includes(this.state.modelSearchValue.toLowerCase())
+            ita => this.searchMatchKeys(ita.label, this.state.modelSearchValue)
         );
         
         return (
@@ -161,18 +163,33 @@ class AddVehicleFragmentScreen extends React.PureComponent {
         }
     }
 
+    searchMatchKeys = (valueItemList, valueInput) => {
+        const parsedValueList = valueItemList.toLowerCase().trim();
+        const keysInputed = valueInput.toLowerCase().trim().split(' ');
+
+        for (let index = 0; index < keysInputed.length; index++) {
+            const element = keysInputed[index];
+            
+            if (!parsedValueList.includes(element)) return false;
+        }
+
+        return true;
+    }
+
     renderManufacturer = (propsItem) => (
         <Card 
             style={{ marginVertical: 2, marginHorizontal: 8 }}
             onPress={() => {
                 this.onPressBackButton();
 
-                this.props.modifyManufacturer(propsItem.item.label);
-                this.props.modifyManufacturerValue(propsItem.item.value);
-
-                if (this.props.manufacturer !== propsItem.item.label) {
-                    this.props.modifyModel('');
-                    this.props.modifyModelValue('');
+                if (propsItem.item.label) {
+                    this.props.modifyManufacturer(propsItem.item.label);
+                    this.props.modifyManufacturerValue(propsItem.item.value);
+    
+                    if (this.props.manufacturer !== propsItem.item.label) {
+                        this.props.modifyModel('');
+                        this.props.modifyModelValue('');
+                    }
                 }
             }}
         >
@@ -194,8 +211,18 @@ class AddVehicleFragmentScreen extends React.PureComponent {
             onPress={() => {
                 this.onPressBackButton();
 
-                this.props.modifyModel(propsItem.item.label);
-                this.props.modifyModelValue(propsItem.item.value);
+                if (propsItem.item.label) {
+                    const nickname = this.props.nickname.trim();
+                    const firstLabel = propsItem.item.label.trim().split(' ')[0];
+    
+                    this.props.modifyModel(propsItem.item.label);
+                    this.props.modifyModelValue(propsItem.item.value);
+    
+                    if (!nickname || (nickname === firstLabel.trim()) || !this.props.nicknameHasUpdated) {
+                        this.props.modifyNickname(propsItem.item.label.trim().split(' ')[0]);
+                        this.props.modifyNicknameHasUpdated(false);
+                    }
+                }
             }}
         >
             <Card.Content>
@@ -326,6 +353,8 @@ class AddVehicleFragmentScreen extends React.PureComponent {
 
 const mapStateToProps = (state) => ({
     screenFragment: state.AddVehicleReducer.screenFragment,
+    nickname: state.AddVehicleReducer.nickname,
+    nicknameHasUpdated: state.AddVehicleReducer.nicknameHasUpdated,
     manufacturer: state.AddVehicleReducer.manufacturer,
     model: state.AddVehicleReducer.model,
     fuel: state.AddVehicleReducer.fuel,
@@ -345,9 +374,11 @@ const styles = StyleSheet.create({
 });
 
 export default connect(mapStateToProps, {
+    modifyNickname,
     modifyManufacturer,
     modifyManufacturerValue,
     modifyModel,
     modifyModelValue,
-    modifyFuel
+    modifyFuel,
+    modifyNicknameHasUpdated
 })(AddVehicleFragmentScreen);

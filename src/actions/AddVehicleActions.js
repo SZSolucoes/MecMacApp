@@ -1,6 +1,7 @@
 /* eslint-disable max-len */
 
 export const modifyNickname = (value) => ({ type: 'modify_addvehicle_nickname', payload: value });
+export const modifyNicknameHasUpdated = (value) => ({ type: 'modify_addvehicle_nicknamehasupdated', payload: value });
 export const modifyManufacturer = (value) => ({ type: 'modify_addvehicle_manufacturer', payload: value });
 export const modifyManufacturerValue = (value) => ({ type: 'modify_addvehicle_manufacturervalue', payload: value });
 export const modifyModel = (value) => ({ type: 'modify_addvehicle_model', payload: value });

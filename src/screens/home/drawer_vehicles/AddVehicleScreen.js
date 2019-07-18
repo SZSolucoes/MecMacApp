@@ -2,11 +2,12 @@
 import React from 'react';
 import { View, SafeAreaView, StyleSheet, BackHandler, Text, TouchableOpacity, Keyboard } from 'react-native';
 import { connect } from 'react-redux';
-import { Surface } from 'react-native-paper';
+import { Surface, ProgressBar } from 'react-native-paper';
 import { Pages } from 'react-native-pages';
 import { Icon } from 'react-native-elements';
 import Animated from 'react-native-reanimated';
 import SplashScreen from 'react-native-splash-screen';
+import { linear } from 'everpolate';
 
 import { renderStatusBar } from '../../utils/Screen';
 import HeaderDefault from '../../tools/HeaderDefault';
@@ -257,117 +258,142 @@ class AddVehicleScreen extends React.PureComponent {
                     title={'Adicionar veículo'}
                 />
                 <View style={{ flex: 1 }}>
-                    <Surface style={[styles.barPass, { elevation: 2 }]}>
-                        <Icon 
-                            name={'key-variant'} 
-                            type={'material-community'} 
-                            color={'white'} 
-                            size={26} 
-                            containerStyle={{ flex: 3 }}
-                            onPress={() => this.onManualPressNumbers(PAGEINITIAL)}
-                            Component={
-                                (props) => 
-                                    <TouchableOpacity 
-                                        {...props} 
-                                        activeOpacity={this.state.currentPage !== PAGEINITIAL ? 0.5 : 1}
-                                    >
-                                        <Animated.View
-                                            style={{
-                                                transform: [{ 
-                                                    scale: Animated.interpolate(
-                                                        this.animPageInitialValue, {
-                                                            inputRange: [0, 1],
-                                                            outputRange: [MAXSCALE, 1],
-                                                            extrapolate: Animated.Extrapolate.CLAMP
-                                                        }
-                                                    )
-                                                }]
-                                            }}
+                    <Surface style={{ elevation: 2, backgroundColor: colorAppPrimary }}>
+                        <View style={styles.barPass}>
+                            <Icon 
+                                name={'key-variant'} 
+                                type={'material-community'} 
+                                color={'white'} 
+                                size={26} 
+                                containerStyle={{ flex: 3 }}
+                                onPress={() => this.onManualPressNumbers(PAGEINITIAL)}
+                                Component={
+                                    (props) => 
+                                        <TouchableOpacity 
+                                            {...props} 
+                                            activeOpacity={this.state.currentPage !== PAGEINITIAL ? 0.5 : 1}
                                         >
-                                            {props.children}
-                                        </Animated.View>
-                                    </TouchableOpacity>
-                            }
-                        />
-                        <Icon 
-                            name={'chevron-double-right'} 
-                            type={'material-community'} 
-                            color={this.state.currentPage === PAGEKM || this.state.currentPage === PAGECOMPLETE ? 'white' : 'black'} 
-                            size={18} 
-                            containerStyle={{ flex: 1 }} 
-                        />
-                        <Icon 
-                            name={'ios-speedometer'} 
-                            type={'ionicon'} 
-                            color={this.state.currentPage === PAGEKM || this.state.currentPage === PAGECOMPLETE ? 'white' : 'black'} 
-                            size={28} 
-                            containerStyle={{ flex: 3 }}
-                            onPress={() => this.onManualPressNumbers(PAGEKM)}
-                            Component={
-                                (props) => 
-                                    <TouchableOpacity 
-                                        {...props} 
-                                        activeOpacity={this.state.currentPage === PAGECOMPLETE ? 0.5 : 1} 
-                                    >
-                                        <Animated.View
-                                            style={{
-                                                transform: [{ 
-                                                    scale: Animated.interpolate(
-                                                        this.animPageKMValue, {
-                                                            inputRange: [0, 1, 2],
-                                                            outputRange: [1, MAXSCALE, 1],
-                                                            extrapolate: Animated.Extrapolate.CLAMP
-                                                        }
-                                                    )
-                                                }]
-                                            }}
+                                            <Animated.View
+                                                style={{
+                                                    transform: [{ 
+                                                        scale: Animated.interpolate(
+                                                            this.animPageInitialValue, {
+                                                                inputRange: [0, 1],
+                                                                outputRange: [MAXSCALE, 1],
+                                                                extrapolate: Animated.Extrapolate.CLAMP
+                                                            }
+                                                        )
+                                                    }]
+                                                }}
+                                            >
+                                                {props.children}
+                                            </Animated.View>
+                                        </TouchableOpacity>
+                                }
+                            />
+                            <Icon 
+                                name={'chevron-double-right'} 
+                                type={'material-community'} 
+                                color={this.state.currentPage === PAGEKM || this.state.currentPage === PAGECOMPLETE ? 'white' : 'black'} 
+                                size={18} 
+                                containerStyle={{ flex: 1 }} 
+                            />
+                            <Icon 
+                                name={'ios-speedometer'} 
+                                type={'ionicon'} 
+                                color={this.state.currentPage === PAGEKM || this.state.currentPage === PAGECOMPLETE ? 'white' : 'black'} 
+                                size={28} 
+                                containerStyle={{ flex: 3 }}
+                                onPress={() => this.onManualPressNumbers(PAGEKM)}
+                                Component={
+                                    (props) => 
+                                        <TouchableOpacity 
+                                            {...props} 
+                                            activeOpacity={this.state.currentPage === PAGECOMPLETE ? 0.5 : 1} 
                                         >
-                                            {props.children}
-                                        </Animated.View>
-                                    </TouchableOpacity>
-                            }
-                        />
-                        <Icon 
-                            name={'chevron-double-right'} 
-                            type={'material-community'} 
-                            color={this.state.currentPage === PAGECOMPLETE ? 'white' : 'black'} 
-                            size={18} 
-                            containerStyle={{ flex: 1 }} 
-                        />
-                        <Icon 
-                            name={'check-circle'} 
-                            type={'material-community'} 
-                            color={this.state.currentPage === PAGECOMPLETE ? 'white' : 'black'} 
-                            size={28} 
-                            containerStyle={{ flex: 3 }}
-                            Component={
-                                (props) => 
-                                    <TouchableOpacity 
-                                        {...props} 
-                                        activeOpacity={1} 
-                                    >
-                                        <Animated.View
-                                            style={{
-                                                transform: [{ 
-                                                    scale: Animated.interpolate(
-                                                        this.animPageKMValue, {
-                                                            inputRange: [1, 2],
-                                                            outputRange: [1, MAXSCALE],
-                                                            extrapolate: Animated.Extrapolate.CLAMP
-                                                        }
-                                                    )
-                                                }]
-                                            }}
+                                            <Animated.View
+                                                style={{
+                                                    transform: [{ 
+                                                        scale: Animated.interpolate(
+                                                            this.animPageKMValue, {
+                                                                inputRange: [0, 1, 2],
+                                                                outputRange: [1, MAXSCALE, 1],
+                                                                extrapolate: Animated.Extrapolate.CLAMP
+                                                            }
+                                                        )
+                                                    }]
+                                                }}
+                                            >
+                                                {props.children}
+                                            </Animated.View>
+                                        </TouchableOpacity>
+                                }
+                            />
+                            <Icon 
+                                name={'chevron-double-right'} 
+                                type={'material-community'} 
+                                color={this.state.currentPage === PAGECOMPLETE ? 'white' : 'black'} 
+                                size={18} 
+                                containerStyle={{ flex: 1 }} 
+                            />
+                            <Icon 
+                                name={'check-circle'} 
+                                type={'material-community'} 
+                                color={this.state.currentPage === PAGECOMPLETE ? 'white' : 'black'} 
+                                size={28} 
+                                containerStyle={{ flex: 3 }}
+                                Component={
+                                    (props) => 
+                                        <TouchableOpacity 
+                                            {...props} 
+                                            activeOpacity={1} 
                                         >
-                                            {props.children}
-                                        </Animated.View>
-                                    </TouchableOpacity>
-                            }
-                        />
+                                            <Animated.View
+                                                style={{
+                                                    transform: [{ 
+                                                        scale: Animated.interpolate(
+                                                            this.animPageKMValue, {
+                                                                inputRange: [1, 2],
+                                                                outputRange: [1, MAXSCALE],
+                                                                extrapolate: Animated.Extrapolate.CLAMP
+                                                            }
+                                                        )
+                                                    }]
+                                                }}
+                                            >
+                                                {props.children}
+                                            </Animated.View>
+                                        </TouchableOpacity>
+                                }
+                            />
+                        </View>
+                        <View
+                            style={{
+                                flexDirection: 'row',
+                                alignItems: 'center',
+                                justifyContent: 'center'
+                            }}
+                        >
+                            <ProgressBar
+                                style={{ width: '90%', paddingVertical: 0 }}
+                                color={'white'}
+                                progress={linear(this.state.currentPage, [0, 1, 2], [0.3, 0.7, 1])[0]}
+                            />
+                        </View>
+                        <View
+                            style={{
+                                flexDirection: 'row',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                marginBottom: 4
+                            }}
+                        >
+                            <Text style={{ fontFamily: 'OpenSans-SemiBold', color: 'white' }}>{`${this.state.currentPage + 1}/3`}</Text>
+                        </View>
                     </Surface>
                     <Pages
                         ref={this.refPages}
-                        startPage={1}
+                        startPage={0}
                         scrollEnabled={false}
                         style={{ flex: 1, backgroundColor: 'transparent' }}
                         indicatorPosition={'none'}
@@ -435,12 +461,12 @@ const styles = StyleSheet.create({
         backgroundColor: colorAppForeground
     },
     barPass: {
-        height: tabBarHeight,
         width: '100%',
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'space-around',
-        backgroundColor: colorAppPrimary
+        paddingTop: 10,
+        paddingBottom: 5
     }
 });
 

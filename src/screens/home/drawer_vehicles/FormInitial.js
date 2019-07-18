@@ -3,9 +3,9 @@ import React from 'react';
 import { View, StyleSheet, Text, TextInput as RNTextInput } from 'react-native';
 import { connect } from 'react-redux';
 import { Card, TextInput, DefaultTheme } from 'react-native-paper';
-import { ScrollView, TouchableOpacity } from 'react-native-gesture-handler';
+import { TouchableOpacity } from 'react-native-gesture-handler';
 import { Icon } from 'react-native-elements';
-import Realm from 'realm';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 
 import { tabBarHeight, colorAppPrimary, VEHICLES_TYPES } from '../../utils/Constants';
 import { 
@@ -19,7 +19,8 @@ import {
     modifyModel,
     modifyModelValue,
     modifyFuel,
-    modifyFuelValue
+    modifyFuelValue,
+    modifyNicknameHasUpdated
 } from '../../../actions/AddVehicleActions';
 import { realmAllSchemesInstance } from '../../../storage/RealmManager';
 
@@ -139,7 +140,10 @@ class FormInitial extends React.PureComponent {
         }
     }
 
-    onChangeNickname = (value) => this.props.modifyNickname(value)
+    onChangeNickname = (value) => {
+        this.props.modifyNickname(value);
+        this.props.modifyNicknameHasUpdated(true);
+    }
 
     mapManufacturesToProps = (vehicleTypeSelected) => {
         try {
@@ -368,7 +372,8 @@ class FormInitial extends React.PureComponent {
 
     render = () => (
         <View style={styles.mainView}>
-            <ScrollView
+            <KeyboardAwareScrollView
+                extraScrollHeight={8}
                 contentContainerStyle={{
                     paddingVertical: 10
                 }}
@@ -432,7 +437,7 @@ class FormInitial extends React.PureComponent {
                                     render={props =>
                                         <RNTextInput
                                             {...props}
-                                            style={[...props.style, { paddingRight: 60 }]}
+                                            style={[...props.style, { paddingRight: 60, paddingTop: 23 }]}
                                         />
                                     }
                                 />
@@ -509,6 +514,7 @@ class FormInitial extends React.PureComponent {
                                 mode={'outlined'}
                                 label='Apelido'
                                 value={this.props.nickname}
+                                placeholder={this.props.nicknamePlaceholder}
                                 onChangeText={this.onChangeNickname}
                                 style={{
                                     backgroundColor: 'white',
@@ -546,7 +552,7 @@ class FormInitial extends React.PureComponent {
                     </Card.Content>
                 </Card>
                 <View style={{ height: tabBarHeight + 20 }} />
-            </ScrollView>
+            </KeyboardAwareScrollView>
         </View>
     );
 }
@@ -568,6 +574,7 @@ const styles = StyleSheet.create({
 
 const mapStateToProps = state => ({
     nickname: state.AddVehicleReducer.nickname,
+    nicknamePlaceholder: state.AddVehicleReducer.nicknamePlaceholder,
     manufacturer: state.AddVehicleReducer.manufacturer,
     manufacturerValue: state.AddVehicleReducer.manufacturerValue,
     model: state.AddVehicleReducer.model,
@@ -587,5 +594,6 @@ export default connect(mapStateToProps, {
     modifyModel,
     modifyModelValue,
     modifyFuel,
-    modifyFuelValue
+    modifyFuelValue,
+    modifyNicknameHasUpdated
 })(FormInitial);

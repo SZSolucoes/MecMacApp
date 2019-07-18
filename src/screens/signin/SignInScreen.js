@@ -11,7 +11,7 @@ import {
 } from 'react-native';
 import { connect } from 'react-redux';
 import AsyncStorage from '@react-native-community/async-storage';
-import { LoginManager, GraphRequest, GraphRequestManager, AccessToken } from 'react-native-fbsdk';
+/* import { LoginManager, GraphRequest, GraphRequestManager, AccessToken } from 'react-native-fbsdk'; */
 import { GoogleSignin, statusCodes } from 'react-native-google-signin';
 import { Button, SocialIcon, Icon } from 'react-native-elements';
 import { Appbar, Divider } from 'react-native-paper';
@@ -59,7 +59,7 @@ class SignInScreen extends React.PureComponent {
 
     onHandleBackPress = () => true
 
-    handleGetUserInfo = async () => {
+    /* handleGetUserInfo = async () => {
         const infoRequest = new GraphRequest(
             '/me?fields=name,email,picture.type(large)',
             null,
@@ -87,11 +87,11 @@ class SignInScreen extends React.PureComponent {
         );
         // Start the graph request.
         new GraphRequestManager().addRequest(infoRequest).start();
-    }
+    } */
 
     handleEmailLogin = () => this.signInAsync({ isEmail: true })
 
-    handleFacebookLogin = () => {
+    /* handleFacebookLogin = () => {
         this.setState({ disableButtons: true });
 
         LoginManager.logInWithReadPermissions(['public_profile', 'email']).then(
@@ -111,9 +111,9 @@ class SignInScreen extends React.PureComponent {
             },
             () => { console.log('Facebook: erro em logout'); this.setState({ disableButtons: false }); }
         );
-    }
+    } */
 
-    handleFacebookLogout = async () => {
+    /* handleFacebookLogout = async () => {
         try {
             const token = await AccessToken.getCurrentAccessToken()
             .then((data) => {
@@ -127,7 +127,7 @@ class SignInScreen extends React.PureComponent {
                             accessToken: token,
                             httpMethod: 'DELETE'
                         },
-                        (error/* , result */) => {
+                        (error) => {
                             if (error) {
                                 console.log('Facebook: erro em logout');
                             } else {
@@ -141,7 +141,7 @@ class SignInScreen extends React.PureComponent {
         } catch (e) {
             console.log('Facebook: erro em logout');
         }
-    }
+    } */
 
     handleGoogleSignIn = async () => {
         this.setState({ disableButtons: true });
@@ -313,7 +313,7 @@ class SignInScreen extends React.PureComponent {
                 >
                     <Button
                         raised
-                        disabled={this.state.disableButtons}
+                        disabled/* ={this.state.disableButtons} */
                         disabledStyle={{ backgroundColor: '#3A5998' }}
                         onPress={this.handleFacebookLogin}
                         icon={
