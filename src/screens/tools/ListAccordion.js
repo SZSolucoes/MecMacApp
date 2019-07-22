@@ -11,6 +11,8 @@ class ListAccordion extends React.PureComponent {
     constructor(props) {
         super(props);
 
+        this.mainRef = React.createRef();
+
         this.viewHeightContent = 0;
         this.lockedAnim = false;
 
@@ -21,7 +23,14 @@ class ListAccordion extends React.PureComponent {
         };
     }
 
+    componentDidUpdate = (prevProps) => {
+        if (prevProps.resetExpandedSwitch !== this.props.resetExpandedSwitch) {
+            this.setState({ expanded: false });
+        }
+    }
+
     onPressListAccordion = () => {
+        //if (this.props.doScrollTo && !this.state.expanded) this.props.doScrollTo(this.mainRef);
         if (this.props.onPress) this.props.onPress();
 
         if (!this.lockedAnim && this.props.expanded === undefined) {
@@ -57,7 +66,7 @@ class ListAccordion extends React.PureComponent {
             : this.state.expanded;
 
         return (
-            <View>
+            <View ref={this.mainRef}>
                 <TouchableOpacity
                     onPress={this.onPressListAccordion}
                     activeOpacity={1}

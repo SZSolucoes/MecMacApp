@@ -24,7 +24,8 @@ import {
     modifyAlertTitle, 
     modifyAlertMessage, 
     modifyAlertConfirmFunction,
-    modifyAlertCancelFunction
+    modifyAlertCancelFunction,
+    modifyIsFetching
 } from '../../../actions/AddVehicleActions';
 import AddVehicleBanner from './AddVehicleBanner';
 import AddVehicleAlert from './AddVehicleAlert';
@@ -53,7 +54,7 @@ class AddVehicleScreen extends React.PureComponent {
         this.lockedSwitchPage = true;
 
         this.state = {
-            currentPage: 0,
+            currentPage: 2,
             bannerVisible: true
         };
 
@@ -107,8 +108,10 @@ class AddVehicleScreen extends React.PureComponent {
     
     onBackButtonPressAndroid = () => {
         const { currentPage } = this.state;
+        const { bannerVisible, alertVisible } = store.getState().AddVehicleReducer;
 
-        this.props.modifyBannerVisible(false);
+        if (bannerVisible) { this.props.modifyBannerVisible(false); return true; }
+        if (alertVisible) { this.props.modifyAlertVisible(false); return true; }
 
         if (!this.lockedSwitchPage && currentPage === PAGEINITIAL) {
             this.onPressBackButton();
@@ -139,6 +142,7 @@ class AddVehicleScreen extends React.PureComponent {
 
     onPressNextOrFinish = async () => {
         const screenValid = await this.validateScreens();
+        const { isFetching } = store.getState().AddVehicleReducer;
 
         if (screenValid) {
             const { currentPage } = this.state;
@@ -150,7 +154,9 @@ class AddVehicleScreen extends React.PureComponent {
                 this.setState({ currentPage: PAGEKM });
             } else if (!this.lockedSwitchPage && currentPage === PAGEKM) {
                 this.setLockedSwitchPage();
-    
+                
+                this.props.modifyIsFetching(!isFetching);
+
                 this.refPages.current.scrollToPage(PAGECOMPLETE);
                 this.setState({ currentPage: PAGECOMPLETE });
             } else if (!this.lockedSwitchPage && currentPage === PAGECOMPLETE) {
@@ -189,14 +195,15 @@ class AddVehicleScreen extends React.PureComponent {
         const {
             manufacturer,
             model,
+            year
         } = this.props;
 
         const quilometers = store.getState().AddVehicleReducer.quilometers;
 
         const { currentPage } = this.state;
 
-        if (currentPage === PAGEINITIAL && (!manufacturer || !model)) {
-            this.props.modifyBannerText('Os campos ( Marca e Modelo ) devem ser preenchidos para prosseguir.');
+        if (currentPage === PAGEINITIAL && (!manufacturer || !model || !year)) {
+            this.props.modifyBannerText('Os campos ( Marca, Modelo e Ano ) devem ser preenchidos para prosseguir.');
             this.props.modifyBannerVisible(true);
             return false;
         }
@@ -254,7 +261,7 @@ class AddVehicleScreen extends React.PureComponent {
             { renderStatusBar('white', 'dark-content') }
             <SafeAreaView style={styles.mainView}>
                 <HeaderDefault 
-                    backActionProps={{ onPress: this.onPressBackButton }}
+                    backActionProps={{ onPress: this.onBackButtonPressAndroid }}
                     title={'Adicionar veículo'}
                 />
                 <View style={{ flex: 1 }}>
@@ -393,7 +400,7 @@ class AddVehicleScreen extends React.PureComponent {
                     </Surface>
                     <Pages
                         ref={this.refPages}
-                        startPage={0}
+                        startPage={2}
                         scrollEnabled={false}
                         style={{ flex: 1, backgroundColor: 'transparent' }}
                         indicatorPosition={'none'}
@@ -474,7 +481,9 @@ const mapStateToProps = state => ({
     manufacturer: state.AddVehicleReducer.manufacturer,
     manufacturerValue: state.AddVehicleReducer.manufacturerValue,
     model: state.AddVehicleReducer.model,
-    modelValue: state.AddVehicleReducer.modelValue
+    modelValue: state.AddVehicleReducer.modelValue,
+    year: state.AddVehicleReducer.year,
+    yearValue: state.AddVehicleReducer.yearValue
 });
 
 export default connect(mapStateToProps, {
@@ -485,5 +494,6 @@ export default connect(mapStateToProps, {
     modifyAlertTitle, 
     modifyAlertMessage, 
     modifyAlertConfirmFunction,
-    modifyAlertCancelFunction
+    modifyAlertCancelFunction,
+    modifyIsFetching
 })(AddVehicleScreen);

@@ -6,11 +6,14 @@ export const modifyManufacturer = (value) => ({ type: 'modify_addvehicle_manufac
 export const modifyManufacturerValue = (value) => ({ type: 'modify_addvehicle_manufacturervalue', payload: value });
 export const modifyModel = (value) => ({ type: 'modify_addvehicle_model', payload: value });
 export const modifyModelValue = (value) => ({ type: 'modify_addvehicle_modelvalue', payload: value });
+export const modifyYear = (value) => ({ type: 'modify_addvehicle_year', payload: value });
+export const modifyYearValue = (value) => ({ type: 'modify_addvehicle_yearvalue', payload: value });
 export const modifyFuel = (value) => ({ type: 'modify_addvehicle_fuel', payload: value });
 export const modifyFuelValue = (value) => ({ type: 'modify_addvehicle_fuelvalue', payload: value });
 export const modifyScreenFragment = (value) => ({ type: 'modify_addvehicle_screenfragment', payload: value });
 export const modifyManufacturers = (value) => ({ type: 'modify_addvehicle_fragmanufacturers', payload: value });
 export const modifyModels = (value) => ({ type: 'modify_addvehicle_fragmodels', payload: value });
+export const modifyYears = (value) => ({ type: 'modify_addvehicle_fragyears', payload: value });
 export const modifyVehicleTypeSelected = (value) => ({ type: 'modify_addvehicle_fragvehicletypeselected', payload: value });
 export const modifyClearMMC = () => ({ type: 'modify_addvehicle_clearmmc' });
 export const modifyResetFields = () => ({ type: 'modify_addvehicle_resetreducer' });
@@ -22,3 +25,4 @@ export const modifyAlertTitle = (value) => ({ type: 'modify_addvehicle_alerttitl
 export const modifyAlertMessage = (value) => ({ type: 'modify_addvehicle_alertmessage', payload: value });
 export const modifyAlertConfirmFunction = (value) => ({ type: 'modify_addvehicle_alertconfirmfunction', payload: value });
 export const modifyAlertCancelFunction = (value) => ({ type: 'modify_addvehicle_alertcancelfunction', payload: value });
+export const modifyIsFetching = (value) => ({ type: 'modify_addvehicle_isfetching', payload: value });

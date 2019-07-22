@@ -16,5 +16,12 @@ export const VEHICLES_TYPES = {
 export const HOMEDRAWERMENU = {
     MAIN: 0,
     ADDVEHICLE: 1,
-    MYVEHICLE: 2
+    MYVEHICLE: 2,
+    MANUT: 3,
+    EXPENSES_FUEL: 4,
+    EXPENSES_TAXS: 5,
+    EXPENSES_TOLL: 6,
+    EXPENSES_FINANCING: 7,
+    PROMOTIONS: 8,
+    BLOG: 9
 };

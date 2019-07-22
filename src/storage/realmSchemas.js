@@ -31,6 +31,13 @@ export const ModelosSchema = {
     }
 };
 
+export const AnosModeloSchema = {
+    name: 'AnosModelo',
+    properties: {
+        Label: 'string?',
+        Value: 'string?'
+    }
+};
 
 export const FipeModeloSchema = {
     name: 'FipeModelo',
@@ -39,6 +46,18 @@ export const FipeModeloSchema = {
         marcaLabel: 'string?',
         marcaValue: 'string?',
         marcaModelos: 'Modelos[]'
+    }
+};
+
+export const FipeAnosModeloSchema = {
+    name: 'FipeAnosModelo',
+    properties: {
+        fipeVHCType: 'int?',
+        marcaLabel: 'string?',
+        marcaValue: 'string?',
+        modeloLabel: 'string?',
+        modeloValue: 'int?',
+        anosModelo: 'AnosModelo[]'
     }
 };
 
@@ -58,6 +77,13 @@ export const FipeModelosSchema = {
     }
 };
 
+export const FipeAnosModelosSchema = {
+    name: 'FipeAnosModelos',
+    properties: {
+        fipeAnoModelo: 'FipeAnosModelo[]'
+    }
+};
+
 export const FipeFileVersionSchema = {
     name: 'FipeFileVersion',
     properties: {
@@ -73,5 +99,8 @@ export const AllSchemasArray = [
     FipeModeloSchema, 
     FipeMarcasSchema, 
     FipeModelosSchema, 
-    FipeFileVersionSchema
+    FipeFileVersionSchema,
+    AnosModeloSchema,
+    FipeAnosModeloSchema,
+    FipeAnosModelosSchema
 ];

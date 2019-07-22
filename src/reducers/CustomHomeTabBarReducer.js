@@ -1,6 +1,7 @@
 const INITIAL_STATE = {
     animatedVisible: null,
-    getAnimTabBarTranslateY: () => false
+    getAnimTabBarTranslateY: () => false,
+    closeFab: () => false
 };
 
 export default (state = INITIAL_STATE, action) => {
@@ -14,6 +15,11 @@ export default (state = INITIAL_STATE, action) => {
             return { 
                 ...state, 
                 getAnimTabBarTranslateY: action.payload 
+            };
+        case 'modify_customhometabbar_closefab':
+            return { 
+                ...state, 
+                closeFab: action.payload 
             };
         default:
             return state;

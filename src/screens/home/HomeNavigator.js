@@ -10,16 +10,20 @@ import { createDrawerNavigator } from 'react-navigation-drawer';
 import CustomHomeTabBar from './CustomHomeTabBar';
 
 import HomeScreen from '../../screens/home/HomeScreen';
-import ServicesScreen from '../../screens/home/ServicesScreen';
-import ProfileScreen from '../../screens/home/ProfileScreen';
+/* import ServicesScreen from '../../screens/home/ServicesScreen';
+import ProfileScreen from '../../screens/home/ProfileScreen'; */
 import { colorAppPrimary } from '../utils/Constants';
 import { getWindowWidthPortrait, renderStatusBar } from '../utils/Screen';
 import HomeDrawer from './HomeDrawer';
 
 const BottomTabNavigator = createMaterialTopTabNavigator({
     HomeTab: HomeScreen,
-    ServicesTab: ServicesScreen,
-    ProfileTab: ProfileScreen
+    ManutTab: View,
+    ExpensesTab: View,
+    PromotionsTab: View,
+    BlogTabs: View,
+    /* ServicesTab: ServicesScreen,
+    ProfileTab: ProfileScreen */
 }, 
 { 
     initialRouteName: 'HomeTab',
@@ -37,21 +41,29 @@ const BottomTabNavigator = createMaterialTopTabNavigator({
         tabBarIcon: ({ focused, /* horizontal,*/ tintColor }) => {
             const { routeName } = navigation.state;
             const IconComponent = Icon;
-            let iconName;
+            const iconSize = 25;
+            
+            let iconName = 'home';
+
             if (routeName === 'HomeTab') {
                 iconName = `home${focused ? '' : '-outline'}`;
-                // Sometimes we want to add badges to some icons. 
-                // You can check the implementation below.
-                //IconComponent = HomeIconWithBadge; 
-            } else if (routeName === 'ServicesTab') {
+            } else if (routeName === 'ManutTab') {
+                iconName = `toolbox${focused ? '' : '-outline'}`;
+            } else if (routeName === 'ExpensesTab') {
+                iconName = 'currency-usd';
+            } else if (routeName === 'PromotionsTab') {
+                iconName = 'sale';
+            } else if (routeName === 'BlogTabs') {
+                iconName = 'blogger';
+            } /* else if (routeName === 'ServicesTab') {
                 iconName = 'magnify';
             } else if (routeName === 'ProfileTab') {
                 iconName = `account${focused ? '' : '-outline'}`;
-            }
+            } */
             
             // You can return any component that you like here!
-            return (<IconComponent name={iconName} type='material-community' size={25} color={tintColor} />);
-        },
+            return (<IconComponent name={iconName} type='material-community' size={iconSize} color={tintColor} />);
+        }
     }),
     tabBarOptions: {
         activeTintColor: colorAppPrimary,

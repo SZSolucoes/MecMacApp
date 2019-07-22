@@ -14,10 +14,13 @@ import {
     modifyManufacturerValue, 
     modifyModel,
     modifyModelValue,
+    modifyYear,
+    modifyYearValue,
     modifyFuel,
     modifyNicknameHasUpdated
 } from '../../../actions/AddVehicleActions';
 import { colorAppPrimary } from '../../utils/Constants';
+import { store } from '../../../App';
 
 class AddVehicleFragmentScreen extends React.PureComponent {
     static navigationOptions = {
@@ -29,6 +32,7 @@ class AddVehicleFragmentScreen extends React.PureComponent {
 
         this.Manufacturer = React.memo(this.renderManufacturer);
         this.Model = React.memo(this.renderModel);
+        this.Year = React.memo(this.renderYear);
 
         this.Gasoline = React.memo(this.renderGasoline);
         this.Etanol = React.memo(this.renderEtanol);
@@ -38,7 +42,8 @@ class AddVehicleFragmentScreen extends React.PureComponent {
 
         this.state = {
             manufacturerSearchValue: '',
-            modelSearchValue: ''
+            modelSearchValue: '',
+            yearSearchValue: ''
         };
     }
 
@@ -129,6 +134,37 @@ class AddVehicleFragmentScreen extends React.PureComponent {
         );
     }
 
+    onRenderYear = () => {
+        const yearsFiltred = _.filter(
+            _.map(this.props.years, (ita) => ({
+                label: ita.label.replace(/\D/gm, ''),
+                value: ita.value
+            })),
+            itb => !itb.label.includes('32000') && this.searchMatchKeys(itb.label, this.state.yearSearchValue)
+        );
+        
+        return (
+            <DefaultScreenAndHeaderContainer 
+                navigation={this.props.navigation}
+                onPressBackButton={this.onPressBackButton}
+                title={'Ano'}
+            >
+                <SearchBar
+                    placeholder="Buscar ano..."
+                    onChangeText={(value) => this.setState({ yearSearchValue: value })}
+                    value={this.state.yearSearchValue}
+                    lightTheme
+                />
+                <FlatList
+                    data={yearsFiltred}
+                    keyExtractor={(item, index) => index.toString()}
+                    renderItem={(propItem) => <this.Year {...propItem} />}
+                    removeClippedSubviews
+                />
+            </DefaultScreenAndHeaderContainer>
+        );
+    }
+
     onRenderFuel = () => {
         const gasolineChecked = this.props.fuel.includes('GASOLINE') ? 'checked' : 'unchecked';
         const etanolChecked = this.props.fuel.includes('ETANOL') ? 'checked' : 'unchecked';
@@ -163,6 +199,19 @@ class AddVehicleFragmentScreen extends React.PureComponent {
         }
     }
 
+    getValueFromStore = (type) => {
+        switch (type) {
+            case 'manufacturer':
+                return store.getState().AddVehicleReducer.manufacturer;
+            case 'model':
+                return store.getState().AddVehicleReducer.model;
+            case 'year':
+                return store.getState().AddVehicleReducer.year;
+            default:
+                break;
+        }
+    }
+
     searchMatchKeys = (valueItemList, valueInput) => {
         const parsedValueList = valueItemList.toLowerCase().trim();
         const keysInputed = valueInput.toLowerCase().trim().split(' ');
@@ -186,9 +235,11 @@ class AddVehicleFragmentScreen extends React.PureComponent {
                     this.props.modifyManufacturer(propsItem.item.label);
                     this.props.modifyManufacturerValue(propsItem.item.value);
     
-                    if (this.props.manufacturer !== propsItem.item.label) {
+                    if (this.getValueFromStore('manufacturer') !== propsItem.item.label) {
                         this.props.modifyModel('');
                         this.props.modifyModelValue('');
+                        this.props.modifyYear('');
+                        this.props.modifyYearValue('');
                     }
                 }
             }}
@@ -197,7 +248,7 @@ class AddVehicleFragmentScreen extends React.PureComponent {
                 <List.Item
                     title={propsItem.item.label}
                     {
-                        ...(this.props.manufacturer === propsItem.item.label ? 
+                        ...(this.getValueFromStore('manufacturer') === propsItem.item.label ? 
                         { right: () => (<Checkbox status={'checked'} color={colorAppPrimary} />) } : {})
                     }
                 />
@@ -217,6 +268,11 @@ class AddVehicleFragmentScreen extends React.PureComponent {
     
                     this.props.modifyModel(propsItem.item.label);
                     this.props.modifyModelValue(propsItem.item.value);
+
+                    if (this.getValueFromStore('model') !== propsItem.item.label) {
+                        this.props.modifyYear('');
+                        this.props.modifyYearValue('');
+                    }
     
                     if (!nickname || (nickname === firstLabel.trim()) || !this.props.nicknameHasUpdated) {
                         this.props.modifyNickname(propsItem.item.label.trim().split(' ')[0]);
@@ -238,7 +294,44 @@ class AddVehicleFragmentScreen extends React.PureComponent {
                         </Text>
                     </View>
                     {
-                        this.props.model === propsItem.item.label && 
+                        this.getValueFromStore('model') === propsItem.item.label && 
+                        (
+                            <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
+                                <Checkbox status={'checked'} color={colorAppPrimary} />
+                            </View>
+                        )
+                    }
+                </View>
+            </Card.Content>
+        </Card>
+    )
+
+    renderYear= (propsItem) => (
+        <Card 
+            style={{ marginVertical: 2, marginHorizontal: 8 }}
+            onPress={() => {
+                this.onPressBackButton();
+
+                if (propsItem.item.label) {
+                    this.props.modifyYear(propsItem.item.label);
+                    this.props.modifyYearValue(propsItem.item.value);
+                }
+            }}
+        >
+            <Card.Content>
+                <View style={{ flexDirection: 'row', margin: 14 }}>
+                    <View style={{ flex: 6, alignItems: 'flex-start', justifyContent: 'center' }}>
+                        <Text 
+                            style={{
+                                fontSize: 16,
+                                color: DefaultTheme.colors.text
+                            }}
+                        >
+                            {propsItem.item.label}
+                        </Text>
+                    </View>
+                    {
+                        this.getValueFromStore('year') === propsItem.item.label && 
                         (
                             <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
                                 <Checkbox status={'checked'} color={colorAppPrimary} />
@@ -341,6 +434,8 @@ class AddVehicleFragmentScreen extends React.PureComponent {
                 return this.onRenderManufacturer();
             case 'model':
                 return this.onRenderModel();
+            case 'year':
+                return this.onRenderYear();
             case 'fuel':
                 return this.onRenderFuel();
             default:
@@ -355,11 +450,10 @@ const mapStateToProps = (state) => ({
     screenFragment: state.AddVehicleReducer.screenFragment,
     nickname: state.AddVehicleReducer.nickname,
     nicknameHasUpdated: state.AddVehicleReducer.nicknameHasUpdated,
-    manufacturer: state.AddVehicleReducer.manufacturer,
-    model: state.AddVehicleReducer.model,
-    fuel: state.AddVehicleReducer.fuel,
     manufacturers: state.AddVehicleReducer.manufacturers,
+    fuel: state.AddVehicleReducer.fuel,
     models: state.AddVehicleReducer.models,
+    years: state.AddVehicleReducer.years,
     vehicleTypeSelected: state.AddVehicleReducer.vehicleTypeSelected
 });
 
@@ -379,6 +473,8 @@ export default connect(mapStateToProps, {
     modifyManufacturerValue,
     modifyModel,
     modifyModelValue,
+    modifyYear,
+    modifyYearValue,
     modifyFuel,
     modifyNicknameHasUpdated
 })(AddVehicleFragmentScreen);

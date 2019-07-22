@@ -5,11 +5,14 @@ const INITIAL_STATE = {
     manufacturerValue: '',
     model: '',
     modelValue: '',
+    year: '',
+    yearValue: '',
     fuel: '',
     fuelValue: '',
     screenFragment: '',
     manufacturers: [],
     models: [],
+    years: [],
     vehicleTypeSelected: 0,
     bannerVisible: false,
     bannerText: '',
@@ -18,7 +21,8 @@ const INITIAL_STATE = {
     alertTitle: '',
     alertMessage: '',
     alertConfirmFunction: null,
-    alertCancelFunction: null
+    alertCancelFunction: null,
+    isFetching: false
 };
 
 export default (state = INITIAL_STATE, action) => {
@@ -53,6 +57,16 @@ export default (state = INITIAL_STATE, action) => {
                 ...state, 
                 modelValue: action.payload
             };
+        case 'modify_addvehicle_year':
+            return { 
+                ...state, 
+                year: action.payload
+            };
+        case 'modify_addvehicle_yearvalue':
+            return { 
+                ...state, 
+                yearValue: action.payload
+            };
         case 'modify_addvehicle_fuel':
             return { 
                 ...state, 
@@ -77,6 +91,11 @@ export default (state = INITIAL_STATE, action) => {
             return { 
                 ...state, 
                 models: [...action.payload]
+            };
+        case 'modify_addvehicle_fragyears':
+            return { 
+                ...state, 
+                years: [...action.payload]
             };
         case 'modify_addvehicle_fragvehicletypeselected':
             return { 
@@ -122,6 +141,11 @@ export default (state = INITIAL_STATE, action) => {
             return { 
                 ...state, 
                 alertCancelFunction: action.payload
+            };
+        case 'modify_addvehicle_isfetching':
+            return { 
+                ...state, 
+                isFetching: action.payload
             };
         case 'modify_addvehicle_clearmmc':
             return { 

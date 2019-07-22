@@ -13,11 +13,14 @@ import {
     modifyScreenFragment, 
     modifyManufacturers,
     modifyModels,
+    modifyYears,
     modifyVehicleTypeSelected,
     modifyManufacturer, 
     modifyManufacturerValue, 
     modifyModel,
     modifyModelValue,
+    modifyYear,
+    modifyYearValue,
     modifyFuel,
     modifyFuelValue,
     modifyNicknameHasUpdated
@@ -34,6 +37,8 @@ class FormInitial extends React.PureComponent {
                 manufacturerValue: '', 
                 model: '', 
                 modelValue: '', 
+                year: '', 
+                yearValue: '', 
                 fuel: []
             },
             [VEHICLES_TYPES.motorbike]: { 
@@ -41,6 +46,8 @@ class FormInitial extends React.PureComponent {
                 manufacturerValue: '', 
                 model: '', 
                 modelValue: '', 
+                year: '', 
+                yearValue: '', 
                 fuel: []
             },
             [VEHICLES_TYPES.truck]: { 
@@ -48,6 +55,8 @@ class FormInitial extends React.PureComponent {
                 manufacturerValue: '', 
                 model: '', 
                 modelValue: '', 
+                year: '', 
+                yearValue: '', 
                 fuel: []
             },
         };
@@ -68,6 +77,8 @@ class FormInitial extends React.PureComponent {
             manufacturerValue,
             model,
             modelValue,
+            year,
+            yearValue,
             fuel
         } = this.props;
 
@@ -80,6 +91,10 @@ class FormInitial extends React.PureComponent {
             this.mapModelsToProps(vehicleTypeSelected, manufacturerValue);
         }
 
+        if (modelValue && (modelValue !== prevProps.modelValue)) {
+            this.mapYearsToProps(vehicleTypeSelected, manufacturerValue, modelValue);
+        }
+
         if (manufacturerValue) {
             this.history[vehicleTypeSelected].manufacturer = manufacturer;
             this.history[vehicleTypeSelected].manufacturerValue = manufacturerValue;
@@ -88,6 +103,11 @@ class FormInitial extends React.PureComponent {
         if (modelValue) {
             this.history[vehicleTypeSelected].model = model;
             this.history[vehicleTypeSelected].modelValue = modelValue;
+        }
+
+        if (yearValue) {
+            this.history[vehicleTypeSelected].year = year;
+            this.history[vehicleTypeSelected].yearValue = yearValue;
         }
 
         if (fuel.length) {
@@ -106,6 +126,13 @@ class FormInitial extends React.PureComponent {
         if (!this.props.vehicleTypeSelected || !this.props.manufacturer) return false;
 
         this.props.modifyScreenFragment('model');
+        this.props.navigation.navigate('AddVehicleFragment', { transition: 'TransitionFade' }); 
+    }
+
+    onPressYear = () => {
+        if (!this.props.vehicleTypeSelected || !this.props.manufacturer || !this.props.model) return false;
+
+        this.props.modifyScreenFragment('year');
         this.props.navigation.navigate('AddVehicleFragment', { transition: 'TransitionFade' }); 
     }
 
@@ -174,6 +201,8 @@ class FormInitial extends React.PureComponent {
         this.props.modifyManufacturerValue(vehicleValues.manufacturerValue);
         this.props.modifyModel(vehicleValues.model);
         this.props.modifyModelValue(vehicleValues.modelValue);
+        this.props.modifyYear(vehicleValues.year);
+        this.props.modifyYearValue(vehicleValues.yearValue);
         this.props.modifyFuel(vehicleValues.fuel);
         this.props.modifyFuelValue(vehicleValues.fuelValue);
     }
@@ -191,6 +220,23 @@ class FormInitial extends React.PureComponent {
             }
         } catch (e) {
             this.props.modifyModels([]);
+            console.log(e);
+        }
+    }
+
+    mapYearsToProps = (vehicleTypeSelected, manufacturerValue, modelValue) => {
+        try {
+            const realmFipeAnosModelo = realmAllSchemesInstance
+            .objects('FipeAnosModelo')
+            .filtered(`fipeVHCType == ${vehicleTypeSelected} AND marcaValue == '${manufacturerValue}' AND modeloValue == ${modelValue}`);
+            
+            if (realmFipeAnosModelo && realmFipeAnosModelo.length) {
+                const anos = realmFipeAnosModelo[0].anosModelo.map((obja) => ({ label: obja.Label, value: obja.Value }));
+                
+                if (anos && anos.length) this.props.modifyYears(anos);
+            }
+        } catch (e) {
+            this.props.modifyYears([]);
             console.log(e);
         }
     }
@@ -461,6 +507,50 @@ class FormInitial extends React.PureComponent {
                             </View>
                         </TouchableOpacity>
                         <TouchableOpacity
+                            onPress={this.onPressYear}
+                            activeOpacity={0.6}
+                        >
+                            <View pointerEvents={'none'}>
+                                <TextInput
+                                    numberOfLines={1}
+                                    mode={'outlined'}
+                                    editable={false}
+                                    selectTextOnFocus={false}
+                                    label='Ano'
+                                    value={this.props.year}
+                                    style={{
+                                        backgroundColor: 'white',
+                                        marginBottom: 5,
+                                        textAlign: 'left'
+                                    }}
+                                    multiline
+                                    render={props =>
+                                        <RNTextInput
+                                            {...props}
+                                            style={[...props.style, { paddingRight: 60, paddingTop: 23 }]}
+                                        />
+                                    }
+                                />
+                                <View
+                                    style={{
+                                        position: 'absolute',
+                                        top: 0,
+                                        right: 20,
+                                        bottom: 0,
+                                        alignItems: 'center',
+                                        justifyContent: 'center'
+                                    }}
+                                >
+                                    <Icon 
+                                        name='feature-search-outline' 
+                                        type='material-community' 
+                                        color={DefaultTheme.colors.placeholder} 
+                                        size={26} 
+                                    />
+                                </View>
+                            </View>
+                        </TouchableOpacity>
+                        <TouchableOpacity
                             onPress={this.onPressFuel}
                             activeOpacity={0.6}
                         >
@@ -579,6 +669,8 @@ const mapStateToProps = state => ({
     manufacturerValue: state.AddVehicleReducer.manufacturerValue,
     model: state.AddVehicleReducer.model,
     modelValue: state.AddVehicleReducer.modelValue,
+    year: state.AddVehicleReducer.year,
+    yearValue: state.AddVehicleReducer.yearValue,
     fuel: state.AddVehicleReducer.fuel,
     vehicleTypeSelected: state.AddVehicleReducer.vehicleTypeSelected
 });
@@ -588,11 +680,14 @@ export default connect(mapStateToProps, {
     modifyScreenFragment,
     modifyManufacturers,
     modifyModels,
+    modifyYears,
     modifyVehicleTypeSelected,
     modifyManufacturer, 
     modifyManufacturerValue, 
     modifyModel,
     modifyModelValue,
+    modifyYear,
+    modifyYearValue,
     modifyFuel,
     modifyFuelValue,
     modifyNicknameHasUpdated

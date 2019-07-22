@@ -19,6 +19,7 @@ import WelcomeScreen from './WelcomeScreen';
 import AddVehicleScreen from './screens/home/drawer_vehicles/AddVehicleScreen';
 import AddVehicleFragmentScreen from './screens/home/drawer_vehicles/AddVehicleFragmentScreen';
 import TransitionsScreens from './screens/utils/TransitionsScreens';
+import ProfileScreen from './screens/home/ProfileScreen';
 //import TransitionsScreens from './screens/utils/TransitionsScreens';
 
 const styles = {
@@ -83,6 +84,9 @@ const AppStack = createStackNavigator(
         },
         AddVehicleFragment: {
             screen: AddVehicleFragmentScreen
+        },
+        Profile: {
+            screen: ProfileScreen
         }
     },
     {

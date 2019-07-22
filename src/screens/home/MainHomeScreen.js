@@ -75,9 +75,7 @@ class MainHomeScreen extends React.PureComponent {
     }
 
     onManualCloseAS = () => {
-        if (this.props.animatedVisible) {
-            this.props.animatedVisible('visible', 200);
-        }
+        if (this.props.animatedVisible) this.props.animatedVisible('visible', 200);
     }
 
     onBackButtonPressAndroid = () => {

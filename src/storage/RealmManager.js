@@ -20,11 +20,12 @@ export const realmFetchsInit = async () => {
         const isValid = retManufacturesAndModels && retManufacturesAndModels.data && retManufacturesAndModels.data.success;
 
         if (isValid) {
-            const { fipeMarcas, fipeModelos, fileVersion } = retManufacturesAndModels.data.data;
-            if (fipeMarcas && fipeModelos) {
+            const { fipeMarcas, fipeModelos, fipeAnoModelo, fileVersion } = retManufacturesAndModels.data.data;
+            if (fipeMarcas && fipeModelos && fipeAnoModelo) {
                     realmAllSchemesInstance.write(() => {
                         realmAllSchemesInstance.create('FipeMarcas', fipeMarcas, true);
                         realmAllSchemesInstance.create('FipeModelos', { fipeModelos }, true);
+                        realmAllSchemesInstance.create('FipeAnosModelos', { fipeAnoModelo }, true);
                         realmAllSchemesInstance.create('FipeFileVersion', { fileVersion }, true);
                     });
             } else {
