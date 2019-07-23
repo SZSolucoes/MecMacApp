@@ -1,10 +1,11 @@
 /* eslint-disable max-len */
 import React from 'react';
-import { View, Text, StyleSheet, ScrollView } from 'react-native';
+import { View, StyleSheet, ScrollView } from 'react-native';
 import { connect } from 'react-redux';
 import { DataTable } from 'react-native-paper';
 import { Icon } from 'react-native-elements';
 import AwesomeAlert from 'react-native-awesome-alerts';
+import { FlatList } from 'react-native-gesture-handler';
 
 import { store } from '../../../App';
 import CardAccordion from '../../tools/CardAccordion';
@@ -15,14 +16,19 @@ class FormComplete extends React.PureComponent {
     constructor(props) {
         super(props);
 
+        this.renderItemManutProxPc = React.memo(this.renderItemManutProx);
+        this.renderItemManutAtrasPc = React.memo(this.renderItemManutAtras);
+
         this.state = {
-            isLoading: true
+            isLoading: false,
+            itemsProx: [],
+            itemsAtras: []
         };
     }
 
     componentDidUpdate = (prevProps) => {
         if (prevProps.isFetching !== this.props.isFetching) {
-            //this.fetchManuts();
+            this.fetchManuts();
         }
     }
 
@@ -34,32 +40,44 @@ class FormComplete extends React.PureComponent {
             quilometers
         } = store.getState().AddVehicleReducer;
 
-        if (!(manufacturer && model && year && quilometers)) return false;
+        let proxData = [];
+        let atrasData = [];
+
+        if (!(manufacturer && model && year && quilometers)) {
+            this.setState({ isLoading: false });
+            return false;
+        }
 
         this.setState({ isLoading: true });
 
-        const retProx = await apiGetManut({
-            manufacturer,
-            model,
-            year,
-            quilometers,
-            type: 'prox'
-        });
+        try {
+            const funExec = async () => {
+                const ret = await apiGetManut({
+                    manufacturer,
+                    model,
+                    year,
+                    quilometers,
+                    type: 'all'
+                });
 
-        const retAtras = await apiGetManut({
-            manufacturer,
-            model,
-            year,
-            quilometers,
-            type: 'atras'
-        });
+                const validRed = ret.data && ret.data.success && ret.data.data;
+        
+                if (validRed && ret.data.data.prox) proxData = [...ret.data.data.prox];
+                if (validRed && ret.data.data.atras) atrasData = [...ret.data.data.atras];
+        
+                this.setState({ isLoading: false, itemsProx: proxData, itemsAtras: atrasData });
+            };
+    
+            funExec();
+        } catch (e) {
+            this.setState({ isLoading: false });
+        }
     }
 
     renderLoading = () => (
         <View
             style={{
-                backgroundColor: 'blue',
-                height: '100%',
+                height: '90%',
                 width: '100%'
             }}
         >
@@ -72,6 +90,54 @@ class FormComplete extends React.PureComponent {
             />
         </View>
     )
+
+    renderManutProx = () => (
+        <View
+            style={{ height: 200 }}
+        >
+            <FlatList
+                data={this.state.itemsProx}
+                renderItem={(propsItem) => <this.renderItemManutProxPc {...propsItem} />}
+                keyExtractor={(item, index) => index.toString()}
+                removeClippedSubviews
+            />
+        </View>
+    )
+
+    renderItemManutProx = ({ item, index }) => (
+        <DataTable.Row key={index}>
+            <DataTableCell numberOfLines={6}>{item.itemabrev}</DataTableCell>
+            <DataTableCell numberOfLines={6} numeric>{item.quilometros}</DataTableCell>
+        </DataTable.Row>
+    ) 
+
+    renderManutAtras = () => (
+        <View
+            style={{ height: 200 }}
+        >
+            <FlatList
+                data={this.state.itemsAtras}
+                renderItem={(propsItem) => <this.renderItemManutAtrasPc {...propsItem} />}
+                keyExtractor={(item, index) => index.toString()}
+                removeClippedSubviews
+            />
+        </View>
+    )
+
+    renderItemManutAtras = ({ item, index }) => (
+        <DataTable.Row key={index}>
+            <DataTableCell numberOfLines={6}>{item.itemabrev}</DataTableCell>
+            <DataTableCell numberOfLines={6} numeric>{item.quilometros}</DataTableCell>
+        </DataTable.Row>
+    ) 
+
+    renderManager = () => {
+        const { isLoading, itemsProx, itemsAtras } = this.state;
+        if (isLoading) return this.renderLoading();
+        if (!(itemsProx.length && itemsAtras.length)) return <View />;
+
+        return this.renderScrollView();
+    }
 
     renderScrollView = () => (
         <ScrollView>
@@ -89,19 +155,10 @@ class FormComplete extends React.PureComponent {
                 >
                     <DataTable>
                         <DataTable.Header>
-                            <DataTable.Title>Dessert</DataTable.Title>
-                            <DataTable.Title numeric>Calories</DataTable.Title>
+                            <DataTable.Title>Manutenção</DataTable.Title>
+                            <DataTable.Title numeric>Km</DataTable.Title>
                         </DataTable.Header>
-
-                        <DataTable.Row>
-                            <DataTableCell numberOfLines={2}>Frozen yogurt</DataTableCell>
-                            <DataTableCell numberOfLines={2} numeric>159</DataTableCell>
-                        </DataTable.Row>
-
-                        <DataTable.Row>
-                            <DataTableCell numberOfLines={3}>Ice cream sandwichhhhhhhhhhhdsddddddddd</DataTableCell>
-                            <DataTableCell numberOfLines={3} numeric>237</DataTableCell>
-                        </DataTable.Row>
+                        {this.renderManutProx()}
                     </DataTable>
                 </CardAccordion>
                 <CardAccordion
@@ -117,19 +174,10 @@ class FormComplete extends React.PureComponent {
                 >
                     <DataTable>
                         <DataTable.Header>
-                            <DataTable.Title>Dessert</DataTable.Title>
-                            <DataTable.Title numeric>Calories</DataTable.Title>
+                            <DataTable.Title>Manutenção</DataTable.Title>
+                            <DataTable.Title numeric>Km</DataTable.Title>
                         </DataTable.Header>
-
-                        <DataTable.Row>
-                            <DataTableCell numberOfLines={2}>Frozen yogurt</DataTableCell>
-                            <DataTableCell numberOfLines={2} numeric>159</DataTableCell>
-                        </DataTable.Row>
-
-                        <DataTable.Row>
-                            <DataTableCell numberOfLines={3}>Ice cream sandwichhhhhhhhhhhdsddddddddd</DataTableCell>
-                            <DataTableCell numberOfLines={3} numeric>237</DataTableCell>
-                        </DataTable.Row>
+                        {this.renderManutAtras()}
                     </DataTable>
                 </CardAccordion>
             </View>
@@ -139,7 +187,7 @@ class FormComplete extends React.PureComponent {
 
     render = () => (
         <View styles={styles.mainView}>
-            {this.renderLoading()}
+            {this.renderManager()}
         </View>
     );
 }

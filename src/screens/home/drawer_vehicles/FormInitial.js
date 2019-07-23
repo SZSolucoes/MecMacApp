@@ -6,6 +6,7 @@ import { Card, TextInput, DefaultTheme } from 'react-native-paper';
 import { TouchableOpacity } from 'react-native-gesture-handler';
 import { Icon } from 'react-native-elements';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
+import _ from 'lodash';
 
 import { tabBarHeight, colorAppPrimary, VEHICLES_TYPES } from '../../utils/Constants';
 import { 
@@ -17,10 +18,10 @@ import {
     modifyVehicleTypeSelected,
     modifyManufacturer, 
     modifyManufacturerValue, 
-    modifyModel,
-    modifyModelValue,
     modifyYear,
     modifyYearValue,
+    modifyModel,
+    modifyModelValue,
     modifyFuel,
     modifyFuelValue,
     modifyNicknameHasUpdated
@@ -35,28 +36,28 @@ class FormInitial extends React.PureComponent {
             [VEHICLES_TYPES.car]: { 
                 manufacturer: '', 
                 manufacturerValue: '', 
-                model: '', 
-                modelValue: '', 
                 year: '', 
                 yearValue: '', 
+                model: '', 
+                modelValue: '', 
                 fuel: []
             },
             [VEHICLES_TYPES.motorbike]: { 
                 manufacturer: '', 
                 manufacturerValue: '', 
-                model: '', 
-                modelValue: '', 
                 year: '', 
                 yearValue: '', 
+                model: '', 
+                modelValue: '', 
                 fuel: []
             },
             [VEHICLES_TYPES.truck]: { 
                 manufacturer: '', 
                 manufacturerValue: '', 
-                model: '', 
-                modelValue: '', 
                 year: '', 
                 yearValue: '', 
+                model: '', 
+                modelValue: '', 
                 fuel: []
             },
         };
@@ -75,10 +76,10 @@ class FormInitial extends React.PureComponent {
             vehicleTypeSelected,
             manufacturer,
             manufacturerValue,
-            model,
-            modelValue,
             year,
             yearValue,
+            model,
+            modelValue,
             fuel
         } = this.props;
 
@@ -88,16 +89,22 @@ class FormInitial extends React.PureComponent {
         }
 
         if (manufacturerValue && (manufacturerValue !== prevProps.manufacturerValue)) {
-            this.mapModelsToProps(vehicleTypeSelected, manufacturerValue);
+            this.mapYearsToProps(vehicleTypeSelected, manufacturerValue);
         }
 
-        if (modelValue && (modelValue !== prevProps.modelValue)) {
-            this.mapYearsToProps(vehicleTypeSelected, manufacturerValue, modelValue);
+        if (yearValue && (yearValue !== prevProps.yearValue)) {
+            this.mapModelsToProps(vehicleTypeSelected, manufacturerValue, yearValue);
         }
+
 
         if (manufacturerValue) {
             this.history[vehicleTypeSelected].manufacturer = manufacturer;
             this.history[vehicleTypeSelected].manufacturerValue = manufacturerValue;
+        }
+
+        if (yearValue) {
+            this.history[vehicleTypeSelected].year = year;
+            this.history[vehicleTypeSelected].yearValue = yearValue;
         }
 
         if (modelValue) {
@@ -105,10 +112,6 @@ class FormInitial extends React.PureComponent {
             this.history[vehicleTypeSelected].modelValue = modelValue;
         }
 
-        if (yearValue) {
-            this.history[vehicleTypeSelected].year = year;
-            this.history[vehicleTypeSelected].yearValue = yearValue;
-        }
 
         if (fuel.length) {
             this.history[vehicleTypeSelected].fuel = [...fuel];
@@ -121,20 +124,21 @@ class FormInitial extends React.PureComponent {
         this.props.modifyScreenFragment('manufacturer');
         this.props.navigation.navigate('AddVehicleFragment', { transition: 'TransitionFade' }); 
     }
+    
+    onPressYear = () => {
+        if (!this.props.vehicleTypeSelected || !this.props.manufacturer) return false;
+
+        this.props.modifyScreenFragment('year');
+        this.props.navigation.navigate('AddVehicleFragment', { transition: 'TransitionFade' }); 
+    }
 
     onPressModel = () => {
-        if (!this.props.vehicleTypeSelected || !this.props.manufacturer) return false;
+        if (!this.props.vehicleTypeSelected || !this.props.manufacturer || !this.props.year) return false;
 
         this.props.modifyScreenFragment('model');
         this.props.navigation.navigate('AddVehicleFragment', { transition: 'TransitionFade' }); 
     }
 
-    onPressYear = () => {
-        if (!this.props.vehicleTypeSelected || !this.props.manufacturer || !this.props.model) return false;
-
-        this.props.modifyScreenFragment('year');
-        this.props.navigation.navigate('AddVehicleFragment', { transition: 'TransitionFade' }); 
-    }
 
     onPressFuel = () => {
         if (!this.props.vehicleTypeSelected) return false;
@@ -207,36 +211,45 @@ class FormInitial extends React.PureComponent {
         this.props.modifyFuelValue(vehicleValues.fuelValue);
     }
 
-    mapModelsToProps = (vehicleTypeSelected, manufacturerValue) => {
+    mapYearsToProps = (vehicleTypeSelected, manufacturerValue) => {
         try {
-            const realmFipeModelos = realmAllSchemesInstance
-            .objects('FipeModelo')
+            const realmFipeAnosModelo = realmAllSchemesInstance
+            .objects('FipeAnosModelo')
             .filtered(`fipeVHCType == ${vehicleTypeSelected} AND marcaValue == '${manufacturerValue}'`);
-        
-            if (realmFipeModelos && realmFipeModelos.length) {
-                const modelos = realmFipeModelos[0].marcaModelos.map((obja) => ({ label: obja.Label, value: obja.Value }));
+            
+            if (realmFipeAnosModelo && realmFipeAnosModelo.length) {
+                const anos = {};
+
+                for (let index = 0; index < realmFipeAnosModelo.length; index++) {
+                    const element = realmFipeAnosModelo[index];
+
+                    element.anosModelo.forEach((obja) => {
+                        const labelParsed = obja.Label.replace(/\D/gm, '');
+                        if (!anos[labelParsed]) anos[labelParsed] = { label: labelParsed, value: obja.Value };
+                    });
+                }
                 
-                if (modelos && modelos.length) this.props.modifyModels(modelos);
+                if (Object.keys(anos).length) this.props.modifyYears(_.orderBy(_.values(anos), ['label'], ['desc']));
             }
         } catch (e) {
-            this.props.modifyModels([]);
+            this.props.modifyYears([]);
             console.log(e);
         }
     }
 
-    mapYearsToProps = (vehicleTypeSelected, manufacturerValue, modelValue) => {
+    mapModelsToProps = (vehicleTypeSelected, manufacturerValue, yearValue) => {
         try {
-            const realmFipeAnosModelo = realmAllSchemesInstance
+            const realmFipeModelos = realmAllSchemesInstance
             .objects('FipeAnosModelo')
-            .filtered(`fipeVHCType == ${vehicleTypeSelected} AND marcaValue == '${manufacturerValue}' AND modeloValue == ${modelValue}`);
-            
-            if (realmFipeAnosModelo && realmFipeAnosModelo.length) {
-                const anos = realmFipeAnosModelo[0].anosModelo.map((obja) => ({ label: obja.Label, value: obja.Value }));
+            .filtered(`fipeVHCType == ${vehicleTypeSelected} AND marcaValue == '${manufacturerValue}' AND anosModelo.Value == '${yearValue}'`);
+        
+            if (realmFipeModelos && realmFipeModelos.length) {
+                const modelos = realmFipeModelos.map((obja) => ({ label: obja.modeloLabel, value: obja.modeloValue }));
                 
-                if (anos && anos.length) this.props.modifyYears(anos);
-            }
+                if (modelos && modelos.length) this.props.modifyModels(modelos);
+            } 
         } catch (e) {
-            this.props.modifyYears([]);
+            this.props.modifyModels([]);
             console.log(e);
         }
     }
@@ -463,7 +476,7 @@ class FormInitial extends React.PureComponent {
                             </View>
                         </TouchableOpacity>
                         <TouchableOpacity
-                            onPress={this.onPressModel}
+                            onPress={this.onPressYear}
                             activeOpacity={0.6}
                         >
                             <View pointerEvents={'none'}>
@@ -472,8 +485,8 @@ class FormInitial extends React.PureComponent {
                                     mode={'outlined'}
                                     editable={false}
                                     selectTextOnFocus={false}
-                                    label='Modelo'
-                                    value={this.props.model}
+                                    label='Ano'
+                                    value={this.props.year}
                                     style={{
                                         backgroundColor: 'white',
                                         marginBottom: 5,
@@ -507,7 +520,7 @@ class FormInitial extends React.PureComponent {
                             </View>
                         </TouchableOpacity>
                         <TouchableOpacity
-                            onPress={this.onPressYear}
+                            onPress={this.onPressModel}
                             activeOpacity={0.6}
                         >
                             <View pointerEvents={'none'}>
@@ -516,8 +529,8 @@ class FormInitial extends React.PureComponent {
                                     mode={'outlined'}
                                     editable={false}
                                     selectTextOnFocus={false}
-                                    label='Ano'
-                                    value={this.props.year}
+                                    label='Modelo'
+                                    value={this.props.model}
                                     style={{
                                         backgroundColor: 'white',
                                         marginBottom: 5,
@@ -667,10 +680,10 @@ const mapStateToProps = state => ({
     nicknamePlaceholder: state.AddVehicleReducer.nicknamePlaceholder,
     manufacturer: state.AddVehicleReducer.manufacturer,
     manufacturerValue: state.AddVehicleReducer.manufacturerValue,
-    model: state.AddVehicleReducer.model,
-    modelValue: state.AddVehicleReducer.modelValue,
     year: state.AddVehicleReducer.year,
     yearValue: state.AddVehicleReducer.yearValue,
+    model: state.AddVehicleReducer.model,
+    modelValue: state.AddVehicleReducer.modelValue,
     fuel: state.AddVehicleReducer.fuel,
     vehicleTypeSelected: state.AddVehicleReducer.vehicleTypeSelected
 });
@@ -684,10 +697,10 @@ export default connect(mapStateToProps, {
     modifyVehicleTypeSelected,
     modifyManufacturer, 
     modifyManufacturerValue, 
-    modifyModel,
-    modifyModelValue,
     modifyYear,
     modifyYearValue,
+    modifyModel,
+    modifyModelValue,
     modifyFuel,
     modifyFuelValue,
     modifyNicknameHasUpdated

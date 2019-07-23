@@ -3,10 +3,10 @@ const INITIAL_STATE = {
     nicknameHasUpdated: false,
     manufacturer: '',
     manufacturerValue: '',
-    model: '',
-    modelValue: '',
     year: '',
     yearValue: '',
+    model: '',
+    modelValue: '',
     fuel: '',
     fuelValue: '',
     screenFragment: '',
@@ -47,16 +47,6 @@ export default (state = INITIAL_STATE, action) => {
                 ...state, 
                 manufacturerValue: action.payload
             };
-        case 'modify_addvehicle_model':
-            return { 
-                ...state, 
-                model: action.payload
-            };
-        case 'modify_addvehicle_modelvalue':
-            return { 
-                ...state, 
-                modelValue: action.payload
-            };
         case 'modify_addvehicle_year':
             return { 
                 ...state, 
@@ -66,6 +56,16 @@ export default (state = INITIAL_STATE, action) => {
             return { 
                 ...state, 
                 yearValue: action.payload
+            };
+        case 'modify_addvehicle_model':
+            return { 
+                ...state, 
+                model: action.payload
+            };
+        case 'modify_addvehicle_modelvalue':
+            return { 
+                ...state, 
+                modelValue: action.payload
             };
         case 'modify_addvehicle_fuel':
             return { 

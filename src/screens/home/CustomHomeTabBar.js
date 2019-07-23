@@ -15,9 +15,9 @@ import OverlayTouchable from '../tools/OverlayTouchable';
 const AnimatedSurface = Animated.createAnimatedComponent(Surface);
 const { Value, block, eq, cond, neq, set, call } = Animated;
 
-const MULTIPLIER_DISTANCE_X = 1.3;
+const MULTIPLIER_DISTANCE_X = 1.4;
 const MULTIPLIER_DISTANCE_Y = 1.4;
-const MOVE_AXIS_X = -4;
+const MOVE_AXIS_X = -6;
 
 class CustomHomeTabBar extends React.PureComponent {
     constructor(props) {
@@ -145,7 +145,7 @@ class CustomHomeTabBar extends React.PureComponent {
     }
 
     renderExpenseTab = (propsTab) => (
-        <View style={styles.tabButton}>
+        <View style={styles.tabButton} key={propsTab.routeIndex}>
             <this.floatButtons />
             <Animated.View
                 style={{ 
@@ -325,6 +325,7 @@ class CustomHomeTabBar extends React.PureComponent {
                     overflow: 'hidden',
                     alignItems: 'center',
                     justifyContent: 'center',
+                    minWidth: 75,
                     opacity: Animated.interpolate(this.animTimingValue, {
                         inputRange: [0, 0.5, 1],
                         outputRange: [0, 0, 1],
@@ -458,7 +459,7 @@ class CustomHomeTabBar extends React.PureComponent {
                             return this.renderExpenseTab(propsTab);
                         } 
 
-                        return <this.rippleTab {...propsTab} />;
+                        return <this.rippleTab {...propsTab} key={routeIndex} />;
                     })}
                 </AnimatedSurface>
             </React.Fragment>

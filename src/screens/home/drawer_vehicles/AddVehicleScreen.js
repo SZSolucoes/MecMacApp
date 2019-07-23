@@ -54,7 +54,7 @@ class AddVehicleScreen extends React.PureComponent {
         this.lockedSwitchPage = true;
 
         this.state = {
-            currentPage: 2,
+            currentPage: 0,
             bannerVisible: true
         };
 
@@ -400,7 +400,7 @@ class AddVehicleScreen extends React.PureComponent {
                     </Surface>
                     <Pages
                         ref={this.refPages}
-                        startPage={2}
+                        startPage={0}
                         scrollEnabled={false}
                         style={{ flex: 1, backgroundColor: 'transparent' }}
                         indicatorPosition={'none'}
