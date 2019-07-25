@@ -1,16 +1,21 @@
 /* eslint-disable max-len */
 import React from 'react';
-import { View, StyleSheet, ScrollView } from 'react-native';
+import { View, StyleSheet, ScrollView, Text } from 'react-native';
 import { connect } from 'react-redux';
 import { DataTable } from 'react-native-paper';
 import { Icon } from 'react-native-elements';
 import AwesomeAlert from 'react-native-awesome-alerts';
 import { FlatList } from 'react-native-gesture-handler';
+import { TextMask } from 'react-native-masked-text';
+import _ from 'lodash';
 
 import { store } from '../../../App';
 import CardAccordion from '../../tools/CardAccordion';
 import DataTableCell from '../../tools/DataTableCell';
 import { apiGetManut } from '../../utils/api/ApiManagerConsumer';
+import { normalize } from '../../utils/StringTextFormats';
+import FormCompleteActionsRow from './FormCompleteActionsRow';
+import DataTableTitleHeader from '../../tools/DataTableTitleHeader';
 
 class FormComplete extends React.PureComponent {
     constructor(props) {
@@ -19,6 +24,8 @@ class FormComplete extends React.PureComponent {
         this.renderItemManutProxPc = React.memo(this.renderItemManutProx);
         this.renderItemManutAtrasPc = React.memo(this.renderItemManutAtras);
 
+        this.actionsRows = [];
+
         this.state = {
             isLoading: false,
             itemsProx: [],
@@ -26,19 +33,26 @@ class FormComplete extends React.PureComponent {
         };
     }
 
+    componentDidMount = () => this.fetchManuts()
+
     componentDidUpdate = (prevProps) => {
-        if (prevProps.isFetching !== this.props.isFetching) {
+        /* if (prevProps.isFetching !== this.props.isFetching) {
             this.fetchManuts();
-        }
+        } */
     }
 
     fetchManuts = async () => {
-        const {
+        /* const {
             manufacturer,
             model,
             year,
             quilometers
-        } = store.getState().AddVehicleReducer;
+        } = store.getState().AddVehicleReducer; */
+
+        const manufacturer = 'Fiat';
+        const model = 'ARGO DRIVE 1.0 6V Flex';
+        const year = '2019';
+        const quilometers = '11000';
 
         let proxData = [];
         let atrasData = [];
@@ -74,6 +88,16 @@ class FormComplete extends React.PureComponent {
         }
     }
 
+    onChangeActionsRows = (index, action) => {
+        const findedIndex = _.findIndex(this.actionsRows, ita => ita.index === index);
+
+        if (findedIndex !== -1) {
+            this.actionsRows[findedIndex].action = action;
+        } else {
+            this.actionsRows.push({ index, action });
+        }
+    }
+
     renderLoading = () => (
         <View
             style={{
@@ -96,18 +120,30 @@ class FormComplete extends React.PureComponent {
             style={{ height: 200 }}
         >
             <FlatList
+                bounces={false}
                 data={this.state.itemsProx}
                 renderItem={(propsItem) => <this.renderItemManutProxPc {...propsItem} />}
                 keyExtractor={(item, index) => index.toString()}
-                removeClippedSubviews
             />
         </View>
     )
 
     renderItemManutProx = ({ item, index }) => (
         <DataTable.Row key={index}>
-            <DataTableCell numberOfLines={6}>{item.itemabrev}</DataTableCell>
-            <DataTableCell numberOfLines={6} numeric>{item.quilometros}</DataTableCell>
+            <DataTableCell numberOfLines={6} style={{ flex: 2 }}>{item.itemabrev}</DataTableCell>
+            <DataTableCell numberOfLines={6} numeric style={{ flex: 1 }}>
+                <TextMask
+                    type={'money'}
+                    options={{
+                        precision: 0,
+                        separator: '.',
+                        delimiter: '',
+                        unit: '',
+                        suffixUnit: ''
+                    }}
+                    value={item.quilometros}
+                />
+            </DataTableCell>
         </DataTable.Row>
     ) 
 
@@ -116,18 +152,33 @@ class FormComplete extends React.PureComponent {
             style={{ height: 200 }}
         >
             <FlatList
+                bounces={false}
                 data={this.state.itemsAtras}
                 renderItem={(propsItem) => <this.renderItemManutAtrasPc {...propsItem} />}
                 keyExtractor={(item, index) => index.toString()}
-                removeClippedSubviews
             />
         </View>
     )
 
     renderItemManutAtras = ({ item, index }) => (
         <DataTable.Row key={index}>
-            <DataTableCell numberOfLines={6}>{item.itemabrev}</DataTableCell>
-            <DataTableCell numberOfLines={6} numeric>{item.quilometros}</DataTableCell>
+            <DataTableCell numberOfLines={6} style={{ flex: 1.5 }}>{item.itemabrev}</DataTableCell>
+            <DataTableCell numberOfLines={6} numeric style={{ flex: 1 }}>
+                <TextMask
+                    type={'money'}
+                    options={{
+                        precision: 0,
+                        separator: '.',
+                        delimiter: '',
+                        unit: '',
+                        suffixUnit: ''
+                    }}
+                    value={item.quilometros}
+                />
+            </DataTableCell>
+            <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-end' }}>
+                <FormCompleteActionsRow itemIndex={index} />
+            </View>
         </DataTable.Row>
     ) 
 
@@ -140,11 +191,11 @@ class FormComplete extends React.PureComponent {
     }
 
     renderScrollView = () => (
-        <ScrollView>
+        <ScrollView contentContainerStyle={{ flexGrow: 1 }} bounces={false}>
             <View style={{ flex: 1 }}>
                 <CardAccordion
                     title={'Manutenções próximas'}
-                    titleStyle={{ fontSize: 16 }}
+                    titleStyle={{ fontSize: normalize(16) }}
                     titleLeftComponent={() =>
                         <Icon 
                             name={'toolbox-outline'}
@@ -155,15 +206,15 @@ class FormComplete extends React.PureComponent {
                 >
                     <DataTable>
                         <DataTable.Header>
-                            <DataTable.Title>Manutenção</DataTable.Title>
-                            <DataTable.Title numeric>Km</DataTable.Title>
+                            <DataTableTitleHeader style={{ flex: 2 }}>Manutenção</DataTableTitleHeader>
+                            <DataTableTitleHeader numeric style={{ flex: 1 }}>Km</DataTableTitleHeader>
                         </DataTable.Header>
                         {this.renderManutProx()}
                     </DataTable>
                 </CardAccordion>
                 <CardAccordion
                     title={'Manutenções atrasadas'}
-                    titleStyle={{ fontSize: 16 }}
+                    titleStyle={{ fontSize: normalize(16) }}
                     titleLeftComponent={() =>
                         <Icon 
                             name={'toolbox-outline'}
@@ -174,8 +225,23 @@ class FormComplete extends React.PureComponent {
                 >
                     <DataTable>
                         <DataTable.Header>
-                            <DataTable.Title>Manutenção</DataTable.Title>
-                            <DataTable.Title numeric>Km</DataTable.Title>
+                            <DataTableTitleHeader style={{ flex: 1.5 }}>Manutenção</DataTableTitleHeader>
+                            <DataTableTitleHeader numeric style={{ flex: 1 }}>Km</DataTableTitleHeader>
+                            <DataTableTitleHeader 
+                                style={{ flex: 1, justifyContent: 'flex-end' }}
+                                iconRight={(textColor, containerStyles) => (
+                                    <Icon 
+                                        name={'information-outline'} 
+                                        type={'material-community'} 
+                                        color={textColor} 
+                                        size={18}
+                                        containerStyle={[containerStyles, { marginLeft: 2 }]}
+                                    />
+                                )}
+                                tooltipCompContent={<Text>Info here</Text>}
+                            >
+                                Ação
+                            </DataTableTitleHeader>
                         </DataTable.Header>
                         {this.renderManutAtras()}
                     </DataTable>

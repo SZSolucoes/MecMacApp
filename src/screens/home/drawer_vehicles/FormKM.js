@@ -1,10 +1,11 @@
 /* eslint-disable max-len */
 import React from 'react';
-import { View, Text, TextInput as RNTextInput, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet } from 'react-native';
 import { connect } from 'react-redux';
 import { Icon } from 'react-native-elements';
 import { Card, Title, Paragraph, TextInput, DefaultTheme } from 'react-native-paper';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
+import { TextInputMask } from 'react-native-masked-text';
 
 import { tabBarHeight } from '../../utils/Constants';
 import { modifyQuilometers } from '../../../actions/AddVehicleActions';
@@ -41,6 +42,7 @@ class FormKM extends React.PureComponent {
                             <Text style={{ fontFamily: 'OpenSans-Regular' }}>{paragraphTwo}</Text>
                         </Paragraph>
                         <View style={{ marginTop: 15 }}>
+                        
                             <TextInput
                                 mode={'outlined'}
                                 label='Quilometragem'
@@ -53,9 +55,17 @@ class FormKM extends React.PureComponent {
                                 }}
                                 maxLength={20}
                                 render={props =>
-                                    <RNTextInput
+                                    <TextInputMask
                                         {...props}
                                         style={[...props.style, { paddingRight: 80 }]}
+                                        type={'money'}
+                                        options={{
+                                            precision: 0,
+                                            separator: '.',
+                                            delimiter: '',
+                                            unit: '',
+                                            suffixUnit: ''
+                                        }}
                                     />
                                 }
                             />

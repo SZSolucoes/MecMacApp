@@ -97,6 +97,7 @@ class AddVehicleFragmentScreen extends React.PureComponent {
                     lightTheme
                 />
                 <FlatList
+                    keyboardShouldPersistTaps={'always'}
                     data={manufacturersFiltred}
                     keyExtractor={(item, index) => index.toString()}
                     renderItem={(propItem) => <this.Manufacturer {...propItem} />}
@@ -125,6 +126,7 @@ class AddVehicleFragmentScreen extends React.PureComponent {
                     lightTheme
                 />
                 <FlatList
+                    keyboardShouldPersistTaps={'always'}
                     data={yearsFiltred}
                     keyExtractor={(item, index) => index.toString()}
                     renderItem={(propItem) => <this.Year {...propItem} />}
@@ -153,6 +155,7 @@ class AddVehicleFragmentScreen extends React.PureComponent {
                     lightTheme
                 />
                 <FlatList
+                    keyboardShouldPersistTaps={'always'}
                     data={modelsFiltred}
                     keyExtractor={(item, index) => index.toString()}
                     renderItem={(propItem) => <this.Model {...propItem} />}

@@ -12,9 +12,11 @@ import { checkIsConnected } from './device/DeviceInfos';
 import { colorAppPrimary } from './Constants';
 
 export const initConfigs = () => {
-    GoogleSignin.configure({
+    /* const googleScopes = {
         scopes: ['https://www.googleapis.com/auth/drive.readonly']
-    });
+    }; */
+
+    GoogleSignin.configure(/* googleScopes */);
     
     // Travar orientacao em portrait
     Orientation.lockToPortrait();

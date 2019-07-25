@@ -1,14 +1,14 @@
 import React from 'react';
 import AsyncStorage from '@react-native-community/async-storage';
-import { initializeBatchs } from './screens/utils/InitConfigs';
+import { initializeBatchs, initAsyncFetchs } from './screens/utils/InitConfigs';
 
 export default class LoadingScreen extends React.PureComponent {
     static navigationOptions = {
         header: null
     }
     
-    constructor(props) {
-        super(props);
+    componentDidMount = () => {
+        initAsyncFetchs();
 
         setTimeout(() => {
             this.getTokensAsync();

@@ -67,6 +67,7 @@ class CardAccordion extends React.PureComponent {
                             title={title || 'asd'}
                             titleStyle={titleStyle || { fontSize: 16 }}
                             left={titleLeftComponent}
+                            leftStyle={{ width: null, height: null }}
                             right={() =>
                                 <Animated.View
                                     style={{

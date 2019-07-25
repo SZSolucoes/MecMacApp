@@ -119,7 +119,9 @@ class CustomHomeTabBar extends React.PureComponent {
     }
 
     closeFab = () => {
-        if (this.animControl === 1) {
+        if (this.animControl === 1 && !this.lockedAnim) {
+            this.lockedAnim = true;
+
             this.setState({ pointerEventsState: 0 });
             this.animRunTrigger.setValue(0);
             this.animControl = 0;
@@ -129,14 +131,16 @@ class CustomHomeTabBar extends React.PureComponent {
     }
 
     openFab = () => {
-        this.setState({ pointerEventsState: 1 });
-        this.animRunTrigger.setValue(1);
-        this.animControl = 1;
+        if (!this.lockedAnim) {
+            this.lockedAnim = true;
+    
+            this.setState({ pointerEventsState: 1 });
+            this.animRunTrigger.setValue(1);
+            this.animControl = 1;
+        }
     }
 
     runAnimFab = () => {
-        this.lockedAnim = true;
-
         if (this.animControl === 1) {
             this.closeFab();
         } else {
