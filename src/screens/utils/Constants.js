@@ -25,3 +25,9 @@ export const HOMEDRAWERMENU = {
     PROMOTIONS: 8,
     BLOG: 9
 };
+
+export const MANUT_ATRAS_TRIGGER_TYPE = {
+    LIKE: 0,
+    UNLIKE: 1,
+    WARNING: 2
+};

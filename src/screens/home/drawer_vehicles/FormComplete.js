@@ -16,6 +16,8 @@ import { apiGetManut } from '../../utils/api/ApiManagerConsumer';
 import { normalize } from '../../utils/StringTextFormats';
 import FormCompleteActionsRow from './FormCompleteActionsRow';
 import DataTableTitleHeader from '../../tools/DataTableTitleHeader';
+import { modifyActionsRows } from '../../../actions/AddVehicleActions';
+import { MANUT_ATRAS_TRIGGER_TYPE } from '../../utils/Constants';
 
 class FormComplete extends React.PureComponent {
     constructor(props) {
@@ -90,12 +92,17 @@ class FormComplete extends React.PureComponent {
 
     onChangeActionsRows = (index, action) => {
         const findedIndex = _.findIndex(this.actionsRows, ita => ita.index === index);
+        const finded = findedIndex !== -1;
 
-        if (findedIndex !== -1) {
+        if (finded && action === MANUT_ATRAS_TRIGGER_TYPE.WARNING) {
+            this.actionsRows.splice(findedIndex, 1);
+        } else if (finded && action !== MANUT_ATRAS_TRIGGER_TYPE.WARNING) {
             this.actionsRows[findedIndex].action = action;
-        } else {
+        } else if (!finded && action !== MANUT_ATRAS_TRIGGER_TYPE.WARNING) {
             this.actionsRows.push({ index, action });
         }
+
+        this.props.modifyActionsRows(this.actionsRows);
     }
 
     renderLoading = () => (
@@ -177,7 +184,7 @@ class FormComplete extends React.PureComponent {
                 />
             </DataTableCell>
             <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-end' }}>
-                <FormCompleteActionsRow itemIndex={index} />
+                <FormCompleteActionsRow itemIndex={index} onChangeActionsRows={this.onChangeActionsRows} />
             </View>
         </DataTable.Row>
     ) 
@@ -238,7 +245,43 @@ class FormComplete extends React.PureComponent {
                                         containerStyle={[containerStyles, { marginLeft: 2 }]}
                                     />
                                 )}
-                                tooltipCompContent={<Text>Info here</Text>}
+                                tooltipCompContent={(
+                                    <View style={{ flex: 1 }}>
+                                        <View style={{ flex: 1, justifyContent: 'center' }}>
+                                            <Text style={{ fontFamily: 'OpenSans-SemiBold', color: 'white' }}>
+                                                As seguintes ações estão disponíveis para cada manutenção.
+                                            </Text>
+                                        </View>
+                                        <View style={{ flex: 1.6, alignItens: 'flex-start', justifyContent: 'space-around' }}>
+                                            <View style={{ flexDirection: 'row', alignItens: 'center', justifyContent: 'flex-start' }}>
+                                                <Icon name={'alert'} type={'material-community'} color={'orange'} containerStyle={{ marginRight: 8 }} />
+                                                <Text style={{ fontFamily: 'OpenSans-Regular', color: 'white' }}>
+                                                    Manutenção planejada
+                                                </Text>
+                                            </View>
+                                            <View style={{ flexDirection: 'row', alignItens: 'center', justifyContent: 'flex-start' }}>
+                                                <Icon name={'thumb-up'} type={'material-community'} color={'green'} containerStyle={{ marginRight: 8 }} />
+                                                <Text style={{ fontFamily: 'OpenSans-Regular', color: 'white' }}>
+                                                    Manutenção realizada
+                                                </Text>
+                                            </View>
+                                            <View style={{ flexDirection: 'row', alignItens: 'center', justifyContent: 'flex-start' }}>
+                                                <Icon name={'thumb-down'} type={'material-community'} color={'red'} containerStyle={{ marginRight: 8 }} />
+                                                <Text style={{ fontFamily: 'OpenSans-Regular', color: 'white' }}>
+                                                    Manutenção não realizada
+                                                </Text>
+                                            </View>
+                                        </View>
+                                    </View>
+                                )}
+                                tooltipProps={{
+                                    height: 200,
+                                    width: 300,
+                                    backgroundColor: 'rgba(0, 0, 0, 0.9)',
+                                    containerStyle: {
+                                        padding: 15
+                                    }
+                                }}
                             >
                                 Ação
                             </DataTableTitleHeader>
@@ -269,5 +312,5 @@ const mapStateToProps = (state) => ({
 });
 
 export default connect(mapStateToProps, {
-
+    modifyActionsRows
 })(FormComplete);

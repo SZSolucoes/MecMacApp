@@ -30,6 +30,7 @@ import {
 import AddVehicleBanner from './AddVehicleBanner';
 import AddVehicleAlert from './AddVehicleAlert';
 import { store } from '../../../App';
+import { apiPostUserVehicles } from '../../utils/api/ApiManagerConsumer';
 
 const PAGEINITIAL = 0;
 const PAGEKM = 1;
@@ -54,7 +55,7 @@ class AddVehicleScreen extends React.PureComponent {
         this.lockedSwitchPage = true;
 
         this.state = {
-            currentPage: 2,
+            currentPage: 0,
             bannerVisible: true
         };
 
@@ -142,7 +143,6 @@ class AddVehicleScreen extends React.PureComponent {
 
     onPressNextOrFinish = async () => {
         const screenValid = await this.validateScreens();
-        const { isFetching } = store.getState().AddVehicleReducer;
 
         if (screenValid) {
             const { currentPage } = this.state;
@@ -154,13 +154,29 @@ class AddVehicleScreen extends React.PureComponent {
                 this.setState({ currentPage: PAGEKM });
             } else if (!this.lockedSwitchPage && currentPage === PAGEKM) {
                 this.setLockedSwitchPage();
+
+                const { isFetching } = store.getState().AddVehicleReducer;
                 
                 this.props.modifyIsFetching(!isFetching);
 
                 this.refPages.current.scrollToPage(PAGECOMPLETE);
                 this.setState({ currentPage: PAGECOMPLETE });
             } else if (!this.lockedSwitchPage && currentPage === PAGECOMPLETE) {
-                //alert('finalizou');
+                const { manufacturer, model, year, fuel, actionsRows } = store.getState().AddVehicleReducer;
+                const { userInfo } = store.getState().UserReducer;
+
+                //alert(JSON.stringify(actionsRows));
+                const retSuccess = await apiPostUserVehicles({
+                    user_email: userInfo.email,
+                    manufacturer,
+                    model,
+                    year,
+                    price: null,
+                    fuel: fuel.join('|'),
+                    fipe_ref: null
+                });
+                
+                alert(retSuccess);
             }
         }
     }
@@ -400,7 +416,7 @@ class AddVehicleScreen extends React.PureComponent {
                     </Surface>
                     <Pages
                         ref={this.refPages}
-                        startPage={2}
+                        startPage={0}
                         scrollEnabled={false}
                         style={{ flex: 1, backgroundColor: 'transparent' }}
                         indicatorPosition={'none'}

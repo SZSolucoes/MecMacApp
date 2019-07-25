@@ -7,7 +7,7 @@ const INITIAL_STATE = {
     yearValue: '',
     model: '',
     modelValue: '',
-    fuel: '',
+    fuel: [],
     fuelValue: '',
     screenFragment: '',
     manufacturers: [],
@@ -22,7 +22,8 @@ const INITIAL_STATE = {
     alertMessage: '',
     alertConfirmFunction: null,
     alertCancelFunction: null,
-    isFetching: false
+    isFetching: false,
+    actionsRows: []
 };
 
 export default (state = INITIAL_STATE, action) => {
@@ -70,7 +71,7 @@ export default (state = INITIAL_STATE, action) => {
         case 'modify_addvehicle_fuel':
             return { 
                 ...state, 
-                fuel: action.payload
+                fuel: [...action.payload]
             };
         case 'modify_addvehicle_fuelvalue':
             return { 
@@ -146,6 +147,11 @@ export default (state = INITIAL_STATE, action) => {
             return { 
                 ...state, 
                 isFetching: action.payload
+            };
+        case 'modify_addvehicle_actionsrows':
+            return { 
+                ...state, 
+                actionsRows: [...action.payload]
             };
         case 'modify_addvehicle_clearmmc':
             return { 

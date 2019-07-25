@@ -26,3 +26,4 @@ export const modifyAlertMessage = (value) => ({ type: 'modify_addvehicle_alertme
 export const modifyAlertConfirmFunction = (value) => ({ type: 'modify_addvehicle_alertconfirmfunction', payload: value });
 export const modifyAlertCancelFunction = (value) => ({ type: 'modify_addvehicle_alertcancelfunction', payload: value });
 export const modifyIsFetching = (value) => ({ type: 'modify_addvehicle_isfetching', payload: value });
+export const modifyActionsRows = (value) => ({ type: 'modify_addvehicle_actionsrows', payload: value });

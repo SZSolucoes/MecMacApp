@@ -17,7 +17,9 @@ class DataTableTitleHeader extends React.PureComponent {
             style,
             iconRight,
             numberOfLines,
-            tooltipCompContent
+            tooltipCompContent,
+            tooltipCompContainerStyle,
+            tooltipProps
         } = this.props;
 
         const textColor = color(DefaultTheme.colors.text)
@@ -25,9 +27,15 @@ class DataTableTitleHeader extends React.PureComponent {
         .rgb()
         .string();
 
+        const tooltipContainerStyle = tooltipCompContainerStyle ? { containerStyle: tooltipCompContainerStyle } : {};
+        const tooltipPropsDefault = tooltipProps || {};
+
         return (
             <View style={[styles.container, numeric && styles.right, style]}>
-                <Tooltip popover={tooltipCompContent}>
+                <Tooltip 
+                    popover={tooltipCompContent} {...tooltipContainerStyle}
+                    {...tooltipPropsDefault}
+                >
                     <View style={{ flexDirection: 'row' }}>
                         <Text
                             style={[styles.cell, { color: textColor }]}

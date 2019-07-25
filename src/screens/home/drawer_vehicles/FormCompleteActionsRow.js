@@ -1,23 +1,18 @@
 /* eslint-disable max-len */
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, StyleSheet } from 'react-native';
 import { TouchableOpacity } from 'react-native-gesture-handler';
 import Animated from 'react-native-reanimated';
 import { Icon } from 'react-native-elements';
+import { MANUT_ATRAS_TRIGGER_TYPE } from '../../utils/Constants';
 
 const { Value, block, cond, eq, call, set } = Animated;
-
-const TRIGGER_TYPE = {
-    LIKE: 0,
-    UNLIKE: 1,
-    WARNING: 2
-};
 
 class FormCompleteActionsRow extends React.PureComponent {
     constructor(props) {
         super(props);
 
-        this.controlAnimSelected = TRIGGER_TYPE.WARNING;
+        this.controlAnimSelected = MANUT_ATRAS_TRIGGER_TYPE.WARNING;
 
         this.animLikeValue = new Value(0);
         this.animUnLikeValue = new Value(0);
@@ -29,12 +24,18 @@ class FormCompleteActionsRow extends React.PureComponent {
     onPressTouch = () => this.animTriggerType.setValue(this.getNextTriggerType())
 
     getNextTriggerType = () => {
-        if (this.controlAnimSelected === TRIGGER_TYPE.LIKE) return TRIGGER_TYPE.UNLIKE;
-        if (this.controlAnimSelected === TRIGGER_TYPE.UNLIKE) return TRIGGER_TYPE.WARNING;
-        if (this.controlAnimSelected === TRIGGER_TYPE.WARNING) return TRIGGER_TYPE.LIKE;
+        if (this.controlAnimSelected === MANUT_ATRAS_TRIGGER_TYPE.LIKE) return MANUT_ATRAS_TRIGGER_TYPE.UNLIKE;
+        if (this.controlAnimSelected === MANUT_ATRAS_TRIGGER_TYPE.UNLIKE) return MANUT_ATRAS_TRIGGER_TYPE.WARNING;
+        if (this.controlAnimSelected === MANUT_ATRAS_TRIGGER_TYPE.WARNING) return MANUT_ATRAS_TRIGGER_TYPE.LIKE;
     }
 
-    setControlAnimValue = () => (this.controlAnimSelected = this.getNextTriggerType())
+    setControlAnimValue = () => {
+        this.controlAnimSelected = this.getNextTriggerType();
+
+        if (this.props.onChangeActionsRows && typeof this.props.itemIndex === 'number') {
+            this.props.onChangeActionsRows(this.props.itemIndex, this.controlAnimSelected);
+        }
+    }
 
     render = () => (
         <View style={styles.mainView}>
@@ -43,7 +44,7 @@ class FormCompleteActionsRow extends React.PureComponent {
                     () =>
                         block([
                             cond(
-                                eq(this.animTriggerType, TRIGGER_TYPE.LIKE),
+                                eq(this.animTriggerType, MANUT_ATRAS_TRIGGER_TYPE.LIKE),
                                 [
                                     set(this.animWarningValue, 0),
                                     set(this.animUnLikeValue, 0),
@@ -51,7 +52,7 @@ class FormCompleteActionsRow extends React.PureComponent {
                                     call([], () => this.setControlAnimValue()),
                                 ],
                                 cond(
-                                    eq(this.animTriggerType, TRIGGER_TYPE.UNLIKE),
+                                    eq(this.animTriggerType, MANUT_ATRAS_TRIGGER_TYPE.UNLIKE),
                                     [
                                         set(this.animWarningValue, 0),
                                         set(this.animLikeValue, 0),
@@ -59,7 +60,7 @@ class FormCompleteActionsRow extends React.PureComponent {
                                         call([], () => this.setControlAnimValue()),
                                     ],
                                     cond(
-                                        eq(this.animTriggerType, TRIGGER_TYPE.WARNING),
+                                        eq(this.animTriggerType, MANUT_ATRAS_TRIGGER_TYPE.WARNING),
                                         [
                                             set(this.animLikeValue, 0),
                                             set(this.animUnLikeValue, 0),
