@@ -15,8 +15,8 @@ class AddVehicleAlert extends React.PureComponent {
             message={this.props.alertMessage || 'Ops. Ocorreu um erro inesperado.'}
             closeOnTouchOutside={false}
             closeOnHardwareBackPress={false}
-            showCancelButton
-            showConfirmButton
+            showCancelButton={this.props.alertShowCancelButton}
+            showConfirmButton={this.props.alertShowConfirmButton}
             cancelText={'Cancelar'}
             confirmText={'Sim, continuar'}
             confirmButtonColor={'#DD6B55'}
@@ -47,7 +47,9 @@ const mapStateToProps = state => ({
     alertTitle: state.AddVehicleReducer.alertTitle,
     alertMessage: state.AddVehicleReducer.alertMessage,
     alertConfirmFunction: state.AddVehicleReducer.alertConfirmFunction,
-    alertCancelFunction: state.AddVehicleReducer.alertCancelFunction
+    alertCancelFunction: state.AddVehicleReducer.alertCancelFunction,
+    alertShowCancelButton: state.AddVehicleReducer.alertShowCancelButton,
+    alertShowConfirmButton: state.AddVehicleReducer.alertShowConfirmButton
 });
 
 export default connect(mapStateToProps, {

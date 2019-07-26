@@ -5,7 +5,6 @@ import {
     SafeAreaView
 } from 'react-native';
 import { connect } from 'react-redux';
-import SplashScreen from 'react-native-splash-screen';
 import Animated from 'react-native-reanimated';
 
 import { colorAppForeground, HOMEDRAWERMENU } from '../utils/Constants';
@@ -24,10 +23,6 @@ class HomeScreen extends React.PureComponent {
         super(props);
 
         this.animFadeIn = new Value(0);
-    }
-
-    componentDidMount = () => {
-        SplashScreen.hide();
     }
 
     renderScreensManager = () => {

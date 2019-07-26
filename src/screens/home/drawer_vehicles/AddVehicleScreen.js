@@ -1,6 +1,6 @@
 /* eslint-disable max-len */
 import React from 'react';
-import { View, SafeAreaView, StyleSheet, BackHandler, Text, TouchableOpacity, Keyboard } from 'react-native';
+import { View, SafeAreaView, StyleSheet, BackHandler, Text, TouchableOpacity, Keyboard, Dimensions } from 'react-native';
 import { connect } from 'react-redux';
 import { Surface, ProgressBar } from 'react-native-paper';
 import { Pages } from 'react-native-pages';
@@ -11,7 +11,7 @@ import { linear } from 'everpolate';
 
 import { renderStatusBar } from '../../utils/Screen';
 import HeaderDefault from '../../tools/HeaderDefault';
-import { colorAppForeground, tabBarHeight, colorAppPrimary } from '../../utils/Constants';
+import { colorAppForeground, tabBarHeight, colorAppPrimary, VEHICLES_TYPES } from '../../utils/Constants';
 import FormInitial from './FormInitial';
 import FormKM from './FormKM';
 import FormComplete from './FormComplete';
@@ -25,16 +25,22 @@ import {
     modifyAlertMessage, 
     modifyAlertConfirmFunction,
     modifyAlertCancelFunction,
-    modifyIsFetching
+    modifyIsFetching,
+    modifyIsLoadingComplete,
+    modifyAlertInit,
+    modifyAlertShowCancelButton,
+    modifyAlertShowConfirmButton
 } from '../../../actions/AddVehicleActions';
 import AddVehicleBanner from './AddVehicleBanner';
 import AddVehicleAlert from './AddVehicleAlert';
 import { store } from '../../../App';
 import { apiPostUserVehicles } from '../../utils/api/ApiManagerConsumer';
+import AddVehicleProgress from './AddVehicleProgress';
 
 const PAGEINITIAL = 0;
 const PAGEKM = 1;
 const PAGECOMPLETE = 2;
+const PAGEFINISH = 3;
 
 const BUTTON_HIDED = 0;
 const BUTTON_VISIBLE = 1;
@@ -42,6 +48,8 @@ const BUTTON_VISIBLE = 1;
 const MAXSCALE = 1.3;
 
 const { Value, cond, set, block, greaterThan, lessThan, and, eq } = Animated;
+
+const AnimatedSurface = Animated.createAnimatedComponent(Surface);
 
 class AddVehicleScreen extends React.PureComponent {
     static navigationOptions = {
@@ -56,10 +64,14 @@ class AddVehicleScreen extends React.PureComponent {
 
         this.state = {
             currentPage: 0,
-            bannerVisible: true
+            bannerVisible: true,
+            alertProgressVisible: false,
+            alertProgressError: false
         };
 
         this.animProgressPage = new Value(-1);
+
+        this.animTranslateXValue = new Value(0);
 
         this.animPageInitialValue = new Value(0);
         this.animPageKMValue = new Value(-1);
@@ -111,6 +123,10 @@ class AddVehicleScreen extends React.PureComponent {
         const { currentPage } = this.state;
         const { bannerVisible, alertVisible } = store.getState().AddVehicleReducer;
 
+        if (this.state.currentPage === PAGEFINISH) {
+            return true;
+        }
+
         if (bannerVisible) { this.props.modifyBannerVisible(false); return true; }
         if (alertVisible) { this.props.modifyAlertVisible(false); return true; }
 
@@ -121,15 +137,20 @@ class AddVehicleScreen extends React.PureComponent {
         } else if (!this.lockedSwitchPage && currentPage === PAGEKM) {
             this.setLockedSwitchPage();
 
-            this.refPages.current.scrollToPage(PAGEINITIAL);
-            this.setState({ currentPage: PAGEINITIAL });
+            
+            this.setState(
+                { currentPage: PAGEINITIAL },
+                () => this.refPages.current.scrollToPage(PAGEINITIAL)
+            );
 
             return true;
         } else if (!this.lockedSwitchPage && currentPage === PAGECOMPLETE) {
             this.setLockedSwitchPage();
 
-            this.refPages.current.scrollToPage(PAGEKM);
-            this.setState({ currentPage: PAGEKM });
+            this.setState(
+                { currentPage: PAGEKM },
+                () => this.refPages.current.scrollToPage(PAGEKM)
+            );
 
             return true;
         } else if (this.lockedSwitchPage) {
@@ -139,44 +160,91 @@ class AddVehicleScreen extends React.PureComponent {
         return false;
     }
 
-    onPressBackButton = () => this.props.navigation.goBack()
+    onPressBackButton = () => { 
+        if (this.state.currentPage === PAGEFINISH) {
+            this.props.navigation.navigate('Home');
+        } else {
+            this.props.navigation.goBack();
+        }
+    }
 
     onPressNextOrFinish = async () => {
         const screenValid = await this.validateScreens();
 
         if (screenValid) {
             const { currentPage } = this.state;
+            const { isLoadingComplete } = store.getState().AddVehicleReducer;
     
             if (!this.lockedSwitchPage && currentPage === PAGEINITIAL) {
                 this.setLockedSwitchPage();
     
-                this.refPages.current.scrollToPage(PAGEKM);
-                this.setState({ currentPage: PAGEKM });
+                this.setState(
+                    { currentPage: PAGEKM },
+                    () => this.refPages.current.scrollToPage(PAGEKM)
+                );
             } else if (!this.lockedSwitchPage && currentPage === PAGEKM) {
                 this.setLockedSwitchPage();
 
                 const { isFetching } = store.getState().AddVehicleReducer;
                 
+                this.props.modifyIsLoadingComplete(true);
                 this.props.modifyIsFetching(!isFetching);
 
-                this.refPages.current.scrollToPage(PAGECOMPLETE);
-                this.setState({ currentPage: PAGECOMPLETE });
-            } else if (!this.lockedSwitchPage && currentPage === PAGECOMPLETE) {
-                const { manufacturer, model, year, fuel, actionsRows } = store.getState().AddVehicleReducer;
-                const { userInfo } = store.getState().UserReducer;
+                this.setState(
+                    { currentPage: PAGECOMPLETE },
+                    () => this.refPages.current.scrollToPage(PAGECOMPLETE)
+                );
+            } else if (!this.lockedSwitchPage && currentPage === PAGECOMPLETE && !isLoadingComplete) {
+                const funExec = async () => {
+                    try {
+                        const { manufacturer, model, year, fuel, nickname, quilometers, actionsRows } = store.getState().AddVehicleReducer;
+                        const { userInfo } = store.getState().UserReducer;
+                        const validNickname = nickname.trim() ? nickname.trim() : model.trim().split(' ')[0];
+                        const vehicletype = VEHICLES_TYPES.car;
+                        const manuts = [];
+        
+                        if (actionsRows && actionsRows.length) {
+                            for (let indexA = 0; indexA < actionsRows.length; indexA++) {
+                                const elementA = actionsRows[indexA];
+                                if (elementA.manut) {
+                                    manuts.push({
+                                        vehicletype,
+                                        itemabrev: elementA.manut.itemabrev,
+                                        months: elementA.manut.mes,
+                                        miles: elementA.manut.milhas,
+                                        quilometers_manut: elementA.manut.quilometros,
+                                        type_manut: elementA.manut.tipomanut,
+                                        action: elementA.action
+                                    });
+                                }
+                            }
+                        }
+    
+                        const retSuccess = await apiPostUserVehicles({
+                            user_email: userInfo.email,
+                            manufacturer,
+                            model,
+                            year,
+                            price: null,
+                            fuel: fuel.join('|'),
+                            fipe_ref: null,
+                            nickname: validNickname.trim(),
+                            quilometers,
+                            manuts
+                        });
 
-                //alert(JSON.stringify(actionsRows));
-                const retSuccess = await apiPostUserVehicles({
-                    user_email: userInfo.email,
-                    manufacturer,
-                    model,
-                    year,
-                    price: null,
-                    fuel: fuel.join('|'),
-                    fipe_ref: null
-                });
-                
-                alert(retSuccess);
+                        if (retSuccess) {
+                            this.onAddVehicleSuccess();
+                        } else {
+                            this.setState({ alertProgressVisible: false, alertProgressError: true });
+                        }
+                    } catch (e) {
+                        console.log('erro na adição de veículo');
+                        this.setState({ alertProgressVisible: false });
+                    }
+                };
+
+                this.setState({ alertProgressVisible: true }, () => funExec());
             }
         }
     }
@@ -187,24 +255,48 @@ class AddVehicleScreen extends React.PureComponent {
         if (!this.lockedSwitchPage && pageNumber === PAGEINITIAL) {
             this.setLockedSwitchPage();
 
-            this.refPages.current.scrollToPage(PAGEINITIAL);
-            this.setState({ currentPage: PAGEINITIAL });
+            this.setState(
+                { currentPage: PAGEINITIAL },
+                () => this.refPages.current.scrollToPage(PAGEINITIAL)
+            );
         } else if (!this.lockedSwitchPage && pageNumber === PAGEKM && currentPage === PAGECOMPLETE) {
             this.setLockedSwitchPage();
 
-            this.refPages.current.scrollToPage(PAGEKM);
-            this.setState({ currentPage: PAGEKM });
+            this.setState(
+                { currentPage: PAGEKM },
+                () => this.refPages.current.scrollToPage(PAGEKM)
+            );
         }
     }
 
     onScrollPageEnd = () => (this.lockedSwitchPage = false)
+
+    onErrorDoAlert = () => {
+        this.setState({ alertProgressError: false }, () => {
+            this.props.modifyAlertInit();
+            this.props.modifyAlertTitle('Erro');
+            this.props.modifyAlertMessage('Ops... Ocorreu um erro inesperado. Verifique a conexão com a internet ou contate o suporte caso o erro persistir.');
+            this.props.modifyAlertCancelFunction((doHideAlert) => { doHideAlert(); });
+            this.props.modifyAlertShowConfirmButton(false);
+            this.props.modifyAlertVisible(true);
+        });
+    }
+
+    onAddVehicleSuccess = () => {
+        this.setState(
+            { alertProgressVisible: false, currentPage: PAGEFINISH },
+            () => {
+                this.refPages.current.scrollToPage(PAGEFINISH);
+            }
+        );
+    }
 
     setLockedSwitchPage = () => { 
         this.lockedSwitchPage = true;
 
         setTimeout(() => { 
             if (this.lockedSwitchPage) this.lockedSwitchPage = false; 
-        }, 2000);
+        }, 3000);
     }
 
     validateScreens = async () => {
@@ -214,18 +306,20 @@ class AddVehicleScreen extends React.PureComponent {
             year
         } = this.props;
 
-        const quilometers = store.getState().AddVehicleReducer.quilometers;
+        const { quilometers, nickname } = store.getState().AddVehicleReducer;
 
         const { currentPage } = this.state;
 
         if (currentPage === PAGEINITIAL && (!manufacturer || !model || !year)) {
             this.props.modifyBannerText('Os campos ( Marca, Modelo e Ano ) devem ser preenchidos para prosseguir.');
             this.props.modifyBannerVisible(true);
+
             return false;
         }
 
         if (currentPage === PAGEKM && !quilometers) {
             const funPromise = new Promise((resolve) => {
+                this.props.modifyAlertInit();
                 this.props.modifyAlertTitle('Aviso');
                 this.props.modifyAlertMessage('O Acompanhamento de manutenção do veículo será menos otimizado sem a quilometragem. Deseja realmente continuar?');
                 this.props.modifyAlertConfirmFunction((doHideAlert) => { doHideAlert(); resolve(true); });
@@ -234,6 +328,21 @@ class AddVehicleScreen extends React.PureComponent {
             });
 
             return funPromise;
+        }
+
+        if (currentPage === PAGECOMPLETE) {
+            const validNickname = nickname.trim() ? nickname.trim() : model.trim().split(' ')[0];
+
+            const funPromisePageComplete = new Promise((resolve) => {
+                this.props.modifyAlertInit();
+                this.props.modifyAlertTitle('Aviso');
+                this.props.modifyAlertMessage(`O veículo "${validNickname.trim()}" será adicionado a sua lista de super máquinas. Deseja continuar?`);
+                this.props.modifyAlertConfirmFunction((doHideAlert) => { doHideAlert(); resolve(true); });
+                this.props.modifyAlertCancelFunction((doHideAlert) => { doHideAlert(); resolve(false); });
+                this.props.modifyAlertVisible(true);
+            });
+
+            return funPromisePageComplete;
         }
 
         return true;
@@ -258,6 +367,12 @@ class AddVehicleScreen extends React.PureComponent {
                                     set(this.animPageKMValue, this.animProgressPage),
                                     set(this.animPageCompleteValue, this.animProgressPage)
                                 ]
+                            ),
+                            cond(
+                                and(greaterThan(this.animProgressPage, 2), lessThan(this.animProgressPage, 3)),
+                                [
+                                    set(this.animTranslateXValue, this.animProgressPage)
+                                ]
                             )
                         ])
                 }
@@ -279,9 +394,42 @@ class AddVehicleScreen extends React.PureComponent {
                 <HeaderDefault 
                     backActionProps={{ onPress: this.onBackButtonPressAndroid }}
                     title={'Adicionar veículo'}
+                    {...(
+                        this.state.currentPage === PAGEFINISH ?
+                        { 
+                            backComponent: (
+                                <View style={{ marginLeft: 12, alignItems: 'center', justifyContent: 'center' }}>
+                                    <Icon onPress={this.onPressBackButton} name={'home'} type={'material-community'} size={24} />
+                                </View>
+                            ) 
+                        }
+                        : 
+                        {}
+                    )}
                 />
                 <View style={{ flex: 1 }}>
-                    <Surface style={{ elevation: 2, backgroundColor: colorAppPrimary }}>
+                    <AnimatedSurface 
+                        style={{ 
+                            elevation: 2, 
+                            backgroundColor: colorAppPrimary,
+                            transform: [{
+                                translateX: Animated.interpolate(
+                                    this.animTranslateXValue, {
+                                        inputRange: [2, 3],
+                                        outputRange: [0, -Dimensions.get('window').width],
+                                        extrapolate: Animated.Extrapolate.CLAMP
+                                    }
+                                )
+                            }],
+                            opacity: Animated.interpolate(
+                                this.animTranslateXValue, {
+                                    inputRange: [2, 3],
+                                    outputRange: [1, 0],
+                                    extrapolate: Animated.Extrapolate.CLAMP
+                                }
+                            )
+                        }}
+                    >
                         <View style={styles.barPass}>
                             <Icon 
                                 name={'key-variant'} 
@@ -375,7 +523,7 @@ class AddVehicleScreen extends React.PureComponent {
                                                 style={{
                                                     transform: [{ 
                                                         scale: Animated.interpolate(
-                                                            this.animPageKMValue, {
+                                                            this.animPageCompleteValue, {
                                                                 inputRange: [1, 2],
                                                                 outputRange: [1, MAXSCALE],
                                                                 extrapolate: Animated.Extrapolate.CLAMP
@@ -413,7 +561,7 @@ class AddVehicleScreen extends React.PureComponent {
                         >
                             <Text style={{ fontFamily: 'OpenSans-SemiBold', color: 'white' }}>{`${this.state.currentPage + 1}/3`}</Text>
                         </View>
-                    </Surface>
+                    </AnimatedSurface>
                     <Pages
                         ref={this.refPages}
                         startPage={0}
@@ -432,6 +580,9 @@ class AddVehicleScreen extends React.PureComponent {
                         <View style={{ flex: 1 }}>
                             <FormComplete navigation={this.props.navigation} />
                         </View>
+                        <View style={{ flex: 1 }}>
+                            <Text>Veiculo adicionado com sucesso</Text>
+                        </View>
                     </Pages>
                     <Animated.View 
                         style={{ 
@@ -441,8 +592,22 @@ class AddVehicleScreen extends React.PureComponent {
                             right: 0,
                             bottom: 0,
                             transform: [{
-                                translateY: this.animBtnTranslateY
-                            }]
+                                translateY: this.animBtnTranslateY,
+                                translateX: Animated.interpolate(
+                                    this.animTranslateXValue, {
+                                        inputRange: [2, 3],
+                                        outputRange: [0, -Dimensions.get('window').width],
+                                        extrapolate: Animated.Extrapolate.CLAMP
+                                    }
+                                )
+                            }],
+                            opacity: Animated.interpolate(
+                                this.animTranslateXValue, {
+                                    inputRange: [2, 3],
+                                    outputRange: [1, 0],
+                                    extrapolate: Animated.Extrapolate.CLAMP
+                                }
+                            )
                         }}
                     >
                         <TouchableOpacity
@@ -474,6 +639,11 @@ class AddVehicleScreen extends React.PureComponent {
                 </View>
             </SafeAreaView>
             <AddVehicleAlert />
+            <AddVehicleProgress 
+                alertProgressVisible={this.state.alertProgressVisible}
+                alertProgressError={this.state.alertProgressError}
+                onErrorDoAlert={this.onErrorDoAlert}
+            />
         </View>
     )
 }
@@ -499,7 +669,8 @@ const mapStateToProps = state => ({
     model: state.AddVehicleReducer.model,
     modelValue: state.AddVehicleReducer.modelValue,
     year: state.AddVehicleReducer.year,
-    yearValue: state.AddVehicleReducer.yearValue
+    yearValue: state.AddVehicleReducer.yearValue,
+    isLoadingComplete: state.AddVehicleReducer.isLoadingComplete
 });
 
 export default connect(mapStateToProps, {
@@ -511,5 +682,9 @@ export default connect(mapStateToProps, {
     modifyAlertMessage, 
     modifyAlertConfirmFunction,
     modifyAlertCancelFunction,
-    modifyIsFetching
+    modifyIsFetching,
+    modifyIsLoadingComplete,
+    modifyAlertInit,
+    modifyAlertShowCancelButton,
+    modifyAlertShowConfirmButton
 })(AddVehicleScreen);

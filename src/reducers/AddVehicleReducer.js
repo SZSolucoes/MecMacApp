@@ -20,10 +20,13 @@ const INITIAL_STATE = {
     alertVisible: false,
     alertTitle: '',
     alertMessage: '',
+    alertShowCancelButton: true,
+    alertShowConfirmButton: true,
     alertConfirmFunction: null,
     alertCancelFunction: null,
     isFetching: false,
-    actionsRows: []
+    actionsRows: [],
+    isLoadingComplete: false,
 };
 
 export default (state = INITIAL_STATE, action) => {
@@ -152,6 +155,32 @@ export default (state = INITIAL_STATE, action) => {
             return { 
                 ...state, 
                 actionsRows: [...action.payload]
+            };
+        case 'modify_addvehicle_isloadingcomplete':
+            return { 
+                ...state, 
+                isLoadingComplete: action.payload
+            };
+        case 'modify_addvehicle_alertshowcancelbutton':
+            return { 
+                ...state, 
+                alertShowCancelButton: action.payload
+            };
+        case 'modify_addvehicle_alertshowconfirmbutton':
+            return { 
+                ...state, 
+                alertShowConfirmButton: action.payload
+            };
+        case 'modify_addvehicle_alertinit':
+            return { 
+                ...state, 
+                alertVisible: false,
+                alertTitle: '',
+                alertMessage: '',
+                alertShowCancelButton: true,
+                alertShowConfirmButton: true,
+                alertConfirmFunction: null,
+                alertCancelFunction: null
             };
         case 'modify_addvehicle_clearmmc':
             return { 

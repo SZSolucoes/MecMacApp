@@ -27,7 +27,7 @@ export const HOMEDRAWERMENU = {
 };
 
 export const MANUT_ATRAS_TRIGGER_TYPE = {
-    LIKE: 0,
-    UNLIKE: 1,
-    WARNING: 2
+    LIKE: 1,
+    UNLIKE: 2,
+    WARNING: 3
 };

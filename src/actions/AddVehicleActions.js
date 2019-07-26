@@ -27,3 +27,7 @@ export const modifyAlertConfirmFunction = (value) => ({ type: 'modify_addvehicle
 export const modifyAlertCancelFunction = (value) => ({ type: 'modify_addvehicle_alertcancelfunction', payload: value });
 export const modifyIsFetching = (value) => ({ type: 'modify_addvehicle_isfetching', payload: value });
 export const modifyActionsRows = (value) => ({ type: 'modify_addvehicle_actionsrows', payload: value });
+export const modifyIsLoadingComplete = (value) => ({ type: 'modify_addvehicle_isloadingcomplete', payload: value });
+export const modifyAlertInit = () => ({ type: 'modify_addvehicle_alertinit' });
+export const modifyAlertShowCancelButton = (value) => ({ type: 'modify_addvehicle_alertshowcancelbutton', payload: value });
+export const modifyAlertShowConfirmButton = (value) => ({ type: 'modify_addvehicle_alertshowconfirmbutton', payload: value });

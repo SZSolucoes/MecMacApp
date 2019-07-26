@@ -16,7 +16,7 @@ import { apiGetManut } from '../../utils/api/ApiManagerConsumer';
 import { normalize } from '../../utils/StringTextFormats';
 import FormCompleteActionsRow from './FormCompleteActionsRow';
 import DataTableTitleHeader from '../../tools/DataTableTitleHeader';
-import { modifyActionsRows } from '../../../actions/AddVehicleActions';
+import { modifyActionsRows, modifyIsLoadingComplete } from '../../../actions/AddVehicleActions';
 import { MANUT_ATRAS_TRIGGER_TYPE } from '../../utils/Constants';
 
 class FormComplete extends React.PureComponent {
@@ -37,30 +37,50 @@ class FormComplete extends React.PureComponent {
 
     componentDidMount = () => this.fetchManuts()
 
-    componentDidUpdate = (prevProps) => {
-        /* if (prevProps.isFetching !== this.props.isFetching) {
+    componentDidUpdate = (prevProps) => { 
+        if (prevProps.isFetching !== this.props.isFetching) {
             this.fetchManuts();
-        } */
+        }
+    }
+
+    onChangeActionsRows = (index, action) => {
+        const findedIndex = _.findIndex(this.actionsRows, ita => ita.index === index);
+        const finded = findedIndex !== -1;
+
+        if (finded) {
+            this.actionsRows[findedIndex].action = action;
+        } else {
+            this.actionsRows.push({ 
+                index, 
+                action,
+                manut: {
+                    ...(this.state.itemsAtras[index] || {})
+                }
+            });
+        }
+
+        this.props.modifyActionsRows(this.actionsRows);
     }
 
     fetchManuts = async () => {
-        /* const {
+        const {
             manufacturer,
             model,
             year,
             quilometers
-        } = store.getState().AddVehicleReducer; */
+        } = store.getState().AddVehicleReducer;
 
-        const manufacturer = 'Fiat';
-        const model = 'ARGO DRIVE 1.0 6V Flex';
-        const year = '2019';
-        const quilometers = '11000';
+        this.actionsRows = [];
+        this.props.modifyActionsRows([]);
 
         let proxData = [];
         let atrasData = [];
 
         if (!(manufacturer && model && year && quilometers)) {
-            this.setState({ isLoading: false });
+            this.setState(
+                { isLoading: false },
+                () => this.props.modifyIsLoadingComplete(false)
+            );
             return false;
         }
 
@@ -80,29 +100,34 @@ class FormComplete extends React.PureComponent {
         
                 if (validRed && ret.data.data.prox) proxData = [...ret.data.data.prox];
                 if (validRed && ret.data.data.atras) atrasData = [...ret.data.data.atras];
+                
+                for (let indexB = 0; indexB < atrasData.length; indexB++) {
+                    const elementB = atrasData[indexB];
+
+                    this.actionsRows.push({ 
+                        index: indexB, 
+                        action: MANUT_ATRAS_TRIGGER_TYPE.WARNING,
+                        manut: {
+                            ...elementB
+                        }
+                    });
+                }
+
+                this.props.modifyActionsRows(this.actionsRows);
         
-                this.setState({ isLoading: false, itemsProx: proxData, itemsAtras: atrasData });
+                this.setState(
+                    { isLoading: false, itemsProx: proxData, itemsAtras: atrasData },
+                    () => this.props.modifyIsLoadingComplete(false)
+                );
             };
     
             funExec();
         } catch (e) {
-            this.setState({ isLoading: false });
+            this.setState(
+                { isLoading: false },
+                () => this.props.modifyIsLoadingComplete(false)
+            );
         }
-    }
-
-    onChangeActionsRows = (index, action) => {
-        const findedIndex = _.findIndex(this.actionsRows, ita => ita.index === index);
-        const finded = findedIndex !== -1;
-
-        if (finded && action === MANUT_ATRAS_TRIGGER_TYPE.WARNING) {
-            this.actionsRows.splice(findedIndex, 1);
-        } else if (finded && action !== MANUT_ATRAS_TRIGGER_TYPE.WARNING) {
-            this.actionsRows[findedIndex].action = action;
-        } else if (!finded && action !== MANUT_ATRAS_TRIGGER_TYPE.WARNING) {
-            this.actionsRows.push({ index, action });
-        }
-
-        this.props.modifyActionsRows(this.actionsRows);
     }
 
     renderLoading = () => (
@@ -122,18 +147,43 @@ class FormComplete extends React.PureComponent {
         </View>
     )
 
-    renderManutProx = () => (
-        <View
-            style={{ height: 200 }}
-        >
-            <FlatList
-                bounces={false}
-                data={this.state.itemsProx}
-                renderItem={(propsItem) => <this.renderItemManutProxPc {...propsItem} />}
-                keyExtractor={(item, index) => index.toString()}
-            />
-        </View>
-    )
+    renderManutProx = () => {
+        const { quilometers } = store.getState().AddVehicleReducer;
+        if (!quilometers) {
+            return (
+                <View
+                    style={{ height: 100, padding: 20, alignItems: 'center', justifyContent: 'center' }}
+                >
+                    <Text style={{ fontWeight: '500' }} numberOfLines={6}>
+                        Para visualizar as manutenções do veículo é necessario informar a quilometragem anteriormente.
+                    </Text>
+                </View>
+            );
+        } else if (this.state.itemsProx.length) {
+            return (
+                <View
+                    style={{ height: 200 }}
+                >
+                    <FlatList
+                        bounces={false}
+                        data={this.state.itemsProx}
+                        renderItem={(propsItem) => <this.renderItemManutProxPc {...propsItem} />}
+                        keyExtractor={(item, index) => index.toString()}
+                    />
+                </View>
+            );
+        }
+
+        return (
+            <View
+                style={{ height: 100, padding: 20, alignItems: 'center', justifyContent: 'center' }}
+            >
+                <Text style={{ fontWeight: '500' }} numberOfLines={6}>
+                    Não há manutenções próximas para o veículo.
+                </Text>
+            </View>
+        );
+    }
 
     renderItemManutProx = ({ item, index }) => (
         <DataTable.Row key={index}>
@@ -154,18 +204,43 @@ class FormComplete extends React.PureComponent {
         </DataTable.Row>
     ) 
 
-    renderManutAtras = () => (
-        <View
-            style={{ height: 200 }}
-        >
-            <FlatList
-                bounces={false}
-                data={this.state.itemsAtras}
-                renderItem={(propsItem) => <this.renderItemManutAtrasPc {...propsItem} />}
-                keyExtractor={(item, index) => index.toString()}
-            />
-        </View>
-    )
+    renderManutAtras = () => {
+        const { quilometers } = store.getState().AddVehicleReducer;
+        if (!quilometers) {
+            return (
+                <View
+                    style={{ height: 100, padding: 20, alignItems: 'center', justifyContent: 'center' }}
+                >
+                    <Text style={{ fontWeight: '500' }} numberOfLines={6}>
+                        Para visualizar as manutenções do veículo é necessario informar a quilometragem anteriormente.
+                    </Text>
+                </View>
+            );
+        } else if (this.state.itemsAtras.length) {
+            return (
+                <View
+                    style={{ height: 200 }}
+                >
+                    <FlatList
+                        bounces={false}
+                        data={this.state.itemsAtras}
+                        renderItem={(propsItem) => <this.renderItemManutAtrasPc {...propsItem} />}
+                        keyExtractor={(item, index) => index.toString()}
+                    />
+                </View>
+            );
+        }
+
+        return (
+            <View
+                style={{ height: 100, padding: 20, alignItems: 'center', justifyContent: 'center' }}
+            >
+                <Text style={{ fontWeight: '500' }} numberOfLines={6}>
+                    Não há manutenções atrasadas para o veículo.
+                </Text>
+            </View>
+        );
+    }
 
     renderItemManutAtras = ({ item, index }) => (
         <DataTable.Row key={index}>
@@ -190,9 +265,8 @@ class FormComplete extends React.PureComponent {
     ) 
 
     renderManager = () => {
-        const { isLoading, itemsProx, itemsAtras } = this.state;
+        const { isLoading } = this.state;
         if (isLoading) return this.renderLoading();
-        if (!(itemsProx.length && itemsAtras.length)) return <View />;
 
         return this.renderScrollView();
     }
@@ -312,5 +386,6 @@ const mapStateToProps = (state) => ({
 });
 
 export default connect(mapStateToProps, {
-    modifyActionsRows
+    modifyActionsRows,
+    modifyIsLoadingComplete
 })(FormComplete);

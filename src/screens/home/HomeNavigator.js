@@ -6,6 +6,7 @@ import {
 } from 'react-navigation';
 import { Icon } from 'react-native-elements';
 import { createDrawerNavigator } from 'react-navigation-drawer';
+import SplashScreen from 'react-native-splash-screen';
 
 import CustomHomeTabBar from './CustomHomeTabBar';
 
@@ -102,6 +103,10 @@ class HomeNavigator extends React.PureComponent {
     static navigationOptions = {
         header: null
     };
+
+    componentDidMount = () => {
+        SplashScreen.hide();
+    }
 
     render = () => (
         <View style={{ flex: 1 }}>
