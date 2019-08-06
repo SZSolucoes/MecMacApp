@@ -5,6 +5,7 @@ import { connect } from 'react-redux';
 import { Drawer } from 'react-native-paper';
 import { ListItem, Icon } from 'react-native-elements';
 import Ripple from 'react-native-material-ripple';
+import AsyncStorage from '@react-native-community/async-storage';
 
 import { colorAppPrimary, HOMEDRAWERMENU } from '../utils/Constants';
 import { defaultTextHeader } from '../utils/Styles';
@@ -77,15 +78,43 @@ class HomeDrawer extends React.PureComponent {
         this.props.navigation.navigate('Profile');
     }
 
+    onMenuChooseLogout = () => {
+        try {
+            Alert.alert(
+                'Aviso', 
+                'Desejar encerrar a sessão e sair para a tela de login ?',
+                [
+                    { text: 'Cancelar', onPress: () => false },
+                    { 
+                        text: 'Sim', 
+                        onPress: async () => {
+                            await AsyncStorage.removeItem('@isFirstOpened');
+                            await AsyncStorage.removeItem('@isUserLogged');
+                            await AsyncStorage.removeItem('@userProfileJson');
+
+                            /* await this.props.handleFacebookLogout();
+                            await this.props.handleGoogleLogout(); */
+
+                            this.props.navigation.navigate('Auth');
+                        }
+                    }
+                ],
+                { cancelable: true }
+            );
+        } catch (e) {
+            console.log('AsyncStorage error');
+        }
+    }
+
     doScrollTo = (childRef) => childRef && childRef.current && this.scrollViewRef.current && childRef.current.measureLayout(
         findNodeHandle(this.scrollViewRef.current),
-        (x, y) => this.scrollViewRef.current.scrollTo({ x: 0, y: y / 2, animated: true })
+        (x, y) => this.scrollViewRef.current && this.scrollViewRef.current.scrollTo({ x: 0, y: y / 2, animated: true })
     ) 
     
     closeDrawer = () => { 
         this.props.navigation.closeDrawer();
-        setTimeout(() => { 
-            this.scrollViewRef.current.scrollTo({ x: 0, y: 0, animated: true });
+        setTimeout(() => {
+            if (this.scrollViewRef.current) this.scrollViewRef.current.scrollTo({ x: 0, y: 0, animated: true });
             this.setState({ resetExpandedSwitch: !this.state.resetExpandedSwitch });
         }, 1000);
     }
@@ -363,6 +392,29 @@ class HomeDrawer extends React.PureComponent {
         />
     )
 
+    renderLogout = () => (
+        <ListItem
+            Component={
+                (props) => 
+                    <Ripple 
+                        {...props}
+                        rippleCentered
+                        rippleColor={colorAppPrimary}
+                        style={styles.listItem}
+                        onPress={this.onMenuChooseLogout}
+                    />
+            }
+            leftIcon={{ 
+                name: 'ios-log-out', 
+                type: 'ionicon',
+                color: 'gray'
+            }}
+            title={'Sair'}
+            titleStyle={[styles.listItemTitleDefault, { color: 'red' }]}
+            containerStyle={{ padding: 0, height: 40, backgroundColor: 'transparent', marginLeft: 4 }}
+        />
+    )
+
     render() {
         return (
             <React.Fragment>
@@ -392,6 +444,7 @@ class HomeDrawer extends React.PureComponent {
                             <View style={{ marginVertical: 5 }} />
                         </Drawer.Section>
                         {this.renderPerfil()}
+                        {this.renderLogout()}
                     </View>
                     <View style={{ marginVertical: 50 }} />
                 </ScrollView>

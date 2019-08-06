@@ -1,6 +1,6 @@
 /* eslint-disable max-len */
 import React from 'react';
-import { View, SafeAreaView, StyleSheet, BackHandler, Text, TouchableOpacity, Keyboard, Dimensions } from 'react-native';
+import { View, SafeAreaView, StyleSheet, BackHandler, Text, TouchableOpacity, Keyboard } from 'react-native';
 import { connect } from 'react-redux';
 import { Surface, ProgressBar } from 'react-native-paper';
 import { Pages } from 'react-native-pages';
@@ -11,18 +11,18 @@ import { linear } from 'everpolate';
 
 import { renderStatusBar } from '../../utils/Screen';
 import HeaderDefault from '../../tools/HeaderDefault';
-import { colorAppForeground, tabBarHeight, colorAppPrimary, VEHICLES_TYPES } from '../../utils/Constants';
+import { colorAppForeground, tabBarHeight, colorAppPrimary, VEHICLES_TYPES, DESENV_EMAIL } from '../../utils/Constants';
 import FormInitial from './FormInitial';
 import FormKM from './FormKM';
 import FormComplete from './FormComplete';
 import { runSpring } from '../../utils/ReanimatedUtils';
-import { 
-    modifyResetFields, 
-    modifyBannerVisible, 
-    modifyBannerText, 
-    modifyAlertVisible, 
-    modifyAlertTitle, 
-    modifyAlertMessage, 
+import {
+    modifyResetFields,
+    modifyBannerVisible,
+    modifyBannerText,
+    modifyAlertVisible,
+    modifyAlertTitle,
+    modifyAlertMessage,
     modifyAlertConfirmFunction,
     modifyAlertCancelFunction,
     modifyIsFetching,
@@ -36,11 +36,11 @@ import AddVehicleAlert from './AddVehicleAlert';
 import { store } from '../../../App';
 import { apiPostUserVehicles } from '../../utils/api/ApiManagerConsumer';
 import AddVehicleProgress from './AddVehicleProgress';
+import { modifyShowHomeNewVehicleTooltip } from '../../../actions/CustomHomeTabBarActions';
 
 const PAGEINITIAL = 0;
 const PAGEKM = 1;
 const PAGECOMPLETE = 2;
-const PAGEFINISH = 3;
 
 const BUTTON_HIDED = 0;
 const BUTTON_VISIBLE = 1;
@@ -48,8 +48,6 @@ const BUTTON_VISIBLE = 1;
 const MAXSCALE = 1.3;
 
 const { Value, cond, set, block, greaterThan, lessThan, and, eq } = Animated;
-
-const AnimatedSurface = Animated.createAnimatedComponent(Surface);
 
 class AddVehicleScreen extends React.PureComponent {
     static navigationOptions = {
@@ -66,12 +64,11 @@ class AddVehicleScreen extends React.PureComponent {
             currentPage: 0,
             bannerVisible: true,
             alertProgressVisible: false,
+            alertProgressSuccess: false,
             alertProgressError: false
         };
 
         this.animProgressPage = new Value(-1);
-
-        this.animTranslateXValue = new Value(0);
 
         this.animPageInitialValue = new Value(0);
         this.animPageKMValue = new Value(-1);
@@ -86,7 +83,7 @@ class AddVehicleScreen extends React.PureComponent {
             Keyboard.addListener('keyboardDidHide', this.onKeyBoardDidHide);
         });
     }
-    
+
     componentDidMount = () => {
         SplashScreen.hide();
         this.willBlurSubscription = this.props.navigation.addListener('willBlur', () => {
@@ -114,18 +111,14 @@ class AddVehicleScreen extends React.PureComponent {
     onKeyBoardDidShow = () => {
         this.animBtnTranslateYTrigger.setValue(BUTTON_HIDED);
     }
-    
+
     onKeyBoardDidHide = () => {
         this.animBtnTranslateYTrigger.setValue(BUTTON_VISIBLE);
     }
-    
+
     onBackButtonPressAndroid = () => {
         const { currentPage } = this.state;
         const { bannerVisible, alertVisible } = store.getState().AddVehicleReducer;
-
-        if (this.state.currentPage === PAGEFINISH) {
-            return true;
-        }
 
         if (bannerVisible) { this.props.modifyBannerVisible(false); return true; }
         if (alertVisible) { this.props.modifyAlertVisible(false); return true; }
@@ -137,20 +130,15 @@ class AddVehicleScreen extends React.PureComponent {
         } else if (!this.lockedSwitchPage && currentPage === PAGEKM) {
             this.setLockedSwitchPage();
 
-            
-            this.setState(
-                { currentPage: PAGEINITIAL },
-                () => this.refPages.current.scrollToPage(PAGEINITIAL)
-            );
+            this.refPages.current.scrollToPage(PAGEINITIAL);
+            this.setState({ currentPage: PAGEINITIAL });
 
             return true;
         } else if (!this.lockedSwitchPage && currentPage === PAGECOMPLETE) {
             this.setLockedSwitchPage();
 
-            this.setState(
-                { currentPage: PAGEKM },
-                () => this.refPages.current.scrollToPage(PAGEKM)
-            );
+            this.refPages.current.scrollToPage(PAGEKM);
+            this.setState({ currentPage: PAGEKM });
 
             return true;
         } else if (this.lockedSwitchPage) {
@@ -160,13 +148,7 @@ class AddVehicleScreen extends React.PureComponent {
         return false;
     }
 
-    onPressBackButton = () => { 
-        if (this.state.currentPage === PAGEFINISH) {
-            this.props.navigation.navigate('Home');
-        } else {
-            this.props.navigation.goBack();
-        }
-    }
+    onPressBackButton = () => this.props.navigation.goBack()
 
     onPressNextOrFinish = async () => {
         const screenValid = await this.validateScreens();
@@ -174,26 +156,22 @@ class AddVehicleScreen extends React.PureComponent {
         if (screenValid) {
             const { currentPage } = this.state;
             const { isLoadingComplete } = store.getState().AddVehicleReducer;
-    
+
             if (!this.lockedSwitchPage && currentPage === PAGEINITIAL) {
                 this.setLockedSwitchPage();
-    
-                this.setState(
-                    { currentPage: PAGEKM },
-                    () => this.refPages.current.scrollToPage(PAGEKM)
-                );
+
+                this.refPages.current.scrollToPage(PAGEKM);
+                this.setState({ currentPage: PAGEKM });
             } else if (!this.lockedSwitchPage && currentPage === PAGEKM) {
                 this.setLockedSwitchPage();
 
                 const { isFetching } = store.getState().AddVehicleReducer;
-                
+
                 this.props.modifyIsLoadingComplete(true);
                 this.props.modifyIsFetching(!isFetching);
 
-                this.setState(
-                    { currentPage: PAGECOMPLETE },
-                    () => this.refPages.current.scrollToPage(PAGECOMPLETE)
-                );
+                this.refPages.current.scrollToPage(PAGECOMPLETE);
+                this.setState({ currentPage: PAGECOMPLETE });
             } else if (!this.lockedSwitchPage && currentPage === PAGECOMPLETE && !isLoadingComplete) {
                 const funExec = async () => {
                     try {
@@ -202,7 +180,7 @@ class AddVehicleScreen extends React.PureComponent {
                         const validNickname = nickname.trim() ? nickname.trim() : model.trim().split(' ')[0];
                         const vehicletype = VEHICLES_TYPES.car;
                         const manuts = [];
-        
+
                         if (actionsRows && actionsRows.length) {
                             for (let indexA = 0; indexA < actionsRows.length; indexA++) {
                                 const elementA = actionsRows[indexA];
@@ -219,9 +197,9 @@ class AddVehicleScreen extends React.PureComponent {
                                 }
                             }
                         }
-    
+
                         const retSuccess = await apiPostUserVehicles({
-                            user_email: userInfo.email,
+                            user_email: userInfo.email || DESENV_EMAIL,
                             manufacturer,
                             model,
                             year,
@@ -234,7 +212,7 @@ class AddVehicleScreen extends React.PureComponent {
                         });
 
                         if (retSuccess) {
-                            this.onAddVehicleSuccess();
+                            this.setState({ alertProgressVisible: false, alertProgressSuccess: true });
                         } else {
                             this.setState({ alertProgressVisible: false, alertProgressError: true });
                         }
@@ -255,47 +233,38 @@ class AddVehicleScreen extends React.PureComponent {
         if (!this.lockedSwitchPage && pageNumber === PAGEINITIAL) {
             this.setLockedSwitchPage();
 
-            this.setState(
-                { currentPage: PAGEINITIAL },
-                () => this.refPages.current.scrollToPage(PAGEINITIAL)
-            );
+            this.refPages.current.scrollToPage(PAGEINITIAL);
+            this.setState({ currentPage: PAGEINITIAL });
         } else if (!this.lockedSwitchPage && pageNumber === PAGEKM && currentPage === PAGECOMPLETE) {
             this.setLockedSwitchPage();
 
-            this.setState(
-                { currentPage: PAGEKM },
-                () => this.refPages.current.scrollToPage(PAGEKM)
-            );
+            this.refPages.current.scrollToPage(PAGEKM);
+            this.setState({ currentPage: PAGEKM });
         }
     }
 
     onScrollPageEnd = () => (this.lockedSwitchPage = false)
 
-    onErrorDoAlert = () => {
-        this.setState({ alertProgressError: false }, () => {
-            this.props.modifyAlertInit();
-            this.props.modifyAlertTitle('Erro');
-            this.props.modifyAlertMessage('Ops... Ocorreu um erro inesperado. Verifique a conexão com a internet ou contate o suporte caso o erro persistir.');
-            this.props.modifyAlertCancelFunction((doHideAlert) => { doHideAlert(); });
-            this.props.modifyAlertShowConfirmButton(false);
-            this.props.modifyAlertVisible(true);
-        });
+    onSuccessDoAction = () => {
+        this.props.modifyShowHomeNewVehicleTooltip(true);
+        this.props.navigation.navigate('Home');
     }
 
-    onAddVehicleSuccess = () => {
-        this.setState(
-            { alertProgressVisible: false, currentPage: PAGEFINISH },
-            () => {
-                this.refPages.current.scrollToPage(PAGEFINISH);
-            }
-        );
-    }
+    onErrorDoAction = () => this.setState({ alertProgressError: false }, () => {
+        this.props.modifyAlertInit();
+        this.props.modifyAlertTitle('Erro');
+        this.props.modifyAlertMessage('Ops... Ocorreu um erro inesperado. Verifique a conexão com a internet ou contate o suporte caso o erro persistir.');
+        this.props.modifyAlertCancelFunction((doHideAlert) => { doHideAlert(); });
+        this.props.modifyAlertShowConfirmButton(false);
+        this.props.modifyAlertVisible(true);
+    })
+    
 
-    setLockedSwitchPage = () => { 
+    setLockedSwitchPage = () => {
         this.lockedSwitchPage = true;
 
-        setTimeout(() => { 
-            if (this.lockedSwitchPage) this.lockedSwitchPage = false; 
+        setTimeout(() => {
+            if (this.lockedSwitchPage) this.lockedSwitchPage = false;
         }, 3000);
     }
 
@@ -367,12 +336,6 @@ class AddVehicleScreen extends React.PureComponent {
                                     set(this.animPageKMValue, this.animProgressPage),
                                     set(this.animPageCompleteValue, this.animProgressPage)
                                 ]
-                            ),
-                            cond(
-                                and(greaterThan(this.animProgressPage, 2), lessThan(this.animProgressPage, 3)),
-                                [
-                                    set(this.animTranslateXValue, this.animProgressPage)
-                                ]
                             )
                         ])
                 }
@@ -389,64 +352,36 @@ class AddVehicleScreen extends React.PureComponent {
                         ])
                 }
             </Animated.Code>
-            { renderStatusBar('white', 'dark-content') }
+            {renderStatusBar('white', 'dark-content')}
             <SafeAreaView style={styles.mainView}>
-                <HeaderDefault 
+                <HeaderDefault
                     backActionProps={{ onPress: this.onBackButtonPressAndroid }}
                     title={'Adicionar veículo'}
-                    {...(
-                        this.state.currentPage === PAGEFINISH ?
-                        { 
-                            backComponent: (
-                                <View style={{ marginLeft: 12, alignItems: 'center', justifyContent: 'center' }}>
-                                    <Icon onPress={this.onPressBackButton} name={'home'} type={'material-community'} size={24} />
-                                </View>
-                            ) 
-                        }
-                        : 
-                        {}
-                    )}
                 />
                 <View style={{ flex: 1 }}>
-                    <AnimatedSurface 
-                        style={{ 
-                            elevation: 2, 
-                            backgroundColor: colorAppPrimary,
-                            transform: [{
-                                translateX: Animated.interpolate(
-                                    this.animTranslateXValue, {
-                                        inputRange: [2, 3],
-                                        outputRange: [0, -Dimensions.get('window').width],
-                                        extrapolate: Animated.Extrapolate.CLAMP
-                                    }
-                                )
-                            }],
-                            opacity: Animated.interpolate(
-                                this.animTranslateXValue, {
-                                    inputRange: [2, 3],
-                                    outputRange: [1, 0],
-                                    extrapolate: Animated.Extrapolate.CLAMP
-                                }
-                            )
+                    <Surface
+                        style={{
+                            elevation: 2,
+                            backgroundColor: colorAppPrimary
                         }}
                     >
                         <View style={styles.barPass}>
-                            <Icon 
-                                name={'key-variant'} 
-                                type={'material-community'} 
-                                color={'white'} 
-                                size={26} 
+                            <Icon
+                                name={'key-variant'}
+                                type={'material-community'}
+                                color={'white'}
+                                size={26}
                                 containerStyle={{ flex: 3 }}
                                 onPress={() => this.onManualPressNumbers(PAGEINITIAL)}
                                 Component={
-                                    (props) => 
-                                        <TouchableOpacity 
-                                            {...props} 
+                                    (props) =>
+                                        <TouchableOpacity
+                                            {...props}
                                             activeOpacity={this.state.currentPage !== PAGEINITIAL ? 0.5 : 1}
                                         >
                                             <Animated.View
                                                 style={{
-                                                    transform: [{ 
+                                                    transform: [{
                                                         scale: Animated.interpolate(
                                                             this.animPageInitialValue, {
                                                                 inputRange: [0, 1],
@@ -462,29 +397,29 @@ class AddVehicleScreen extends React.PureComponent {
                                         </TouchableOpacity>
                                 }
                             />
-                            <Icon 
-                                name={'chevron-double-right'} 
-                                type={'material-community'} 
-                                color={this.state.currentPage === PAGEKM || this.state.currentPage === PAGECOMPLETE ? 'white' : 'black'} 
-                                size={18} 
-                                containerStyle={{ flex: 1 }} 
+                            <Icon
+                                name={'chevron-double-right'}
+                                type={'material-community'}
+                                color={this.state.currentPage === PAGEKM || this.state.currentPage === PAGECOMPLETE ? 'white' : 'black'}
+                                size={18}
+                                containerStyle={{ flex: 1 }}
                             />
-                            <Icon 
-                                name={'ios-speedometer'} 
-                                type={'ionicon'} 
-                                color={this.state.currentPage === PAGEKM || this.state.currentPage === PAGECOMPLETE ? 'white' : 'black'} 
-                                size={28} 
+                            <Icon
+                                name={'ios-speedometer'}
+                                type={'ionicon'}
+                                color={this.state.currentPage === PAGEKM || this.state.currentPage === PAGECOMPLETE ? 'white' : 'black'}
+                                size={28}
                                 containerStyle={{ flex: 3 }}
                                 onPress={() => this.onManualPressNumbers(PAGEKM)}
                                 Component={
-                                    (props) => 
-                                        <TouchableOpacity 
-                                            {...props} 
-                                            activeOpacity={this.state.currentPage === PAGECOMPLETE ? 0.5 : 1} 
+                                    (props) =>
+                                        <TouchableOpacity
+                                            {...props}
+                                            activeOpacity={this.state.currentPage === PAGECOMPLETE ? 0.5 : 1}
                                         >
                                             <Animated.View
                                                 style={{
-                                                    transform: [{ 
+                                                    transform: [{
                                                         scale: Animated.interpolate(
                                                             this.animPageKMValue, {
                                                                 inputRange: [0, 1, 2],
@@ -500,28 +435,28 @@ class AddVehicleScreen extends React.PureComponent {
                                         </TouchableOpacity>
                                 }
                             />
-                            <Icon 
-                                name={'chevron-double-right'} 
-                                type={'material-community'} 
-                                color={this.state.currentPage === PAGECOMPLETE ? 'white' : 'black'} 
-                                size={18} 
-                                containerStyle={{ flex: 1 }} 
+                            <Icon
+                                name={'chevron-double-right'}
+                                type={'material-community'}
+                                color={this.state.currentPage === PAGECOMPLETE ? 'white' : 'black'}
+                                size={18}
+                                containerStyle={{ flex: 1 }}
                             />
-                            <Icon 
-                                name={'check-circle'} 
-                                type={'material-community'} 
-                                color={this.state.currentPage === PAGECOMPLETE ? 'white' : 'black'} 
-                                size={28} 
+                            <Icon
+                                name={'check-circle'}
+                                type={'material-community'}
+                                color={this.state.currentPage === PAGECOMPLETE ? 'white' : 'black'}
+                                size={28}
                                 containerStyle={{ flex: 3 }}
                                 Component={
-                                    (props) => 
-                                        <TouchableOpacity 
-                                            {...props} 
-                                            activeOpacity={1} 
+                                    (props) =>
+                                        <TouchableOpacity
+                                            {...props}
+                                            activeOpacity={1}
                                         >
                                             <Animated.View
                                                 style={{
-                                                    transform: [{ 
+                                                    transform: [{
                                                         scale: Animated.interpolate(
                                                             this.animPageCompleteValue, {
                                                                 inputRange: [1, 2],
@@ -561,7 +496,7 @@ class AddVehicleScreen extends React.PureComponent {
                         >
                             <Text style={{ fontFamily: 'OpenSans-SemiBold', color: 'white' }}>{`${this.state.currentPage + 1}/3`}</Text>
                         </View>
-                    </AnimatedSurface>
+                    </Surface>
                     <Pages
                         ref={this.refPages}
                         startPage={0}
@@ -580,34 +515,17 @@ class AddVehicleScreen extends React.PureComponent {
                         <View style={{ flex: 1 }}>
                             <FormComplete navigation={this.props.navigation} />
                         </View>
-                        <View style={{ flex: 1 }}>
-                            <Text>Veiculo adicionado com sucesso</Text>
-                        </View>
                     </Pages>
-                    <Animated.View 
-                        style={{ 
+                    <Animated.View
+                        style={{
                             height: tabBarHeight,
                             position: 'absolute',
                             left: 0,
                             right: 0,
                             bottom: 0,
                             transform: [{
-                                translateY: this.animBtnTranslateY,
-                                translateX: Animated.interpolate(
-                                    this.animTranslateXValue, {
-                                        inputRange: [2, 3],
-                                        outputRange: [0, -Dimensions.get('window').width],
-                                        extrapolate: Animated.Extrapolate.CLAMP
-                                    }
-                                )
-                            }],
-                            opacity: Animated.interpolate(
-                                this.animTranslateXValue, {
-                                    inputRange: [2, 3],
-                                    outputRange: [1, 0],
-                                    extrapolate: Animated.Extrapolate.CLAMP
-                                }
-                            )
+                                translateY: this.animBtnTranslateY
+                            }]
                         }}
                     >
                         <TouchableOpacity
@@ -623,7 +541,7 @@ class AddVehicleScreen extends React.PureComponent {
                                     justifyContent: 'center'
                                 }}
                             >
-                                <Text 
+                                <Text
                                     style={{
                                         color: 'white',
                                         fontFamily: 'OpenSans-Bold',
@@ -639,10 +557,12 @@ class AddVehicleScreen extends React.PureComponent {
                 </View>
             </SafeAreaView>
             <AddVehicleAlert />
-            <AddVehicleProgress 
+            <AddVehicleProgress
                 alertProgressVisible={this.state.alertProgressVisible}
                 alertProgressError={this.state.alertProgressError}
-                onErrorDoAlert={this.onErrorDoAlert}
+                alertProgressSuccess={this.state.alertProgressSuccess}
+                onErrorDoAction={this.onErrorDoAction}
+                onSuccessDoAction={this.onSuccessDoAction}
             />
         </View>
     )
@@ -676,15 +596,16 @@ const mapStateToProps = state => ({
 export default connect(mapStateToProps, {
     modifyResetFields,
     modifyBannerVisible,
-    modifyBannerText, 
-    modifyAlertVisible, 
-    modifyAlertTitle, 
-    modifyAlertMessage, 
+    modifyBannerText,
+    modifyAlertVisible,
+    modifyAlertTitle,
+    modifyAlertMessage,
     modifyAlertConfirmFunction,
     modifyAlertCancelFunction,
     modifyIsFetching,
     modifyIsLoadingComplete,
     modifyAlertInit,
     modifyAlertShowCancelButton,
-    modifyAlertShowConfirmButton
+    modifyAlertShowConfirmButton,
+    modifyShowHomeNewVehicleTooltip
 })(AddVehicleScreen);

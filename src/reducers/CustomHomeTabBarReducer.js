@@ -1,7 +1,8 @@
 const INITIAL_STATE = {
     animatedVisible: null,
     getAnimTabBarTranslateY: () => false,
-    closeFab: () => false
+    closeFab: () => false,
+    showHomeNewVehicleTooltip: false
 };
 
 export default (state = INITIAL_STATE, action) => {
@@ -20,6 +21,11 @@ export default (state = INITIAL_STATE, action) => {
             return { 
                 ...state, 
                 closeFab: action.payload 
+            };
+        case 'modify_customhometabbar_showhomenewvehicletooltip':
+            return { 
+                ...state, 
+                showHomeNewVehicleTooltip: action.payload 
             };
         default:
             return state;

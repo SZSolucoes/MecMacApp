@@ -8,7 +8,7 @@ import {
     SafeAreaView
 } from 'react-native';
 import { connect } from 'react-redux';
-import { Icon } from 'react-native-elements';
+import { Icon, Tooltip } from 'react-native-elements';
 import { TouchableOpacity } from 'react-native-gesture-handler';
 
 import HomeBottomActionSheet from './HomeBottomActionSheet';
@@ -16,10 +16,13 @@ import { colorAppForeground } from '../utils/Constants';
 import { defaultTextHeader } from '../utils/Styles';
 import HomeOverlayTouchable from './HomeOverlayTouchable';
 import HomeAppHeader from './HomeAppHeader';
+import { modifyShowHomeNewVehicleTooltip } from '../../actions/CustomHomeTabBarActions';
 
 class MainHomeScreen extends React.PureComponent {
     constructor(props) {
         super(props);
+
+        this.toggleAsTooltip = React.createRef();
 
         this.enabledVHC = true;
 
@@ -35,6 +38,10 @@ class MainHomeScreen extends React.PureComponent {
             
             if (this.props.animatedVisible) {
                 this.props.animatedVisible('visible', 200);
+            }
+
+            if (this.props.showHomeNewVehicleTooltip && this.toggleAsTooltip.current && !this.toggleAsTooltip.current.state.isVisible) {
+                this.toggleAsTooltip.current.toggleTooltip();
             }
         });
 
@@ -82,6 +89,13 @@ class MainHomeScreen extends React.PureComponent {
         const routeName = this.props.navigation.state.routeName;
         const drawer = this.props.navigation.dangerouslyGetParent().dangerouslyGetParent();
 
+        if (this.toggleAsTooltip.current && this.toggleAsTooltip.current.state.isVisible) {
+            this.toggleAsTooltip.current.toggleTooltip();
+            this.props.modifyShowHomeNewVehicleTooltip(false);
+
+            return true;
+        }
+
         if (drawer.state.isDrawerOpen) {
             this.props.navigation.closeDrawer();
             return true;
@@ -95,26 +109,45 @@ class MainHomeScreen extends React.PureComponent {
         return false;
     }
 
+    onCloseTooltip = () => this.props.modifyShowHomeNewVehicleTooltip(false)
+
     render = () => (
         <SafeAreaView style={styles.mainView}>
             <HomeAppHeader
                 navigation={this.props.navigation}
                 rightIcon={() => 
                     (
-                        <TouchableOpacity onPress={() => this.onPressActionChooseVHC()}>
-                            <View style={{ width: 60, height: '100%', justifyContent: 'center' }}>
-                                <Icon
-                                    name={'ios-arrow-down'}
-                                    type={'ionicon'}
-                                    size={20}
-                                    color={'black'}
-                                />
-                            </View>
-                        </TouchableOpacity>
+                        <Tooltip
+                            ref={this.toggleAsTooltip}
+                            popover={(
+                                <Text style={{ fontFamily: 'OpenSans-SemiBold', color: 'white' }}>
+                                    Seu veículo foi adicionado e está agora disponível para seleção.
+                                </Text>
+                            )}
+                            toggleOnPress={false}
+                            onClose={this.onCloseTooltip}
+                            height={100}
+                            width={260}
+                            backgroundColor={'rgba(0, 0, 0, 0.9)'}
+                            containerStyle={{
+                                padding: 15
+                            }}
+                        >
+                            <TouchableOpacity onPress={() => this.onPressActionChooseVHC()}>
+                                <View style={{ width: 60, height: '100%', justifyContent: 'center' }}>
+                                    <Icon
+                                        name={'ios-arrow-down'}
+                                        type={'ionicon'}
+                                        size={20}
+                                        color={'black'}
+                                    />
+                                </View>
+                            </TouchableOpacity>
+                        </Tooltip>
                     )
                 }
-                title={'Meu incrível veículo'}
-                subtitle={'Ano 2019'}
+                title={this.props.vehicleSelected.nickname || 'Meu incrível veículo'}
+                subtitle={(this.props.vehicleSelected.quilometers ? `Km: ${this.props.vehicleSelected.quilometers}` : null) || 'Zero KM'}
                 titleStyle={StyleSheet.flatten([defaultTextHeader, styles.titleVehicle])}
                 containerStyle={{ padding: 0, backgroundColor: 'transparent' }}
             />
@@ -154,8 +187,12 @@ const styles = StyleSheet.create({
 const mapStateToProps = (state) => ({
     animatedVisible: state.CustomHomeTabBarReducer.animatedVisible,
     getAnimTabBarTranslateY: state.CustomHomeTabBarReducer.getAnimTabBarTranslateY,
+    showHomeNewVehicleTooltip: state.CustomHomeTabBarReducer.showHomeNewVehicleTooltip,
     bacChangePosition: state.HomeBottomActionSheetReducer.bacChangePosition,
-    getPositionHomeBottomActionSheet: state.HomeBottomActionSheetReducer.getPosition
+    getPositionHomeBottomActionSheet: state.HomeBottomActionSheetReducer.getPosition,
+    vehicleSelected: state.UserReducer.vehicleSelected
 });
 
-export default connect(mapStateToProps)(MainHomeScreen);
+export default connect(mapStateToProps, {
+    modifyShowHomeNewVehicleTooltip
+})(MainHomeScreen);

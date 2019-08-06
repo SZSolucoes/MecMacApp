@@ -13,7 +13,8 @@ class AddVehicleProgress extends React.PureComponent {
             backdropTransitionInTiming={400}
             backdropTransitionOutTiming={400}
             onModalHide={() => {
-                if (this.props.alertProgressError && this.props.onErrorDoAlert) this.props.onErrorDoAlert();
+                if (this.props.alertProgressSuccess && this.props.onSuccessDoAction) this.props.onSuccessDoAction();
+                if (this.props.alertProgressError && this.props.onErrorDoAction) this.props.onErrorDoAction();
             }}
         >
             <View 
