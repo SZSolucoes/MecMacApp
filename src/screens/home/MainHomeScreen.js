@@ -10,6 +10,7 @@ import {
 import { connect } from 'react-redux';
 import { Icon, Tooltip } from 'react-native-elements';
 import { TouchableOpacity } from 'react-native-gesture-handler';
+import { TextMask } from 'react-native-masked-text';
 
 import HomeBottomActionSheet from './HomeBottomActionSheet';
 import { colorAppForeground } from '../utils/Constants';
@@ -36,9 +37,9 @@ class MainHomeScreen extends React.PureComponent {
             this.enabledVHC = true; // Libera toque no botao de troca de veiculo durante transicao de tela
             BackHandler.addEventListener('hardwareBackPress', this.onBackButtonPressAndroid);
             
-            if (this.props.animatedVisible) {
-                this.props.animatedVisible('visible', 200);
-            }
+            if (this.props.animatedVisible) this.props.animatedVisible('visible', 200);
+
+            if (this.props.fetchVehicles) this.props.fetchVehicles();
 
             if (this.props.showHomeNewVehicleTooltip && this.toggleAsTooltip.current && !this.toggleAsTooltip.current.state.isVisible) {
                 this.toggleAsTooltip.current.toggleTooltip();
@@ -147,7 +148,26 @@ class MainHomeScreen extends React.PureComponent {
                     )
                 }
                 title={this.props.vehicleSelected.nickname || 'Meu incrível veículo'}
-                subtitle={(this.props.vehicleSelected.quilometers ? `Km: ${this.props.vehicleSelected.quilometers}` : null) || 'Zero KM'}
+                subtitle={(
+                    this.props.vehicleSelected.quilometers ? (
+                        <Text 
+                            style={{ fontFamily: 'OpenSans-Regular' }}
+                        >
+                            {'Km: '}
+                            <TextMask
+                                type={'money'}
+                                style={{ fontFamily: 'OpenSans-SemiBold' }}
+                                options={{
+                                    precision: 0,
+                                    separator: '.',
+                                    delimiter: '',
+                                    unit: '',
+                                    suffixUnit: ''
+                                }}
+                                value={this.props.vehicleSelected.quilometers || '0'}
+                            />
+                        </Text>
+                    ) : null) || 'Zero KM'}
                 titleStyle={StyleSheet.flatten([defaultTextHeader, styles.titleVehicle])}
                 containerStyle={{ padding: 0, backgroundColor: 'transparent' }}
             />
@@ -190,6 +210,7 @@ const mapStateToProps = (state) => ({
     showHomeNewVehicleTooltip: state.CustomHomeTabBarReducer.showHomeNewVehicleTooltip,
     bacChangePosition: state.HomeBottomActionSheetReducer.bacChangePosition,
     getPositionHomeBottomActionSheet: state.HomeBottomActionSheetReducer.getPosition,
+    fetchVehicles: state.HomeBottomActionSheetReducer.fetchVehicles,
     vehicleSelected: state.UserReducer.vehicleSelected
 });
 

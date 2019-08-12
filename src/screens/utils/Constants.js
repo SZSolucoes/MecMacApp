@@ -31,3 +31,5 @@ export const MANUT_ATRAS_TRIGGER_TYPE = {
     UNLIKE: 2,
     WARNING: 3
 };
+
+export const DESENV_EMAIL = 'roneymaia@gmail.com';

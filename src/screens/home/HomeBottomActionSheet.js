@@ -3,22 +3,33 @@ import React from 'react';
 import {
     View,
     Text,
-    StyleSheet
+    StyleSheet,
+    Dimensions,
+    ScrollView,
+    TouchableOpacity
 } from 'react-native';
 import { connect } from 'react-redux';
 import BottomSheet from 'reanimated-bottom-sheet';
 import { ListItem } from 'react-native-elements';
-import { Checkbox } from 'react-native-paper';
+import { Checkbox, Card } from 'react-native-paper';
 import Animated from 'react-native-reanimated';
-import { TouchableOpacity } from 'react-native-gesture-handler';
 import _ from 'lodash';
+import { TextMask } from 'react-native-masked-text';
 
-import { modifyBacChangePosition, modifyFall, modifyGetPosition, modifyPosition } from '../../actions/HomeBottomActionSheetActions';
+import { 
+    modifyBacChangePosition, 
+    modifyFall, 
+    modifyGetPosition, 
+    modifyPosition, 
+    modifyFetchVehicles 
+} from '../../actions/HomeBottomActionSheetActions';
 import { apiGetUserVehicles } from '../utils/api/ApiManagerConsumer';
-import { DESENV_EMAIL, colorAppPrimary } from '../utils/Constants';
-import { modifyVehicleSelected } from '../../actions/UserActions';
+import { DESENV_EMAIL, colorAppPrimary, colorAppForeground } from '../utils/Constants';
+import { modifyVehicleSelected, modifyClearVehicleSelected } from '../../actions/UserActions';
 
 const { Value, block, cond, eq, call, ceil } = Animated;
+
+const heightPoints = Dimensions.get('window').height * 0.70;
 
 class HomeBottomActionSheet extends React.PureComponent {
     constructor(props) {
@@ -39,6 +50,7 @@ class HomeBottomActionSheet extends React.PureComponent {
         if (this.props.modifyFall) this.props.modifyFall(this.fall);
         if (this.props.modifyGetPosition) this.props.modifyGetPosition(this.getPosition);
         if (this.props.modifyPosition) this.props.modifyPosition(this.position);
+        if (this.props.modifyFetchVehicles) this.props.modifyFetchVehicles(this.fetchVehicles);
 
         this.fetchVehicles();
     }
@@ -93,6 +105,9 @@ class HomeBottomActionSheet extends React.PureComponent {
             }));
 
             this.setState({ vehicles: [...mappedVehicles] });
+        } else {
+            this.setState({ vehicles: [] });
+            this.props.modifyClearVehicleSelected();
         }
     }
 
@@ -111,34 +126,101 @@ class HomeBottomActionSheet extends React.PureComponent {
     )
 
     renderInner = () => (
-        <View style={styles.panel}>
-            {
-                this.state.vehicles.length ?
-                    _.map(this.state.vehicles, (item, index) => (
-                        <TouchableOpacity
-                            onPress={() => this.onPressVehicle(item)}
-                        >
-                            <View key={index} style={styles.panelButton}>
-                                <ListItem
-                                    leftAvatar={item.image}
-                                    {
-                                        ...(this.props.vehicleSelected.uniqueId && (this.props.vehicleSelected.uniqueId === item.uniqueId)) ?
-                                        { rightElement: (<Checkbox status={'checked'} color={colorAppPrimary} />) } : {}
-                                    }
-                                    title={item.name}
-                                    subtitle={`Km: ${item.subtitle || '0'}`}
-                                    titleStyle={styles.panelButtonTitle}
-                                    subtitleStyle={styles.panelButtonSubTitle}
-                                    containerStyle={{ padding: 0, paddingRight: 10, backgroundColor: 'transparent' }}
-                                />
-                            </View>
-                        </TouchableOpacity>
-                    ))
-                :
-                    (
-                        <View style={{ height: '100%', width: '100%' }} />
-                    )
-            }
+        <View style={[styles.panel, { height: Dimensions.get('window').height * 0.55 }]}>
+            <ScrollView
+                bounces={false}
+                contentContainerStyle={{ flexGrow: 1 }}
+            >
+                {
+                    this.state.vehicles.length ?
+                        _.map(this.state.vehicles, (item, index) => (
+                            <TouchableOpacity
+                                onPress={() => this.onPressVehicle(item)}
+                                activeOpacity={1}
+                            >
+                                <View style={{ paddingTop: 20, paddingHorizontal: 20 }}>
+                                    <Card elevation={2}>
+                                        <View key={index} style={styles.panelButton}>
+                                            <ListItem
+                                                leftAvatar={item.image}
+                                                {
+                                                    ...(this.props.vehicleSelected.uniqueId && (this.props.vehicleSelected.uniqueId === item.uniqueId)) ?
+                                                    { rightElement: (<Checkbox status={'checked'} color={colorAppPrimary} />) } : {}
+                                                }
+                                                title={item.name}
+                                                subtitle={(
+                                                    <Text 
+                                                        style={{ fontFamily: 'OpenSans-Regular', fontSize: 12 }}
+                                                    >
+                                                        {'Km: '}
+                                                        <TextMask
+                                                            type={'money'}
+                                                            style={{ fontFamily: 'OpenSans-SemiBold', fontSize: 14 }}
+                                                            options={{
+                                                                precision: 0,
+                                                                separator: '.',
+                                                                delimiter: '',
+                                                                unit: '',
+                                                                suffixUnit: ''
+                                                            }}
+                                                            value={item.subtitle || '0'}
+                                                        />
+                                                    </Text>
+                                                )}
+                                                titleStyle={styles.panelButtonTitle}
+                                                subtitleStyle={styles.panelButtonSubTitle}
+                                                containerStyle={{ padding: 0, paddingRight: 10, backgroundColor: 'transparent' }}
+                                            />
+                                            <View>
+                                                <View style={{ marginLeft: 5, marginTop: 15, flexDirection: 'row' }}>
+                                                    <View style={{ flex: 1.2 }}>
+                                                        <Text style={{ fontFamily: 'OpenSans-Regular', fontSize: 12 }}>
+                                                            {'Marca: '}
+                                                        </Text>
+                                                    </View>
+                                                    <View style={{ flex: 4 }}>
+                                                        <Text style={{ fontFamily: 'OpenSans-SemiBold', fontSize: 14 }}>
+                                                            {item.manufacturer || 'Não disponível'}
+                                                        </Text>
+                                                    </View>
+                                                </View>
+                                                <View style={{ marginLeft: 5, marginTop: 5, flexDirection: 'row' }}>
+                                                    <View style={{ flex: 1.2 }}>
+                                                        <Text style={{ fontFamily: 'OpenSans-Regular', fontSize: 12 }}>
+                                                            {'Ano: '}
+                                                        </Text>
+                                                    </View>
+                                                    <View style={{ flex: 4 }}>
+                                                        <Text style={{ fontFamily: 'OpenSans-SemiBold', fontSize: 14 }}>
+                                                            {item.year || 'Não disponível'}
+                                                        </Text>
+                                                    </View>
+                                                </View>
+                                                <View style={{ marginLeft: 5, marginTop: 5, flexDirection: 'row' }}>
+                                                    <View style={{ flex: 1.2 }}>
+                                                        <Text style={{ fontFamily: 'OpenSans-Regular', fontSize: 12 }}>
+                                                            {'Modelo: '}
+                                                        </Text>
+                                                    </View>
+                                                    <View style={{ flex: 4 }}>
+                                                        <Text style={{ fontFamily: 'OpenSans-SemiBold', fontSize: 14 }}>
+                                                            {item.model || 'Não disponível'}
+                                                        </Text>
+                                                    </View>
+                                                </View>
+                                            </View>
+                                        </View>
+                                    </Card>
+                                </View>
+                            </TouchableOpacity>
+                        ))
+                    :
+                        (
+                            <View style={{ height: heightPoints, width: '100%' }} />
+                        )
+                }
+                <View style={{ height: (heightPoints) / (this.state.vehicles.length + 1), width: '100%' }} />
+            </ScrollView>
         </View>
     )
 
@@ -159,7 +241,9 @@ class HomeBottomActionSheet extends React.PureComponent {
             }
             <BottomSheet
                 ref={this.refBS}
-                snapPoints={[0, '70%']}
+                enabledInnerScrolling={false}
+                enabledContentGestureInteraction={false}
+                snapPoints={[0, heightPoints]}
                 renderContent={this.renderInner}
                 renderHeader={this.renderHeader}
                 initialSnap={0}
@@ -184,13 +268,13 @@ const styles = StyleSheet.create({
         right: 0
     },
     panel: {
-        padding: 20,
-        backgroundColor: '#F5FCFF'
+        backgroundColor: colorAppForeground
     },
     header: {
         backgroundColor: '#F5FCFF',
         shadowColor: '#000000',
         paddingTop: 20,
+        paddingBottom: 10,
         borderTopLeftRadius: 20,
         borderTopRightRadius: 20
     },
@@ -247,5 +331,7 @@ export default connect(mapStateToProps, {
     modifyFall,
     modifyGetPosition,
     modifyPosition,
-    modifyVehicleSelected
+    modifyVehicleSelected,
+    modifyFetchVehicles,
+    modifyClearVehicleSelected
 })(HomeBottomActionSheet);

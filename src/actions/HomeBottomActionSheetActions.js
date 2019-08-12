@@ -4,3 +4,4 @@ export const modifyBacChangePosition = (value) => ({ type: 'modify_homebottomact
 export const modifyFall = (value) => ({ type: 'modify_homebottomactionsheet_fall', payload: value });
 export const modifyGetPosition = (value) => ({ type: 'modify_homebottomactionsheet_getposition', payload: value });
 export const modifyPosition = (value) => ({ type: 'modify_homebottomactionsheet_position', payload: value });
+export const modifyFetchVehicles = (value) => ({ type: 'modify_homebottomactionsheet_fetchvehicles', payload: value });

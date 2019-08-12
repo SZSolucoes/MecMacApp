@@ -35,8 +35,6 @@ class FormComplete extends React.PureComponent {
         };
     }
 
-    componentDidMount = () => this.fetchManuts()
-
     componentDidUpdate = (prevProps) => { 
         if (prevProps.isFetching !== this.props.isFetching) {
             this.fetchManuts();
@@ -266,7 +264,9 @@ class FormComplete extends React.PureComponent {
 
     renderManager = () => {
         const { isLoading } = this.state;
-        if (isLoading) return this.renderLoading();
+        const { isCurrentPage } = this.props;
+
+        if (isLoading || !isCurrentPage) return this.renderLoading();
 
         return this.renderScrollView();
     }

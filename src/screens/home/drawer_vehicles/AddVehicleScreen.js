@@ -8,10 +8,11 @@ import { Icon } from 'react-native-elements';
 import Animated from 'react-native-reanimated';
 import SplashScreen from 'react-native-splash-screen';
 import { linear } from 'everpolate';
+import AwesomeAlert from 'react-native-awesome-alerts';
 
 import { renderStatusBar } from '../../utils/Screen';
 import HeaderDefault from '../../tools/HeaderDefault';
-import { colorAppForeground, tabBarHeight, colorAppPrimary, VEHICLES_TYPES, DESENV_EMAIL } from '../../utils/Constants';
+import { colorAppForeground, tabBarHeight, colorAppPrimary, VEHICLES_TYPES, DESENV_EMAIL, HOMEDRAWERMENU } from '../../utils/Constants';
 import FormInitial from './FormInitial';
 import FormKM from './FormKM';
 import FormComplete from './FormComplete';
@@ -34,9 +35,10 @@ import {
 import AddVehicleBanner from './AddVehicleBanner';
 import AddVehicleAlert from './AddVehicleAlert';
 import { store } from '../../../App';
-import { apiPostUserVehicles } from '../../utils/api/ApiManagerConsumer';
+import { apiPostUserVehicles, apiGetCheckVehicleExist } from '../../utils/api/ApiManagerConsumer';
 import AddVehicleProgress from './AddVehicleProgress';
 import { modifyShowHomeNewVehicleTooltip } from '../../../actions/CustomHomeTabBarActions';
+import { modifyMenuChoosed } from '../../../actions/HomeDrawerActions';
 
 const PAGEINITIAL = 0;
 const PAGEKM = 1;
@@ -59,13 +61,15 @@ class AddVehicleScreen extends React.PureComponent {
 
         this.refPages = React.createRef();
         this.lockedSwitchPage = true;
+        this.vehicleExists = null;
 
         this.state = {
             currentPage: 0,
             bannerVisible: true,
             alertProgressVisible: false,
             alertProgressSuccess: false,
-            alertProgressError: false
+            alertProgressError: false,
+            loadingCheckExist: false
         };
 
         this.animProgressPage = new Value(-1);
@@ -160,18 +164,23 @@ class AddVehicleScreen extends React.PureComponent {
             if (!this.lockedSwitchPage && currentPage === PAGEINITIAL) {
                 this.setLockedSwitchPage();
 
-                this.refPages.current.scrollToPage(PAGEKM);
-                this.setState({ currentPage: PAGEKM });
+                this.setState(
+                    { currentPage: PAGEKM, loadingCheckExist: false }, 
+                    () => setTimeout(() => this.refPages.current.scrollToPage(PAGEKM), 500)
+                );
             } else if (!this.lockedSwitchPage && currentPage === PAGEKM) {
                 this.setLockedSwitchPage();
 
                 const { isFetching } = store.getState().AddVehicleReducer;
 
-                this.props.modifyIsLoadingComplete(true);
-                this.props.modifyIsFetching(!isFetching);
-
-                this.refPages.current.scrollToPage(PAGECOMPLETE);
-                this.setState({ currentPage: PAGECOMPLETE });
+                this.setState(
+                    { currentPage: PAGECOMPLETE },
+                    () => {
+                        this.props.modifyIsLoadingComplete(true);
+                        this.props.modifyIsFetching(!isFetching);
+                        setTimeout(() => this.refPages.current.scrollToPage(PAGECOMPLETE), 500);
+                    }
+                );
             } else if (!this.lockedSwitchPage && currentPage === PAGECOMPLETE && !isLoadingComplete) {
                 const funExec = async () => {
                     try {
@@ -247,7 +256,8 @@ class AddVehicleScreen extends React.PureComponent {
 
     onSuccessDoAction = () => {
         this.props.modifyShowHomeNewVehicleTooltip(true);
-        this.props.navigation.navigate('Home');
+        this.props.modifyMenuChoosed(HOMEDRAWERMENU.MAIN);
+        this.props.navigation.navigate('HomeTab');
     }
 
     onErrorDoAction = () => this.setState({ alertProgressError: false }, () => {
@@ -268,6 +278,27 @@ class AddVehicleScreen extends React.PureComponent {
         }, 3000);
     }
 
+    checkVehicleNicknameExists = async () => {
+        const {
+            manufacturer,
+            model,
+            year
+        } = this.props;
+
+        const { nickname } = store.getState().AddVehicleReducer;
+        const { userInfo } = store.getState().UserReducer;
+
+        const ret = await apiGetCheckVehicleExist({
+            user_email: userInfo.email || DESENV_EMAIL,
+            manufacturer,
+            year,
+            model,
+            nickname
+        });
+
+        if (ret && ret.data) this.vehicleExists = ret.data.success; 
+    }
+
     validateScreens = async () => {
         const {
             manufacturer,
@@ -284,6 +315,24 @@ class AddVehicleScreen extends React.PureComponent {
             this.props.modifyBannerVisible(true);
 
             return false;
+        }
+
+        if (currentPage === PAGEINITIAL) {
+            this.setState({ loadingCheckExist: true });
+
+            await this.checkVehicleNicknameExists();
+
+            const validNickname = nickname.trim() ? nickname.trim() : model.trim().split(' ')[0];
+
+            if (typeof this.vehicleExists === 'boolean' && this.vehicleExists) {
+                this.setState({ loadingCheckExist: false });
+                
+                this.props.modifyAlertMessage(`O veículo "${validNickname.trim()}" já foi adicionado com o mesmo apelido informado. Se você possui outro veículo do mesmo modelo, por gentileza informe outro apelido.`);
+                this.props.modifyAlertShowConfirmButton(false);
+                this.props.modifyAlertVisible(true);
+
+                return false;
+            }
         }
 
         if (currentPage === PAGEKM && !quilometers) {
@@ -305,10 +354,32 @@ class AddVehicleScreen extends React.PureComponent {
             const funPromisePageComplete = new Promise((resolve) => {
                 this.props.modifyAlertInit();
                 this.props.modifyAlertTitle('Aviso');
-                this.props.modifyAlertMessage(`O veículo "${validNickname.trim()}" será adicionado a sua lista de super máquinas. Deseja continuar?`);
-                this.props.modifyAlertConfirmFunction((doHideAlert) => { doHideAlert(); resolve(true); });
-                this.props.modifyAlertCancelFunction((doHideAlert) => { doHideAlert(); resolve(false); });
-                this.props.modifyAlertVisible(true);
+                if (typeof this.vehicleExists === 'boolean' && this.vehicleExists) {
+                    this.props.modifyAlertMessage(`O veículo "${validNickname.trim()}" já foi adicionado com o mesmo apelido. Se você possui outro veículo do mesmo modelo, por gentileza informe outro apelido.`);
+                    this.props.modifyAlertShowConfirmButton(false);
+                    this.props.modifyAlertVisible(true);
+                } else if (typeof this.vehicleExists !== 'boolean') {
+                    const asyncFun = async () => {
+                        await this.checkVehicleNicknameExists();
+
+                        if (this.vehicleExists) {
+                            this.props.modifyAlertMessage(`O veículo "${validNickname.trim()}" já foi adicionado com o mesmo apelido. Se você possui outro veículo do mesmo modelo, por gentileza informe outro apelido.`);
+                            this.props.modifyAlertShowConfirmButton(false);
+                            this.props.modifyAlertVisible(true);
+                        } else {
+                            this.props.modifyAlertMessage(`O veículo "${validNickname.trim()}" será adicionado a sua lista de super máquinas. Deseja continuar?`);
+                            this.props.modifyAlertConfirmFunction((doHideAlert) => { doHideAlert(); resolve(true); });
+                            this.props.modifyAlertCancelFunction((doHideAlert) => { doHideAlert(); resolve(false); });
+                            this.props.modifyAlertVisible(true);
+                        }
+                    };
+                    asyncFun();
+                } else {
+                    this.props.modifyAlertMessage(`O veículo "${validNickname.trim()}" será adicionado a sua lista de super máquinas. Deseja continuar?`);
+                    this.props.modifyAlertConfirmFunction((doHideAlert) => { doHideAlert(); resolve(true); });
+                    this.props.modifyAlertCancelFunction((doHideAlert) => { doHideAlert(); resolve(false); });
+                    this.props.modifyAlertVisible(true);
+                }
             });
 
             return funPromisePageComplete;
@@ -513,7 +584,7 @@ class AddVehicleScreen extends React.PureComponent {
                             <FormKM navigation={this.props.navigation} />
                         </View>
                         <View style={{ flex: 1 }}>
-                            <FormComplete navigation={this.props.navigation} />
+                            <FormComplete navigation={this.props.navigation} isCurrentPage={this.state.currentPage === PAGECOMPLETE} />
                         </View>
                     </Pages>
                     <Animated.View
@@ -564,6 +635,17 @@ class AddVehicleScreen extends React.PureComponent {
                 onErrorDoAction={this.onErrorDoAction}
                 onSuccessDoAction={this.onSuccessDoAction}
             />
+            {
+                this.state.loadingCheckExist && (
+                    <AwesomeAlert
+                        show={this.state.loadingCheckExist}
+                        showProgress
+                        title={'Consultando Veículo...'}
+                        closeOnTouchOutside={false}
+                        closeOnHardwareBackPress={false}
+                    />
+                )
+            }
         </View>
     )
 }
@@ -607,5 +689,6 @@ export default connect(mapStateToProps, {
     modifyAlertInit,
     modifyAlertShowCancelButton,
     modifyAlertShowConfirmButton,
-    modifyShowHomeNewVehicleTooltip
+    modifyShowHomeNewVehicleTooltip,
+    modifyMenuChoosed
 })(AddVehicleScreen);

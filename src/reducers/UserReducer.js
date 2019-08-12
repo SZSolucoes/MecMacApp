@@ -25,6 +25,11 @@ export default (state = INITIAL_STATE, action) => {
                 ...state, 
                 vehicleSelected: { ...action.payload } 
             };
+        case 'modify_userreducer_clearvehicleselected':
+            return { 
+                ...state, 
+                vehicleSelected: { ...INITIAL_STATE.vehicleSelected }
+            };
         default:
             return state;
     }
