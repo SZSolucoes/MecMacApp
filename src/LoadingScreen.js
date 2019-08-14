@@ -7,8 +7,8 @@ export default class LoadingScreen extends React.PureComponent {
         header: null
     }
     
-    componentDidMount = () => {
-        initAsyncFetchs();
+    componentDidMount = async () => { 
+        await initAsyncFetchs();
 
         setTimeout(() => {
             this.getTokensAsync();

@@ -60,6 +60,12 @@ module.exports = {
                 ios: null
             }
         },
+        'react-native-linear-gradient': {
+            platforms: {
+                android: null,
+                ios: null
+            }
+        },
         realm: {
             platforms: {
                 android: null,

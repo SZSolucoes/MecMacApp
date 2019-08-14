@@ -66,13 +66,21 @@ class HomeBottomActionSheet extends React.PureComponent {
         }
     }
 
+    onManualCloseAS = () => {
+        if (this.props.animatedVisible) this.props.animatedVisible('visible', 200);
+    }
+
     getPosition = () => this.position
 
     checkPosition = ([value]) => {
         // close
         if (value === 1) {
             this.position = 0;
-            if (this.props.onManualCloseAS) this.props.onManualCloseAS();
+            if (this.props.onManualCloseAS) { 
+                this.props.onManualCloseAS();
+            } else {
+                this.onManualCloseAS();
+            }
         // open
         } else {
             this.position = 1;
@@ -242,6 +250,7 @@ class HomeBottomActionSheet extends React.PureComponent {
             <BottomSheet
                 ref={this.refBS}
                 enabledInnerScrolling={false}
+                enabledGestureInteraction={false}
                 enabledContentGestureInteraction={false}
                 snapPoints={[0, heightPoints]}
                 renderContent={this.renderInner}
@@ -323,7 +332,9 @@ const styles = StyleSheet.create({
 
 const mapStateToProps = (state) => ({
     userInfo: state.UserReducer.userInfo,
-    vehicleSelected: state.UserReducer.vehicleSelected
+    vehicleSelected: state.UserReducer.vehicleSelected,
+    getAnimTabBarTranslateY: state.CustomHomeTabBarReducer.getAnimTabBarTranslateY,
+    animatedVisible: state.CustomHomeTabBarReducer.animatedVisible
 });
 
 export default connect(mapStateToProps, { 

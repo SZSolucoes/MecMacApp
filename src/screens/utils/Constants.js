@@ -5,6 +5,7 @@ export const colorAppRGBAIron = 'rgba(218, 223, 225, 1)';
 export const colorButtonBSPrimary = '#007BFF';
 
 export const tabBarHeight = 52;
+export const homeVehicleUpBar = 60;
 
 export const VEHICLES_TYPES = {
     default: 0,

@@ -8,7 +8,7 @@ import { Icon } from 'react-native-elements';
 
 import { runSpring } from '../utils/ReanimatedUtils';
 
-const { Value, event, cond, eq, block, set } = Animated;
+const { Value, event, cond, eq, block, set, or } = Animated;
 
 class CardAccordion extends React.PureComponent {
     constructor(props) {
@@ -29,6 +29,8 @@ class CardAccordion extends React.PureComponent {
         };
     }
 
+    openAccordion = () => this.animToggle.setValue(3);
+
     render = () => {
         const {
             title,
@@ -47,11 +49,14 @@ class CardAccordion extends React.PureComponent {
                         () =>
                             block([
                                 cond(
-                                    eq(this.animToggleState, State.END),
+                                    or(
+                                        eq(this.animToggleState, State.END),
+                                        eq(this.animToggle, 3)
+                                    ),
                                     cond(
                                         eq(this.animToggle, 1),
-                                        runSpring(this.animValue, 0, 12, [set(this.animToggle, 0)]),
-                                        runSpring(this.animValue, this.state.viewHeight, 12, [set(this.animToggle, 1)])
+                                        runSpring(this.animValue, 0, 12, [set(this.animToggleState, State.UNDETERMINED), set(this.animToggle, 0)]),
+                                        runSpring(this.animValue, this.state.viewHeight, 12, [set(this.animToggleState, State.UNDETERMINED), set(this.animToggle, 1)])
                                     )
                                 )
                             ])
@@ -102,9 +107,10 @@ class CardAccordion extends React.PureComponent {
                     }}
                 >
                     <View
-                        onLayout={e => { 
-                            this.setState({ viewHeight: e.nativeEvent.layout.height });
-                            this.animValue.setValue(e.nativeEvent.layout.height);
+                        onLayout={e => {
+                            const heightNew = e.nativeEvent.layout.height;
+
+                            this.setState({ viewHeight: heightNew }, () => this.animValue.setValue(heightNew));
                         }}
                     >
                         {

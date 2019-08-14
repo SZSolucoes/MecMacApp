@@ -1,6 +1,6 @@
 /* eslint-disable max-len */
 import React from 'react';
-import { View, StyleSheet, ScrollView, Text } from 'react-native';
+import { View, StyleSheet, ScrollView, Text, Dimensions } from 'react-native';
 import { connect } from 'react-redux';
 import { DataTable } from 'react-native-paper';
 import { Icon } from 'react-native-elements';
@@ -8,18 +8,20 @@ import AwesomeAlert from 'react-native-awesome-alerts';
 import { FlatList } from 'react-native-gesture-handler';
 import { TextMask } from 'react-native-masked-text';
 import _ from 'lodash';
+import ShimmerPlaceHolder from 'react-native-shimmer-placeholder';
 
-import { store } from '../../../App';
-import CardAccordion from '../../tools/CardAccordion';
-import DataTableCell from '../../tools/DataTableCell';
-import { apiGetManut } from '../../utils/api/ApiManagerConsumer';
-import { normalize } from '../../utils/StringTextFormats';
-import FormCompleteActionsRow from './FormCompleteActionsRow';
-import DataTableTitleHeader from '../../tools/DataTableTitleHeader';
-import { modifyActionsRows, modifyIsLoadingComplete } from '../../../actions/AddVehicleActions';
-import { MANUT_ATRAS_TRIGGER_TYPE } from '../../utils/Constants';
+import CardAccordion from '../tools/CardAccordion';
+import DataTableCell from '../tools/DataTableCell';
+import { apiGetManut } from '../utils/api/ApiManagerConsumer';
+import { normalize } from '../utils/StringTextFormats';
+import DataTableTitleHeader from '../tools/DataTableTitleHeader';
+//import { modifyActionsRows, modifyIsLoadingComplete } from '../../actions/AddVehicleActions';
+import { MANUT_ATRAS_TRIGGER_TYPE } from '../utils/Constants';
+import FormCompleteActionsRow from '../home/drawer_vehicles/FormCompleteActionsRow';
 
-class FormComplete extends React.PureComponent {
+const maxAccordionSize = Dimensions.get('window').height / 2.5;
+
+class ManutTabViewMain extends React.PureComponent {
     constructor(props) {
         super(props);
 
@@ -28,6 +30,9 @@ class FormComplete extends React.PureComponent {
 
         this.actionsRows = [];
 
+        this.refAccordionProxManuts = React.createRef();
+        this.refAccordionAtrasManuts = React.createRef();
+
         this.state = {
             isLoading: false,
             itemsProx: [],
@@ -35,9 +40,11 @@ class FormComplete extends React.PureComponent {
         };
     }
 
-    componentDidUpdate = (prevProps) => { 
-        if (prevProps.isFetching !== this.props.isFetching) {
-            this.fetchManuts();
+    componentDidUpdate = (prevProps) => {
+        if (this.props.vehicleSelected.uniqueId) {
+            if (prevProps.vehicleSelected.uniqueId !== this.props.vehicleSelected.uniqueId) {
+                this.fetchManuts();
+            }
         }
     }
 
@@ -66,10 +73,10 @@ class FormComplete extends React.PureComponent {
             model,
             year,
             quilometers
-        } = store.getState().AddVehicleReducer;
+        } = this.props.vehicleSelected;
 
         this.actionsRows = [];
-        this.props.modifyActionsRows([]);
+        //this.props.modifyActionsRows([]);
 
         let proxData = [];
         let atrasData = [];
@@ -77,11 +84,13 @@ class FormComplete extends React.PureComponent {
         if (!(manufacturer && model && year && quilometers)) {
             this.setState(
                 { isLoading: false },
-                () => this.props.modifyIsLoadingComplete(false)
+                () => false //this.props.modifyIsLoadingComplete(false)
             );
             return false;
         }
 
+        this.refAccordionProxManuts.current.openAccordion();
+        this.refAccordionAtrasManuts.current.openAccordion();
         this.setState({ isLoading: true });
 
         try {
@@ -111,11 +120,11 @@ class FormComplete extends React.PureComponent {
                     });
                 }
 
-                this.props.modifyActionsRows(this.actionsRows);
+                //this.props.modifyActionsRows(this.actionsRows);
         
                 this.setState(
                     { isLoading: false, itemsProx: proxData, itemsAtras: atrasData },
-                    () => this.props.modifyIsLoadingComplete(false)
+                    () => false //this.props.modifyIsLoadingComplete(false)
                 );
             };
     
@@ -123,7 +132,7 @@ class FormComplete extends React.PureComponent {
         } catch (e) {
             this.setState(
                 { isLoading: false },
-                () => this.props.modifyIsLoadingComplete(false)
+                () => false //this.props.modifyIsLoadingComplete(false)
             );
         }
     }
@@ -146,21 +155,50 @@ class FormComplete extends React.PureComponent {
     )
 
     renderManutProx = () => {
-        const { quilometers } = store.getState().AddVehicleReducer;
+        const { quilometers, uniqueId } = this.props.vehicleSelected;
+
+        if (this.state.isLoading) {
+            return (
+                <View
+                    style={{ height: maxAccordionSize, padding: 20, alignItems: 'center', justifyContent: 'center' }}
+                >
+                    <ShimmerPlaceHolder autoRun visible={false}>
+                        <Text style={{ fontWeight: '500' }} numberOfLines={6}>
+                            Carregando...
+                        </Text>
+                    </ShimmerPlaceHolder>
+                </View>
+            );
+        }
+
+        if (!uniqueId) {
+            return (
+                <View
+                    style={{ height: maxAccordionSize, padding: 20, alignItems: 'center', justifyContent: 'center' }}
+                >
+                    <Text style={{ fontWeight: '500' }} numberOfLines={6}>
+                        Selecione um veículo para visualizar as manutenções próximas.
+                    </Text>
+                </View>
+            );
+        } 
+
         if (!quilometers) {
             return (
                 <View
-                    style={{ height: 100, padding: 20, alignItems: 'center', justifyContent: 'center' }}
+                    style={{ height: maxAccordionSize, padding: 20, alignItems: 'center', justifyContent: 'center' }}
                 >
                     <Text style={{ fontWeight: '500' }} numberOfLines={6}>
                         Para visualizar as manutenções do veículo é necessario informar a quilometragem anteriormente.
                     </Text>
                 </View>
             );
-        } else if (this.state.itemsProx.length) {
+        } 
+        
+        if (this.state.itemsProx.length) {
             return (
                 <View
-                    style={{ height: 200 }}
+                    style={{ height: maxAccordionSize }}
                 >
                     <FlatList
                         bounces={false}
@@ -174,7 +212,7 @@ class FormComplete extends React.PureComponent {
 
         return (
             <View
-                style={{ height: 100, padding: 20, alignItems: 'center', justifyContent: 'center' }}
+                style={{ height: maxAccordionSize, padding: 20, alignItems: 'center', justifyContent: 'center' }}
             >
                 <Text style={{ fontWeight: '500' }} numberOfLines={6}>
                     Não há manutenções próximas para o veículo.
@@ -203,21 +241,50 @@ class FormComplete extends React.PureComponent {
     ) 
 
     renderManutAtras = () => {
-        const { quilometers } = store.getState().AddVehicleReducer;
+        const { quilometers, uniqueId } = this.props.vehicleSelected;
+
+        if (this.state.isLoading) {
+            return (
+                <View
+                    style={{ height: maxAccordionSize, padding: 20, alignItems: 'center', justifyContent: 'center' }}
+                >
+                    <ShimmerPlaceHolder autoRun visible={false}>
+                        <Text style={{ fontWeight: '500' }} numberOfLines={6}>
+                            Carregando...
+                        </Text>
+                    </ShimmerPlaceHolder>
+                </View>
+            );
+        }
+
+        if (!uniqueId) {
+            return (
+                <View
+                    style={{ height: maxAccordionSize, padding: 20, alignItems: 'center', justifyContent: 'center' }}
+                >
+                    <Text style={{ fontWeight: '500' }} numberOfLines={6}>
+                        Selecione um veículo para visualizar as manutenções atrasadas.
+                    </Text>
+                </View>
+            );
+        } 
+        
         if (!quilometers) {
             return (
                 <View
-                    style={{ height: 100, padding: 20, alignItems: 'center', justifyContent: 'center' }}
+                    style={{ height: maxAccordionSize, padding: 20, alignItems: 'center', justifyContent: 'center' }}
                 >
                     <Text style={{ fontWeight: '500' }} numberOfLines={6}>
                         Para visualizar as manutenções do veículo é necessario informar a quilometragem anteriormente.
                     </Text>
                 </View>
             );
-        } else if (this.state.itemsAtras.length) {
+        } 
+        
+        if (this.state.itemsAtras.length) {
             return (
                 <View
-                    style={{ height: 200 }}
+                    style={{ height: maxAccordionSize }}
                 >
                     <FlatList
                         bounces={false}
@@ -231,7 +298,7 @@ class FormComplete extends React.PureComponent {
 
         return (
             <View
-                style={{ height: 100, padding: 20, alignItems: 'center', justifyContent: 'center' }}
+                style={{ height: maxAccordionSize, padding: 20, alignItems: 'center', justifyContent: 'center' }}
             >
                 <Text style={{ fontWeight: '500' }} numberOfLines={6}>
                     Não há manutenções atrasadas para o veículo.
@@ -262,19 +329,13 @@ class FormComplete extends React.PureComponent {
         </DataTable.Row>
     ) 
 
-    renderManager = () => {
-        const { isLoading } = this.state;
-        const { isCurrentPage } = this.props;
-
-        if (isLoading || !isCurrentPage) return this.renderLoading();
-
-        return this.renderScrollView();
-    }
+    renderManager = () => this.renderScrollView()
 
     renderScrollView = () => (
         <ScrollView contentContainerStyle={{ flexGrow: 1 }} bounces={false}>
             <View style={{ flex: 1 }}>
                 <CardAccordion
+                    ref={this.refAccordionProxManuts}
                     title={'Manutenções próximas'}
                     titleStyle={{ fontSize: normalize(16) }}
                     titleLeftComponent={() =>
@@ -294,6 +355,7 @@ class FormComplete extends React.PureComponent {
                     </DataTable>
                 </CardAccordion>
                 <CardAccordion
+                    ref={this.refAccordionAtrasManuts}
                     title={'Manutenções atrasadas'}
                     titleStyle={{ fontSize: normalize(16) }}
                     titleLeftComponent={() =>
@@ -382,10 +444,10 @@ const styles = StyleSheet.create({
 });
 
 const mapStateToProps = (state) => ({
-    isFetching: state.AddVehicleReducer.isFetching
+    vehicleSelected: state.UserReducer.vehicleSelected
 });
 
 export default connect(mapStateToProps, {
-    modifyActionsRows,
-    modifyIsLoadingComplete
-})(FormComplete);
+    /* modifyActionsRows,
+    modifyIsLoadingComplete */
+})(ManutTabViewMain);

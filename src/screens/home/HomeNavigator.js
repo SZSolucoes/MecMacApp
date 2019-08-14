@@ -16,10 +16,12 @@ import ProfileScreen from '../../screens/home/ProfileScreen'; */
 import { colorAppPrimary } from '../utils/Constants';
 import { getWindowWidthPortrait, renderStatusBar } from '../utils/Screen';
 import HomeDrawer from './HomeDrawer';
+import HomeBottomActionSheet from './HomeBottomActionSheet';
+import ManutTabScreen from '../manut_tab/ManutTabScreen';
 
 const BottomTabNavigator = createMaterialTopTabNavigator({
     HomeTab: HomeScreen,
-    ManutTab: View,
+    ManutTab: ManutTabScreen,
     ExpensesTab: View,
     PromotionsTab: View,
     BlogTabs: View,
@@ -88,7 +90,7 @@ const HomeNavigatorStack = createDrawerNavigator({
 
 BottomTabNavigator.navigationOptions = ({ navigation }) => {
     let drawerLockMode = 'unlocked';
-    if (navigation.state.index > 0) {
+    if (navigation.state.index > 1) {
         drawerLockMode = 'locked-closed';
     }
 
@@ -114,6 +116,7 @@ class HomeNavigator extends React.PureComponent {
             <SafeAreaView style={{ flex: 1 }}>
                 <HomeNavigatorStack {...this.props} />
             </SafeAreaView>
+            <HomeBottomActionSheet />
         </View>
     );
 }

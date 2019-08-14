@@ -69,7 +69,7 @@ export const initAsyncFetchs = async () => {
     const isConnected = await checkIsConnected();
 
     if (isConnected) {
-        realmFetchsInit();
+        await realmFetchsInit();
     }
 };
 

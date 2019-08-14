@@ -4,14 +4,16 @@ import { View, StyleSheet } from 'react-native';
 import { Appbar } from 'react-native-paper';
 import { ListItem } from 'react-native-elements';
 import { defaultTextHeader } from '../utils/Styles';
+import { homeVehicleUpBar } from '../utils/Constants';
 
 class HomeAppHeader extends React.PureComponent {
     onPressDrawerIcon = () => {
+        if (this.props.onBeforeOpenDrawer) this.props.onBeforeOpenDrawer();
         this.props.navigation.openDrawer();
     }
     
     render = () => (
-        <Appbar.Header style={{ backgroundColor: 'white', overflow: 'hidden', height: 60, elevation: 0 }}>
+        <Appbar.Header style={{ backgroundColor: 'white', overflow: 'hidden', height: homeVehicleUpBar, elevation: 0 }}>
             <View style={{ width: '100%', justifyContent: 'center', paddingLeft: 10 }}>
                 <ListItem
                     leftAvatar={{ 

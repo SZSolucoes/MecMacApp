@@ -1,24 +1,18 @@
 /* eslint-disable max-len */
 import React from 'react';
-import { 
-    View,
-    Text,
-    StyleSheet,
-    BackHandler,
-    SafeAreaView
-} from 'react-native';
+import { View, Text, StyleSheet, SafeAreaView, BackHandler } from 'react-native';
 import { connect } from 'react-redux';
 import Animated from 'react-native-reanimated';
 
+import HomeHeaderVehicle from '../home/HomeHeaderVehicle';
 import { colorAppForeground } from '../utils/Constants';
-import HomeOverlayTouchable from './HomeOverlayTouchable';
-import { modifyShowHomeNewVehicleTooltip } from '../../actions/CustomHomeTabBarActions';
-import HomeHeaderVehicle from './HomeHeaderVehicle';
+import HomeOverlayTouchable from '../home/HomeOverlayTouchable';
 import { runSpring } from '../utils/ReanimatedUtils';
+import ManutTabViewMain from './ManutTabViewMain';
 
 const { Value, block, eq, cond } = Animated;
 
-class MainHomeScreen extends React.PureComponent {
+class ManutTabScreen extends React.PureComponent {
     constructor(props) {
         super(props);
 
@@ -28,7 +22,6 @@ class MainHomeScreen extends React.PureComponent {
         this.animTriggerType = new Value(-1);
 
         this.enabledVHC = true;
-        this.isFirstOpen = true;
     }
     
     componentDidMount = () => {
@@ -39,11 +32,6 @@ class MainHomeScreen extends React.PureComponent {
             BackHandler.addEventListener('hardwareBackPress', this.onBackButtonPressAndroid);
             
             if (this.props.animatedVisible) this.props.animatedVisible('visible', 200);
-
-            if (this.props.fetchVehicles && this.isFirstOpen) {
-                this.props.fetchVehicles();
-                this.isFirstOpen = false;
-            }
 
             if (this.props.showHomeNewVehicleTooltip && this.toggleAsTooltip.current && !this.toggleAsTooltip.current.state.isVisible) {
                 if (this.props.fetchVehicles) this.props.fetchVehicles();
@@ -107,15 +95,16 @@ class MainHomeScreen extends React.PureComponent {
             return true;
         }
 
-        if (routeName === 'HomeTab') {
-            if (this.props.getPositionHomeBottomActionSheet() !== 0) this.props.bacChangePosition(0); 
-            return true;
+        if (routeName === 'ManutTab') {
+            if (this.props.getPositionHomeBottomActionSheet() !== 0) {
+                this.props.bacChangePosition(0);
+
+                return true;
+            }
         }
 
         return false;
     }
-
-    onCloseTooltip = () => this.props.modifyShowHomeNewVehicleTooltip(false)
 
     onBeforeOpenDrawer = () => {
         if (this.props.animatedVisible) {
@@ -164,16 +153,12 @@ class MainHomeScreen extends React.PureComponent {
                         )
                     }}
                 >
-                    <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-                        <Text>
-                            Início
-                        </Text>
-                    </View>
+                    <ManutTabViewMain />
                 </Animated.View>
                 <HomeOverlayTouchable onPressActionChooseVHC={this.onPressActionChooseVHC} />
             </View>
         </SafeAreaView>
-    )
+    ); 
 }
 
 const styles = StyleSheet.create({
@@ -199,6 +184,4 @@ const mapStateToProps = (state) => ({
     fetchVehicles: state.HomeBottomActionSheetReducer.fetchVehicles
 });
 
-export default connect(mapStateToProps, {
-    modifyShowHomeNewVehicleTooltip
-})(MainHomeScreen);
+export default connect(mapStateToProps)(ManutTabScreen);
