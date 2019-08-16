@@ -1,13 +1,13 @@
 /* eslint-disable max-len */
 import React from 'react';
-import { View, StyleSheet, ScrollView, Text } from 'react-native';
+import { View, StyleSheet, ScrollView, Text, Dimensions } from 'react-native';
 import { connect } from 'react-redux';
 import { DataTable } from 'react-native-paper';
 import { Icon } from 'react-native-elements';
-import AwesomeAlert from 'react-native-awesome-alerts';
 import { FlatList } from 'react-native-gesture-handler';
 import { TextMask } from 'react-native-masked-text';
 import _ from 'lodash';
+import ShimmerPlaceHolder from 'react-native-shimmer-placeholder';
 
 import { store } from '../../../App';
 import CardAccordion from '../../tools/CardAccordion';
@@ -19,12 +19,17 @@ import DataTableTitleHeader from '../../tools/DataTableTitleHeader';
 import { modifyActionsRows, modifyIsLoadingComplete } from '../../../actions/AddVehicleActions';
 import { MANUT_ATRAS_TRIGGER_TYPE } from '../../utils/Constants';
 
+const maxAccordionSize = Dimensions.get('window').height / 3;
+
 class FormComplete extends React.PureComponent {
     constructor(props) {
         super(props);
 
         this.renderItemManutProxPc = React.memo(this.renderItemManutProx);
         this.renderItemManutAtrasPc = React.memo(this.renderItemManutAtras);
+
+        this.refAccordionProxManuts = React.createRef();
+        this.refAccordionAtrasManuts = React.createRef();
 
         this.actionsRows = [];
 
@@ -41,8 +46,8 @@ class FormComplete extends React.PureComponent {
         }
     }
 
-    onChangeActionsRows = (index, action) => {
-        const findedIndex = _.findIndex(this.actionsRows, ita => ita.index === index);
+    onChangeActionsRows = (index, action, itemIndexInRow) => {
+        const findedIndex = _.findIndex(this.actionsRows, ita => (ita.index === index && ita.indexInRow === itemIndexInRow));
         const finded = findedIndex !== -1;
 
         if (finded) {
@@ -52,7 +57,7 @@ class FormComplete extends React.PureComponent {
                 index, 
                 action,
                 manut: {
-                    ...(this.state.itemsAtras[index] || {})
+                    ...(this.state.itemsAtras[index][itemIndexInRow] || {})
                 }
             });
         }
@@ -82,6 +87,9 @@ class FormComplete extends React.PureComponent {
             return false;
         }
 
+        if (this.refAccordionProxManuts.current) this.refAccordionProxManuts.current.openAccordion();
+        if (this.refAccordionAtrasManuts.current) this.refAccordionAtrasManuts.current.openAccordion();
+
         this.setState({ isLoading: true });
 
         try {
@@ -97,18 +105,27 @@ class FormComplete extends React.PureComponent {
                 const validRed = ret.data && ret.data.success && ret.data.data;
         
                 if (validRed && ret.data.data.prox) proxData = [...ret.data.data.prox];
-                if (validRed && ret.data.data.atras) atrasData = [...ret.data.data.atras];
+                if (validRed && ret.data.data.atras) {
+                    atrasData = [...ret.data.data.atras];
+                    atrasData = _.groupBy(atrasData, 'itemabrev');
+                    atrasData = _.orderBy(atrasData, (itd) => _.maxBy(itd, 'quilometros').quilometros, ['desc']);
+                }
                 
                 for (let indexB = 0; indexB < atrasData.length; indexB++) {
                     const elementB = atrasData[indexB];
 
-                    this.actionsRows.push({ 
-                        index: indexB, 
-                        action: MANUT_ATRAS_TRIGGER_TYPE.WARNING,
-                        manut: {
-                            ...elementB
-                        }
-                    });
+                    for (let indexC = 0; indexC < elementB.length; indexC++) {
+                        const elementC = elementB[indexC];
+                        
+                        this.actionsRows.push({ 
+                            index: indexB,
+                            indexInRow: indexC,
+                            action: MANUT_ATRAS_TRIGGER_TYPE.WARNING,
+                            manut: {
+                                ...elementC
+                            }
+                        });
+                    }
                 }
 
                 this.props.modifyActionsRows(this.actionsRows);
@@ -128,39 +145,39 @@ class FormComplete extends React.PureComponent {
         }
     }
 
-    renderLoading = () => (
-        <View
-            style={{
-                height: '90%',
-                width: '100%'
-            }}
-        >
-            <AwesomeAlert
-                show
-                showProgress
-                title={'Carregando...'}
-                closeOnTouchOutside={false}
-                closeOnHardwareBackPress={false}
-            />
-        </View>
-    )
-
     renderManutProx = () => {
         const { quilometers } = store.getState().AddVehicleReducer;
+
+        if (this.state.isLoading || !this.props.isCurrentPage) {
+            return (
+                <View
+                    style={{ height: maxAccordionSize, padding: 20, alignItems: 'center', justifyContent: 'center' }}
+                >
+                    <ShimmerPlaceHolder autoRun visible={false}>
+                        <Text style={{ fontWeight: '500' }} numberOfLines={6}>
+                            Carregando...
+                        </Text>
+                    </ShimmerPlaceHolder>
+                </View>
+            );
+        }
+
         if (!quilometers) {
             return (
                 <View
-                    style={{ height: 100, padding: 20, alignItems: 'center', justifyContent: 'center' }}
+                    style={{ height: maxAccordionSize, padding: 20, alignItems: 'center', justifyContent: 'center' }}
                 >
                     <Text style={{ fontWeight: '500' }} numberOfLines={6}>
                         Para visualizar as manutenções do veículo é necessario informar a quilometragem anteriormente.
                     </Text>
                 </View>
             );
-        } else if (this.state.itemsProx.length) {
+        } 
+        
+        if (this.state.itemsProx.length) {
             return (
                 <View
-                    style={{ height: 200 }}
+                    style={{ height: maxAccordionSize }}
                 >
                     <FlatList
                         bounces={false}
@@ -174,7 +191,7 @@ class FormComplete extends React.PureComponent {
 
         return (
             <View
-                style={{ height: 100, padding: 20, alignItems: 'center', justifyContent: 'center' }}
+                style={{ height: maxAccordionSize, padding: 20, alignItems: 'center', justifyContent: 'center' }}
             >
                 <Text style={{ fontWeight: '500' }} numberOfLines={6}>
                     Não há manutenções próximas para o veículo.
@@ -204,20 +221,37 @@ class FormComplete extends React.PureComponent {
 
     renderManutAtras = () => {
         const { quilometers } = store.getState().AddVehicleReducer;
+
+        if (this.state.isLoading || !this.props.isCurrentPage) {
+            return (
+                <View
+                    style={{ height: maxAccordionSize, padding: 20, alignItems: 'center', justifyContent: 'center' }}
+                >
+                    <ShimmerPlaceHolder autoRun visible={false}>
+                        <Text style={{ fontWeight: '500' }} numberOfLines={6}>
+                            Carregando...
+                        </Text>
+                    </ShimmerPlaceHolder>
+                </View>
+            );
+        }
+
         if (!quilometers) {
             return (
                 <View
-                    style={{ height: 100, padding: 20, alignItems: 'center', justifyContent: 'center' }}
+                    style={{ height: maxAccordionSize, padding: 20, alignItems: 'center', justifyContent: 'center' }}
                 >
                     <Text style={{ fontWeight: '500' }} numberOfLines={6}>
                         Para visualizar as manutenções do veículo é necessario informar a quilometragem anteriormente.
                     </Text>
                 </View>
             );
-        } else if (this.state.itemsAtras.length) {
+        } 
+        
+        if (this.state.itemsAtras.length) {
             return (
                 <View
-                    style={{ height: 200 }}
+                    style={{ height: maxAccordionSize }}
                 >
                     <FlatList
                         bounces={false}
@@ -231,7 +265,7 @@ class FormComplete extends React.PureComponent {
 
         return (
             <View
-                style={{ height: 100, padding: 20, alignItems: 'center', justifyContent: 'center' }}
+                style={{ height: maxAccordionSize, padding: 20, alignItems: 'center', justifyContent: 'center' }}
             >
                 <Text style={{ fontWeight: '500' }} numberOfLines={6}>
                     Não há manutenções atrasadas para o veículo.
@@ -242,41 +276,44 @@ class FormComplete extends React.PureComponent {
 
     renderItemManutAtras = ({ item, index }) => (
         <DataTable.Row key={index} style={{ paddingVertical: 5 }}>
-            <DataTableCell numberOfLines={6} style={{ flex: 1.5 }}>{item.itemabrev}</DataTableCell>
-            <DataTableCell numberOfLines={6} numeric style={{ flex: 1 }}>
-                <TextMask
-                    type={'money'}
-                    options={{
-                        precision: 0,
-                        separator: '.',
-                        delimiter: '',
-                        unit: '',
-                        suffixUnit: ''
-                    }}
-                    value={item.quilometros}
-                />
-            </DataTableCell>
-            <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-end' }}>
-                <FormCompleteActionsRow itemIndex={index} onChangeActionsRows={this.onChangeActionsRows} />
+            <View style={{ flex: 1 }}>
+                {
+                    _.map(item, (ita, indexB) => (
+                        <View style={{ flex: 1, flexDirection: 'row', marginBottom: 5 }}>
+                            <DataTableCell numberOfLines={6} style={{ flex: 1.5 }}>{ita.itemabrev}</DataTableCell>
+                            <DataTableCell numberOfLines={6} numeric style={{ flex: 1 }}>
+                                <TextMask
+                                    type={'money'}
+                                    options={{
+                                        precision: 0,
+                                        separator: '.',
+                                        delimiter: '',
+                                        unit: '',
+                                        suffixUnit: ''
+                                    }}
+                                    value={ita.quilometros}
+                                />
+                            </DataTableCell>
+                            <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-end' }}>
+                                <FormCompleteActionsRow itemIndex={index} itemIndexInRow={indexB} onChangeActionsRows={this.onChangeActionsRows} />
+                            </View>
+                        </View>
+                    ))
+                }
             </View>
         </DataTable.Row>
     ) 
 
-    renderManager = () => {
-        const { isLoading } = this.state;
-        const { isCurrentPage } = this.props;
-
-        if (isLoading || !isCurrentPage) return this.renderLoading();
-
-        return this.renderScrollView();
-    }
+    renderManager = () => this.renderScrollView()
 
     renderScrollView = () => (
         <ScrollView contentContainerStyle={{ flexGrow: 1 }} bounces={false}>
             <View style={{ flex: 1 }}>
                 <CardAccordion
+                    key={'manutproxformcomplete'}
+                    ref={this.refAccordionProxManuts}
                     title={'Manutenções próximas'}
-                    titleStyle={{ fontSize: normalize(16) }}
+                    titleStyle={{ fontSize: normalize(14), fontFamily: 'OpenSans-SemiBold' }}
                     titleLeftComponent={() =>
                         <Icon 
                             name={'toolbox-outline'}
@@ -294,8 +331,10 @@ class FormComplete extends React.PureComponent {
                     </DataTable>
                 </CardAccordion>
                 <CardAccordion
+                    key={'manutproxatrasformcomplete'}
+                    ref={this.refAccordionAtrasManuts}
                     title={'Manutenções atrasadas'}
-                    titleStyle={{ fontSize: normalize(16) }}
+                    titleStyle={{ fontSize: normalize(14), fontFamily: 'OpenSans-SemiBold' }}
                     titleLeftComponent={() =>
                         <Icon 
                             name={'toolbox-outline'}

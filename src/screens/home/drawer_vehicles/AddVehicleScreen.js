@@ -193,6 +193,7 @@ class AddVehicleScreen extends React.PureComponent {
                         if (actionsRows && actionsRows.length) {
                             for (let indexA = 0; indexA < actionsRows.length; indexA++) {
                                 const elementA = actionsRows[indexA];
+
                                 if (elementA.manut) {
                                     manuts.push({
                                         vehicletype,

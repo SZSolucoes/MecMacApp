@@ -197,8 +197,8 @@ android {
 }
 
 dependencies {
-    implementation project(':react-native-linear-gradient')
     implementation 'com.android.support:multidex:1.0.3'
+    implementation project(':react-native-linear-gradient')
     implementation project(':realm')
     implementation project(':react-native-orientation')
     implementation project(':react-native-reanimated')

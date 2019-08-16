@@ -2,22 +2,22 @@
 import React from 'react';
 import { View, StyleSheet, ScrollView, Text, Dimensions } from 'react-native';
 import { connect } from 'react-redux';
-import { DataTable } from 'react-native-paper';
+import { DataTable, ActivityIndicator } from 'react-native-paper';
 import { Icon } from 'react-native-elements';
-import AwesomeAlert from 'react-native-awesome-alerts';
-import { FlatList } from 'react-native-gesture-handler';
+import { FlatList, TouchableOpacity } from 'react-native-gesture-handler';
 import { TextMask } from 'react-native-masked-text';
 import _ from 'lodash';
 import ShimmerPlaceHolder from 'react-native-shimmer-placeholder';
 
 import CardAccordion from '../tools/CardAccordion';
 import DataTableCell from '../tools/DataTableCell';
-import { apiGetManut } from '../utils/api/ApiManagerConsumer';
+import { apiGetManut, apiUpdateUserVehiclesManut } from '../utils/api/ApiManagerConsumer';
 import { normalize } from '../utils/StringTextFormats';
 import DataTableTitleHeader from '../tools/DataTableTitleHeader';
 //import { modifyActionsRows, modifyIsLoadingComplete } from '../../actions/AddVehicleActions';
-import { MANUT_ATRAS_TRIGGER_TYPE } from '../utils/Constants';
+import { MANUT_ATRAS_TRIGGER_TYPE, colorAppPrimary, DESENV_EMAIL } from '../utils/Constants';
 import FormCompleteActionsRow from '../home/drawer_vehicles/FormCompleteActionsRow';
+import { store } from '../../App';
 
 const maxAccordionSize = Dimensions.get('window').height / 2.5;
 
@@ -27,16 +27,22 @@ class ManutTabViewMain extends React.PureComponent {
 
         this.renderItemManutProxPc = React.memo(this.renderItemManutProx);
         this.renderItemManutAtrasPc = React.memo(this.renderItemManutAtras);
+        this.renderItemManutConfirmPc = React.memo(this.renderItemManutConfirm);
+        this.renderSaveButtonConfirmPc = React.memo(this.renderSaveButtonConfirm);
+
+        this.debouncedSaveManutChanges = _.debounce(this.saveManutChanges, 1000);
 
         this.actionsRows = [];
 
         this.refAccordionProxManuts = React.createRef();
         this.refAccordionAtrasManuts = React.createRef();
+        this.refAccordionConfirmManuts = React.createRef();
 
         this.state = {
             isLoading: false,
             itemsProx: [],
-            itemsAtras: []
+            itemsAtras: [],
+            itemsConfirm: []
         };
     }
 
@@ -64,7 +70,62 @@ class ManutTabViewMain extends React.PureComponent {
             });
         }
 
-        this.props.modifyActionsRows(this.actionsRows);
+        //this.props.modifyActionsRows(this.actionsRows);
+    }
+
+    onChangeConfirmActionsRows = (index, action, itemIndexInRow) => {
+        if (this.refAccordionConfirmManuts.current) {
+            this.refAccordionConfirmManuts.current.changeTextFooter('Salvando...');
+            this.refAccordionConfirmManuts.current.showFooter();
+        }
+
+        this.debouncedSaveManutChanges(index, action, itemIndexInRow);
+    }
+
+    onPressSaveActions = () => {
+        if (this.refAccordionAtrasManuts.current) this.refAccordionAtrasManuts.current.showFooter();
+    }
+
+    onPressAtrasTouchCallback = () => {
+        if (this.refAccordionAtrasManuts.current) this.refAccordionAtrasManuts.current.showFooter();
+    }
+
+    saveManutChanges = async (index, action, itemIndexInRow) => {
+        const rowFounded = !!(this.state.itemsConfirm[index] && this.state.itemsConfirm[index][itemIndexInRow]);
+    
+        if (rowFounded) {
+            const userEmail = store.getState().UserReducer.userInfo.email;
+            const {
+                manufacturer,
+                model,
+                year,
+                nickname
+            } = this.props.vehicleSelected;
+
+            const {
+                itemabrev,
+                quilometros,
+                tipomanut
+            } = this.state.itemsConfirm[index][itemIndexInRow];
+
+            const ret = await apiUpdateUserVehiclesManut({
+                user_email: userEmail || DESENV_EMAIL,
+                manufacturer,
+                model,
+                year,
+                itemabrev,
+                quilometers_manut: quilometros,
+                type_manut: tipomanut,
+                nickname
+            });
+
+            if (!ret.success && this.refAccordionConfirmManuts.current) {
+                this.refAccordionConfirmManuts.current.changeTextFooterWithError(ret.message);
+                return;
+            }
+        }
+
+        if (this.refAccordionConfirmManuts.current) this.refAccordionConfirmManuts.current.hideFooter();
     }
 
     fetchManuts = async () => {
@@ -72,14 +133,18 @@ class ManutTabViewMain extends React.PureComponent {
             manufacturer,
             model,
             year,
-            quilometers
+            quilometers,
+            nickname
         } = this.props.vehicleSelected;
+
+        const userEmail = store.getState().UserReducer.userInfo.email;
 
         this.actionsRows = [];
         //this.props.modifyActionsRows([]);
 
         let proxData = [];
         let atrasData = [];
+        let confirmData = [];
 
         if (!(manufacturer && model && year && quilometers)) {
             this.setState(
@@ -89,8 +154,10 @@ class ManutTabViewMain extends React.PureComponent {
             return false;
         }
 
-        this.refAccordionProxManuts.current.openAccordion();
-        this.refAccordionAtrasManuts.current.openAccordion();
+        if (this.refAccordionProxManuts.current) this.refAccordionProxManuts.current.openAccordion();
+        if (this.refAccordionAtrasManuts.current) this.refAccordionAtrasManuts.current.openAccordion();
+        if (this.refAccordionConfirmManuts.current) this.refAccordionConfirmManuts.current.openAccordion();
+
         this.setState({ isLoading: true });
 
         try {
@@ -100,13 +167,26 @@ class ManutTabViewMain extends React.PureComponent {
                     model,
                     year,
                     quilometers,
-                    type: 'all'
+                    type: 'all_merged',
+                    nickname,
+                    user_email: userEmail || DESENV_EMAIL
                 });
 
-                const validRed = ret.data && ret.data.success && ret.data.data;
+                const validRet = ret.data && ret.data.success && ret.data.data;
         
-                if (validRed && ret.data.data.prox) proxData = [...ret.data.data.prox];
-                if (validRed && ret.data.data.atras) atrasData = [...ret.data.data.atras];
+                if (validRet && ret.data.data.prox) proxData = [...ret.data.data.prox];
+
+                if (validRet && ret.data.data.atras) {
+                    atrasData = [...ret.data.data.atras];
+                    atrasData = _.groupBy(atrasData, 'itemabrev');
+                    atrasData = _.orderBy(atrasData, (itd) => _.maxBy(itd, 'quilometros').quilometros, ['desc']);
+                }
+
+                if (validRet && ret.data.data.confirm) {
+                    confirmData = [...ret.data.data.confirm];
+                    confirmData = _.groupBy(confirmData, 'itemabrev');
+                    confirmData = _.orderBy(confirmData, (itd) => _.maxBy(itd, 'quilometros').quilometros, ['desc']);
+                }
                 
                 for (let indexB = 0; indexB < atrasData.length; indexB++) {
                     const elementB = atrasData[indexB];
@@ -123,7 +203,7 @@ class ManutTabViewMain extends React.PureComponent {
                 //this.props.modifyActionsRows(this.actionsRows);
         
                 this.setState(
-                    { isLoading: false, itemsProx: proxData, itemsAtras: atrasData },
+                    { isLoading: false, itemsProx: proxData, itemsAtras: atrasData, itemsConfirm: confirmData },
                     () => false //this.props.modifyIsLoadingComplete(false)
                 );
             };
@@ -136,23 +216,6 @@ class ManutTabViewMain extends React.PureComponent {
             );
         }
     }
-
-    renderLoading = () => (
-        <View
-            style={{
-                height: '90%',
-                width: '100%'
-            }}
-        >
-            <AwesomeAlert
-                show
-                showProgress
-                title={'Carregando...'}
-                closeOnTouchOutside={false}
-                closeOnHardwareBackPress={false}
-            />
-        </View>
-    )
 
     renderManutProx = () => {
         const { quilometers, uniqueId } = this.props.vehicleSelected;
@@ -189,7 +252,7 @@ class ManutTabViewMain extends React.PureComponent {
                     style={{ height: maxAccordionSize, padding: 20, alignItems: 'center', justifyContent: 'center' }}
                 >
                     <Text style={{ fontWeight: '500' }} numberOfLines={6}>
-                        Para visualizar as manutenções do veículo é necessario informar a quilometragem anteriormente.
+                        Para visualizar as manutenções é necessário que o veículo possua a quilometragem informada.
                     </Text>
                 </View>
             );
@@ -275,7 +338,7 @@ class ManutTabViewMain extends React.PureComponent {
                     style={{ height: maxAccordionSize, padding: 20, alignItems: 'center', justifyContent: 'center' }}
                 >
                     <Text style={{ fontWeight: '500' }} numberOfLines={6}>
-                        Para visualizar as manutenções do veículo é necessario informar a quilometragem anteriormente.
+                        Para visualizar as manutenções é necessário que o veículo possua a quilometragem informada.
                     </Text>
                 </View>
             );
@@ -309,35 +372,197 @@ class ManutTabViewMain extends React.PureComponent {
 
     renderItemManutAtras = ({ item, index }) => (
         <DataTable.Row key={index} style={{ paddingVertical: 5 }}>
-            <DataTableCell numberOfLines={6} style={{ flex: 1.5 }}>{item.itemabrev}</DataTableCell>
-            <DataTableCell numberOfLines={6} numeric style={{ flex: 1 }}>
-                <TextMask
-                    type={'money'}
-                    options={{
-                        precision: 0,
-                        separator: '.',
-                        delimiter: '',
-                        unit: '',
-                        suffixUnit: ''
-                    }}
-                    value={item.quilometros}
-                />
-            </DataTableCell>
-            <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-end' }}>
-                <FormCompleteActionsRow itemIndex={index} onChangeActionsRows={this.onChangeActionsRows} />
+            <View style={{ flex: 1 }}>
+                {
+                    _.map(item, (ita, indexB) => (
+                        <View style={{ flex: 1, flexDirection: 'row', marginBottom: 5 }}>
+                            <DataTableCell numberOfLines={6} style={{ flex: 1.5 }}>{ita.itemabrev}</DataTableCell>
+                            <DataTableCell numberOfLines={6} numeric style={{ flex: 1 }}>
+                                <TextMask
+                                    type={'money'}
+                                    options={{
+                                        precision: 0,
+                                        separator: '.',
+                                        delimiter: '',
+                                        unit: '',
+                                        suffixUnit: ''
+                                    }}
+                                    value={ita.quilometros}
+                                />
+                            </DataTableCell>
+                            <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-end' }}>
+                                <FormCompleteActionsRow 
+                                    itemIndex={index}
+                                    itemIndexInRow={indexB}
+                                    onChangeActionsRows={this.onChangeActionsRows} 
+                                    onPressTouchCallback={this.onPressAtrasTouchCallback} 
+                                />
+                            </View>
+                        </View>
+                    ))
+                }
+            </View>
+        </DataTable.Row>
+    )
+
+    renderManutConfirm = () => {
+        const { quilometers, uniqueId } = this.props.vehicleSelected;
+
+        if (this.state.isLoading) {
+            return (
+                <View
+                    style={{ height: maxAccordionSize, padding: 20, alignItems: 'center', justifyContent: 'center' }}
+                >
+                    <ShimmerPlaceHolder autoRun visible={false}>
+                        <Text style={{ fontWeight: '500' }} numberOfLines={6}>
+                            Carregando...
+                        </Text>
+                    </ShimmerPlaceHolder>
+                </View>
+            );
+        }
+
+        if (!uniqueId) {
+            return (
+                <View
+                    style={{ height: maxAccordionSize, padding: 20, alignItems: 'center', justifyContent: 'center' }}
+                >
+                    <Text style={{ fontWeight: '500' }} numberOfLines={6}>
+                        Selecione um veículo para visualizar as manutenções confirmadas.
+                    </Text>
+                </View>
+            );
+        } 
+        
+        if (!quilometers) {
+            return (
+                <View
+                    style={{ height: maxAccordionSize, padding: 20, alignItems: 'center', justifyContent: 'center' }}
+                >
+                    <Text style={{ fontWeight: '500' }} numberOfLines={6}>
+                        Para visualizar as manutenções é necessário que o veículo possua a quilometragem informada.
+                    </Text>
+                </View>
+            );
+        } 
+        
+        if (this.state.itemsConfirm.length) {
+            return (
+                <View
+                    style={{ height: maxAccordionSize }}
+                >
+                    <FlatList
+                        bounces={false}
+                        data={this.state.itemsConfirm}
+                        renderItem={(propsItem) => <this.renderItemManutConfirmPc {...propsItem} />}
+                        keyExtractor={(item, index) => index.toString()}
+                    />
+                </View>
+            );
+        }
+
+        return (
+            <View
+                style={{ height: maxAccordionSize, padding: 20, alignItems: 'center', justifyContent: 'center' }}
+            >
+                <Text style={{ fontWeight: '500' }} numberOfLines={6}>
+                    Não há manutenções confirmadas para o veículo.
+                </Text>
+            </View>
+        );
+    }
+
+    renderItemManutConfirm = ({ item, index }) => (
+        <DataTable.Row key={index} style={{ paddingVertical: 5 }}>
+            <View style={{ flex: 1 }}>
+                {
+                    _.map(item, (ita, indexB) => (
+                        <View style={{ flex: 1, flexDirection: 'row', marginBottom: 5 }}>
+                            <DataTableCell numberOfLines={6} style={{ flex: 1.5 }}>{ita.itemabrev}</DataTableCell>
+                            <DataTableCell numberOfLines={6} numeric style={{ flex: 1 }}>
+                                <TextMask
+                                    type={'money'}
+                                    options={{
+                                        precision: 0,
+                                        separator: '.',
+                                        delimiter: '',
+                                        unit: '',
+                                        suffixUnit: ''
+                                    }}
+                                    value={ita.quilometros}
+                                />
+                            </DataTableCell>
+                            <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-end' }}>
+                                <FormCompleteActionsRow 
+                                    itemIndex={index}
+                                    itemIndexInRow={indexB}
+                                    showTypes={['thumbsup', 'thumbsdown']}
+                                    initialIcon={ita.action === 1 ? 'thumbsup' : 'thumbsdown'}
+                                    enableTrash
+                                    onChangeActionsRows={this.onChangeConfirmActionsRows} 
+                                />
+                            </View>
+                        </View>
+                    ))
+                }
             </View>
         </DataTable.Row>
     ) 
 
     renderManager = () => this.renderScrollView()
 
+    renderSaveButtonAtras = () => (
+        <View style={{ width: '100%', height: 60, paddingHorizontal: 15 }}>
+            <View style={{ width: '100%', height: 50, alignItems: 'flex-end', justifyContent: 'center' }}>
+                <TouchableOpacity
+                    onPress={this.onPressSaveActions}
+                >
+                    <View 
+                        style={{
+                            backgroundColor: colorAppPrimary,
+                            flexDirection: 'row',
+                            alignItems: 'center',
+                            borderRadius: 4,
+                            padding: 8
+                        }}
+                    >
+                        <Icon name={'content-save'} type={'material-community'} color={'white'} size={18} containerStyle={{ marginRight: 5 }} />
+                        <Text style={{ fontFamily: 'OpenSans-SemiBold', color: 'white', fontSize: 12 }}>Salvar</Text>
+                    </View>
+                </TouchableOpacity>
+            </View>
+        </View>
+    )
+
+    renderSaveButtonConfirm = (props) => (
+        <View style={{ width: '100%', height: 60, paddingHorizontal: 15 }}>
+            <View style={{ width: '100%', height: 50, alignItems: 'flex-end', justifyContent: 'center' }}>
+                <View 
+                    style={{
+                        flexDirection: 'row',
+                        alignItems: 'center',
+                        padding: 8
+                    }}
+                >
+                    {
+                        !props.hasError && (
+                            <ActivityIndicator style={{ marginRight: 10 }} size={16} />
+                        )
+                    }
+                    <Text style={{ fontFamily: 'OpenSans-SemiBold', color: props.hasError ? 'red' : 'black', fontSize: 12 }}>{props.text}</Text>
+                </View>
+            </View>
+        </View>
+    )
+
     renderScrollView = () => (
         <ScrollView contentContainerStyle={{ flexGrow: 1 }} bounces={false}>
             <View style={{ flex: 1 }}>
                 <CardAccordion
+                    key={'manutprox'}
                     ref={this.refAccordionProxManuts}
-                    title={'Manutenções próximas'}
-                    titleStyle={{ fontSize: normalize(16) }}
+                    title={'Próximas'}
+                    titleStyle={{ fontSize: normalize(16), fontFamily: 'OpenSans-SemiBold' }}
                     titleLeftComponent={() =>
                         <Icon 
                             name={'toolbox-outline'}
@@ -355,9 +580,10 @@ class ManutTabViewMain extends React.PureComponent {
                     </DataTable>
                 </CardAccordion>
                 <CardAccordion
+                    key={'manutatras'}
                     ref={this.refAccordionAtrasManuts}
-                    title={'Manutenções atrasadas'}
-                    titleStyle={{ fontSize: normalize(16) }}
+                    title={'Atrasadas'}
+                    titleStyle={{ fontSize: normalize(16), fontFamily: 'OpenSans-SemiBold' }}
                     titleLeftComponent={() =>
                         <Icon 
                             name={'toolbox-outline'}
@@ -365,6 +591,8 @@ class ManutTabViewMain extends React.PureComponent {
                             color={'gray'}
                         />
                     }
+                    renderFooter={this.renderSaveButtonAtras}
+                    footerHeight={60}
                 >
                     <DataTable>
                         <DataTable.Header>
@@ -423,6 +651,75 @@ class ManutTabViewMain extends React.PureComponent {
                             </DataTableTitleHeader>
                         </DataTable.Header>
                         {this.renderManutAtras()}
+                    </DataTable>
+                </CardAccordion>
+                <CardAccordion
+                    key={'manutconfirm'}
+                    ref={this.refAccordionConfirmManuts}
+                    title={'Confirmadas'}
+                    titleStyle={{ fontSize: normalize(16), fontFamily: 'OpenSans-SemiBold' }}
+                    titleLeftComponent={() =>
+                        <Icon 
+                            name={'toolbox-outline'}
+                            type={'material-community'}
+                            color={'gray'}
+                        />
+                    }
+                    renderFooter={this.renderSaveButtonConfirmPc}
+                    footerHeight={60}
+                    enableFooterAnim
+                >
+                    <DataTable>
+                        <DataTable.Header>
+                            <DataTableTitleHeader style={{ flex: 1.5 }}>Manutenção</DataTableTitleHeader>
+                            <DataTableTitleHeader numeric style={{ flex: 1 }}>Km</DataTableTitleHeader>
+                            <DataTableTitleHeader 
+                                style={{ flex: 1, justifyContent: 'flex-end' }}
+                                iconRight={(textColor, containerStyles) => (
+                                    <Icon 
+                                        name={'information-outline'} 
+                                        type={'material-community'} 
+                                        color={textColor} 
+                                        size={18}
+                                        containerStyle={[containerStyles, { marginLeft: 2 }]}
+                                    />
+                                )}
+                                tooltipCompContent={(
+                                    <View style={{ flex: 1 }}>
+                                        <View style={{ flex: 1, justifyContent: 'center' }}>
+                                            <Text style={{ fontFamily: 'OpenSans-SemiBold', color: 'white' }}>
+                                                As seguintes ações estão disponíveis para cada manutenção.
+                                            </Text>
+                                        </View>
+                                        <View style={{ flex: 1.6, alignItens: 'flex-start', justifyContent: 'space-around' }}>
+                                            <View style={{ flexDirection: 'row', alignItens: 'center', justifyContent: 'flex-start' }}>
+                                                <Icon name={'thumb-up'} type={'material-community'} color={'green'} containerStyle={{ marginRight: 8 }} />
+                                                <Text style={{ fontFamily: 'OpenSans-Regular', color: 'white' }}>
+                                                    Manutenção realizada
+                                                </Text>
+                                            </View>
+                                            <View style={{ flexDirection: 'row', alignItens: 'center', justifyContent: 'flex-start' }}>
+                                                <Icon name={'thumb-down'} type={'material-community'} color={'red'} containerStyle={{ marginRight: 8 }} />
+                                                <Text style={{ fontFamily: 'OpenSans-Regular', color: 'white' }}>
+                                                    Manutenção não realizada
+                                                </Text>
+                                            </View>
+                                        </View>
+                                    </View>
+                                )}
+                                tooltipProps={{
+                                    height: 200,
+                                    width: 300,
+                                    backgroundColor: 'rgba(0, 0, 0, 0.9)',
+                                    containerStyle: {
+                                        padding: 15
+                                    }
+                                }}
+                            >
+                                Ação
+                            </DataTableTitleHeader>
+                        </DataTable.Header>
+                        {this.renderManutConfirm()}
                     </DataTable>
                 </CardAccordion>
             </View>

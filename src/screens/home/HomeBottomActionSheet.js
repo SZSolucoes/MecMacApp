@@ -6,6 +6,7 @@ import {
     StyleSheet,
     Dimensions,
     ScrollView,
+    RefreshControl,
     TouchableOpacity
 } from 'react-native';
 import { connect } from 'react-redux';
@@ -41,7 +42,8 @@ class HomeBottomActionSheet extends React.PureComponent {
         this.position = 0;
 
         this.state = {
-            vehicles: []
+            vehicles: [],
+            refreshing: false
         };
     }
 
@@ -68,6 +70,11 @@ class HomeBottomActionSheet extends React.PureComponent {
 
     onManualCloseAS = () => {
         if (this.props.animatedVisible) this.props.animatedVisible('visible', 200);
+    }
+
+    onRefresh = () => {
+        this.setState({ refreshing: true });
+        this.fetchVehicles();
     }
 
     getPosition = () => this.position
@@ -112,9 +119,9 @@ class HomeBottomActionSheet extends React.PureComponent {
                 ...item
             }));
 
-            this.setState({ vehicles: [...mappedVehicles] });
+            this.setState({ vehicles: [...mappedVehicles], refreshing: false });
         } else {
-            this.setState({ vehicles: [] });
+            this.setState({ vehicles: [], refreshing: false });
             this.props.modifyClearVehicleSelected();
         }
     }
@@ -138,6 +145,12 @@ class HomeBottomActionSheet extends React.PureComponent {
             <ScrollView
                 bounces={false}
                 contentContainerStyle={{ flexGrow: 1 }}
+                refreshControl={
+                    <RefreshControl
+                        refreshing={this.state.refreshing}
+                        onRefresh={this.onRefresh}
+                    />
+                }
             >
                 {
                     this.state.vehicles.length ?

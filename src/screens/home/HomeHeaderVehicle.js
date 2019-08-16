@@ -43,7 +43,7 @@ class HomeHeaderVehicle extends React.PureComponent {
                                 <Icon
                                     name={'ios-arrow-down'}
                                     type={'ionicon'}
-                                    size={20}
+                                    size={22}
                                     color={'black'}
                                 />
                             </View>
