@@ -1,6 +1,6 @@
 /* eslint-disable max-len */
 import React from 'react';
-import { View, Text, StyleSheet, SafeAreaView, BackHandler } from 'react-native';
+import { View, StyleSheet, SafeAreaView, BackHandler } from 'react-native';
 import { connect } from 'react-redux';
 import Animated from 'react-native-reanimated';
 
@@ -9,6 +9,7 @@ import { colorAppForeground } from '../utils/Constants';
 import HomeOverlayTouchable from '../home/HomeOverlayTouchable';
 import { runSpring } from '../utils/ReanimatedUtils';
 import ManutTabViewMain from './ManutTabViewMain';
+import ManutTabAlerts from './ManutTabAlerts';
 
 const { Value, block, eq, cond } = Animated;
 
@@ -157,6 +158,7 @@ class ManutTabScreen extends React.PureComponent {
                 </Animated.View>
                 <HomeOverlayTouchable onPressActionChooseVHC={this.onPressActionChooseVHC} />
             </View>
+            <ManutTabAlerts />
         </SafeAreaView>
     ); 
 }

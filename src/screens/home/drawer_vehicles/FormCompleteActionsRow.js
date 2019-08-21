@@ -36,6 +36,10 @@ class FormCompleteActionsRow extends React.PureComponent {
         }
     }
 
+    onPressTouchTrash = () => {
+        if (this.props.onPressTouchTrashCallback) this.props.onPressTouchTrashCallback(this.props.itemIndex, this.props.itemIndexInRow); 
+    }
+
     getNextTriggerType = () => {
         let next = this.controlAnimSelected;
 
@@ -233,7 +237,7 @@ class FormCompleteActionsRow extends React.PureComponent {
             {
                 this.props.enableTrash && (
                     <TouchableOpacity
-                        onPress={this.onPressTouch}
+                        onPress={this.onPressTouchTrash}
                     >
                         <View style={styles.mainView}>
                             <Animated.View

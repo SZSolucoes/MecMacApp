@@ -11,13 +11,21 @@ import ShimmerPlaceHolder from 'react-native-shimmer-placeholder';
 
 import CardAccordion from '../tools/CardAccordion';
 import DataTableCell from '../tools/DataTableCell';
-import { apiGetManut, apiUpdateUserVehiclesManut } from '../utils/api/ApiManagerConsumer';
+import { apiGetManut, apiUpdateUserVehiclesManut, apiUpdateUserVehiclesManutBatch } from '../utils/api/ApiManagerConsumer';
 import { normalize } from '../utils/StringTextFormats';
 import DataTableTitleHeader from '../tools/DataTableTitleHeader';
 //import { modifyActionsRows, modifyIsLoadingComplete } from '../../actions/AddVehicleActions';
 import { MANUT_ATRAS_TRIGGER_TYPE, colorAppPrimary, DESENV_EMAIL } from '../utils/Constants';
 import FormCompleteActionsRow from '../home/drawer_vehicles/FormCompleteActionsRow';
 import { store } from '../../App';
+import { 
+    modifyAlertInit,
+    modifyAlertTitle,
+    modifyAlertMessage,
+    modifyAlertConfirmFunction,
+    modifyAlertCancelFunction,
+    modifyAlertVisible
+} from '../../actions/ManutTabActions';
 
 const maxAccordionSize = Dimensions.get('window').height / 2.5;
 
@@ -30,9 +38,7 @@ class ManutTabViewMain extends React.PureComponent {
         this.renderItemManutConfirmPc = React.memo(this.renderItemManutConfirm);
         this.renderSaveButtonConfirmPc = React.memo(this.renderSaveButtonConfirm);
 
-        this.debouncedSaveManutChanges = _.debounce(this.saveManutChanges, 1000);
-
-        this.actionsRows = [];
+        this.actionsRowsAtras = [];
 
         this.refAccordionProxManuts = React.createRef();
         this.refAccordionAtrasManuts = React.createRef();
@@ -54,40 +60,151 @@ class ManutTabViewMain extends React.PureComponent {
         }
     }
 
-    onChangeActionsRows = (index, action) => {
-        const findedIndex = _.findIndex(this.actionsRows, ita => ita.index === index);
-        const finded = findedIndex !== -1;
+    onChangeAtrasActionsRows = (index, action, itemIndexInRow) => {
+        const rowFounded = !!(this.actionsRowsAtras[index] && this.actionsRowsAtras[index][itemIndexInRow]);
 
-        if (finded) {
-            this.actionsRows[findedIndex].action = action;
-        } else {
-            this.actionsRows.push({ 
-                index, 
-                action,
-                manut: {
-                    ...(this.state.itemsAtras[index] || {})
-                }
-            });
+        if (rowFounded) {
+            this.actionsRowsAtras[index][itemIndexInRow].action = action;
         }
-
-        //this.props.modifyActionsRows(this.actionsRows);
     }
 
-    onChangeConfirmActionsRows = (index, action, itemIndexInRow) => {
-        if (this.refAccordionConfirmManuts.current) {
-            this.refAccordionConfirmManuts.current.changeTextFooter('Salvando...');
-            this.refAccordionConfirmManuts.current.showFooter();
-        }
-
-        this.debouncedSaveManutChanges(index, action, itemIndexInRow);
-    }
-
-    onPressSaveActions = () => {
+    onPressSaveActionsAtras = () => {
         if (this.refAccordionAtrasManuts.current) this.refAccordionAtrasManuts.current.showFooter();
+        const mappedRows = _.map(this.actionsRowsAtras, ita => {
+            for (let index = 0; index < ita.length; index++) {
+                const element = ita[index];
+                
+                if (element.action === MANUT_ATRAS_TRIGGER_TYPE.LIKE || element.action === MANUT_ATRAS_TRIGGER_TYPE.UNLIKE) {
+                    return { ...element };
+                }
+
+                return null;
+            }
+        });
+        const filtredRows = _.filter(mappedRows, itb => !!itb);
+
+        if (filtredRows.length) {
+            const funExec = _.debounce(async () => {
+                const userEmail = store.getState().UserReducer.userInfo.email;
+                const {
+                    manufacturer,
+                    model,
+                    year,
+                    nickname
+                } = this.props.vehicleSelected;
+
+                const batch = [];
+
+                for (let indexP = 0; indexP < filtredRows.length; indexP++) {
+                    const elementP = filtredRows[indexP];
+
+                    const {
+                        itemabrev,
+                        quilometros,
+                        tipomanut,
+                        action
+                    } = elementP;
+
+                    batch.push({
+                        user_email: userEmail || DESENV_EMAIL,
+                        manufacturer,
+                        model,
+                        year,
+                        itemabrev,
+                        quilometers_manut: quilometros,
+                        type_manut: tipomanut,
+                        nickname,
+                        action
+                    });
+                }
+
+                const ret = await apiUpdateUserVehiclesManutBatch({
+                    batch
+                });
+
+                if (!ret.success && this.refAccordionConfirmManuts.current) {
+                    this.refAccordionConfirmManuts.current.changeTextFooterWithError(ret.message);
+                    this.setState({ isLoading: false });
+                } else {
+                    this.fetchManuts(false);
+                }
+            }, 1000);
+
+            this.props.modifyAlertInit();
+            this.props.modifyAlertTitle('Aviso');
+
+            this.props.modifyAlertMessage('Aa manutenções realizadas e não realizadas serão confirmadas. Deseja continuar?');
+            this.props.modifyAlertConfirmFunction((doHideAlert) => { 
+                doHideAlert();
+                if (this.refAccordionAtrasManuts.current) {
+                    this.refAccordionAtrasManuts.current.changeTextFooter('Salvando...');
+                    this.refAccordionAtrasManuts.current.showFooter();
+                }
+                this.setState({ isLoading: true }, () => funExec());
+            });
+            this.props.modifyAlertCancelFunction((doHideAlert) => { doHideAlert(); });
+            this.props.modifyAlertVisible(true);
+        }
     }
 
     onPressAtrasTouchCallback = () => {
         if (this.refAccordionAtrasManuts.current) this.refAccordionAtrasManuts.current.showFooter();
+    }
+
+    onPressConfirmTrashIcon = (index, itemIndexInRow) => {
+        const rowFounded = !!(this.state.itemsConfirm[index] && this.state.itemsConfirm[index][itemIndexInRow]);
+
+        if (rowFounded) {
+            const funExec = _.debounce(async () => {
+                const userEmail = store.getState().UserReducer.userInfo.email;
+                const {
+                    manufacturer,
+                    model,
+                    year,
+                    nickname
+                } = this.props.vehicleSelected;
+
+                const {
+                    itemabrev,
+                    quilometros,
+                    tipomanut
+                } = this.state.itemsConfirm[index][itemIndexInRow];
+
+                const ret = await apiUpdateUserVehiclesManut({
+                    user_email: userEmail || DESENV_EMAIL,
+                    manufacturer,
+                    model,
+                    year,
+                    itemabrev,
+                    quilometers_manut: quilometros,
+                    type_manut: tipomanut,
+                    nickname,
+                    action: 3
+                }, true);
+
+                if (!ret.success && this.refAccordionConfirmManuts.current) {
+                    this.refAccordionConfirmManuts.current.changeTextFooterWithError(ret.message);
+                    this.setState({ isLoading: false });
+                } else {
+                    this.fetchManuts(false);
+                }
+            }, 1000);
+
+            this.props.modifyAlertInit();
+            this.props.modifyAlertTitle('Aviso');
+
+            this.props.modifyAlertMessage('A manutenção confirmada retornará para a lista de manutenções atrasadas. Deseja continuar?');
+            this.props.modifyAlertConfirmFunction((doHideAlert) => { 
+                doHideAlert();
+                if (this.refAccordionConfirmManuts.current) {
+                    this.refAccordionConfirmManuts.current.changeTextFooter('Desfazendo a manutenção...');
+                    this.refAccordionConfirmManuts.current.showFooter();
+                }
+                this.setState({ isLoading: true }, () => funExec());
+            });
+            this.props.modifyAlertCancelFunction((doHideAlert) => { doHideAlert(); });
+            this.props.modifyAlertVisible(true);
+        }
     }
 
     saveManutChanges = async (index, action, itemIndexInRow) => {
@@ -116,7 +233,8 @@ class ManutTabViewMain extends React.PureComponent {
                 itemabrev,
                 quilometers_manut: quilometros,
                 type_manut: tipomanut,
-                nickname
+                nickname,
+                action
             });
 
             if (!ret.success && this.refAccordionConfirmManuts.current) {
@@ -128,7 +246,7 @@ class ManutTabViewMain extends React.PureComponent {
         if (this.refAccordionConfirmManuts.current) this.refAccordionConfirmManuts.current.hideFooter();
     }
 
-    fetchManuts = async () => {
+    fetchManuts = async (openAccordions = true) => {
         const {
             manufacturer,
             model,
@@ -139,8 +257,7 @@ class ManutTabViewMain extends React.PureComponent {
 
         const userEmail = store.getState().UserReducer.userInfo.email;
 
-        this.actionsRows = [];
-        //this.props.modifyActionsRows([]);
+        this.actionsRowsAtras = [];
 
         let proxData = [];
         let atrasData = [];
@@ -149,14 +266,16 @@ class ManutTabViewMain extends React.PureComponent {
         if (!(manufacturer && model && year && quilometers)) {
             this.setState(
                 { isLoading: false },
-                () => false //this.props.modifyIsLoadingComplete(false)
+                () => false
             );
             return false;
         }
 
-        if (this.refAccordionProxManuts.current) this.refAccordionProxManuts.current.openAccordion();
-        if (this.refAccordionAtrasManuts.current) this.refAccordionAtrasManuts.current.openAccordion();
-        if (this.refAccordionConfirmManuts.current) this.refAccordionConfirmManuts.current.openAccordion();
+        if (openAccordions) {
+            if (this.refAccordionProxManuts.current) this.refAccordionProxManuts.current.openAccordion();
+            if (this.refAccordionAtrasManuts.current) this.refAccordionAtrasManuts.current.openAccordion();
+            if (this.refAccordionConfirmManuts.current) this.refAccordionConfirmManuts.current.openAccordion();
+        }
 
         this.setState({ isLoading: true });
 
@@ -180,6 +299,17 @@ class ManutTabViewMain extends React.PureComponent {
                     atrasData = [...ret.data.data.atras];
                     atrasData = _.groupBy(atrasData, 'itemabrev');
                     atrasData = _.orderBy(atrasData, (itd) => _.maxBy(itd, 'quilometros').quilometros, ['desc']);
+
+                    this.actionsRowsAtras = [...atrasData];
+
+                    for (let indexB = 0; indexB < this.actionsRowsAtras.length; indexB++) {
+                        const elementB = this.actionsRowsAtras[indexB];
+                        for (let indexC = 0; indexC < elementB.length; indexC++) {
+                            const elementC = elementB[indexC];
+    
+                            elementC.action = MANUT_ATRAS_TRIGGER_TYPE.WARNING;
+                        }
+                    }
                 }
 
                 if (validRet && ret.data.data.confirm) {
@@ -188,23 +318,9 @@ class ManutTabViewMain extends React.PureComponent {
                     confirmData = _.orderBy(confirmData, (itd) => _.maxBy(itd, 'quilometros').quilometros, ['desc']);
                 }
                 
-                for (let indexB = 0; indexB < atrasData.length; indexB++) {
-                    const elementB = atrasData[indexB];
-
-                    this.actionsRows.push({ 
-                        index: indexB, 
-                        action: MANUT_ATRAS_TRIGGER_TYPE.WARNING,
-                        manut: {
-                            ...elementB
-                        }
-                    });
-                }
-
-                //this.props.modifyActionsRows(this.actionsRows);
-        
                 this.setState(
                     { isLoading: false, itemsProx: proxData, itemsAtras: atrasData, itemsConfirm: confirmData },
-                    () => false //this.props.modifyIsLoadingComplete(false)
+                    () => false
                 );
             };
     
@@ -212,8 +328,12 @@ class ManutTabViewMain extends React.PureComponent {
         } catch (e) {
             this.setState(
                 { isLoading: false },
-                () => false //this.props.modifyIsLoadingComplete(false)
+                () => false
             );
+        }
+
+        if (this.refAccordionConfirmManuts.current) {
+            this.refAccordionConfirmManuts.current.hideFooter();
         }
     }
 
@@ -394,7 +514,7 @@ class ManutTabViewMain extends React.PureComponent {
                                 <FormCompleteActionsRow 
                                     itemIndex={index}
                                     itemIndexInRow={indexB}
-                                    onChangeActionsRows={this.onChangeActionsRows} 
+                                    onChangeActionsRows={this.onChangeAtrasActionsRows} 
                                     onPressTouchCallback={this.onPressAtrasTouchCallback} 
                                 />
                             </View>
@@ -476,34 +596,45 @@ class ManutTabViewMain extends React.PureComponent {
         <DataTable.Row key={index} style={{ paddingVertical: 5 }}>
             <View style={{ flex: 1 }}>
                 {
-                    _.map(item, (ita, indexB) => (
-                        <View style={{ flex: 1, flexDirection: 'row', marginBottom: 5 }}>
-                            <DataTableCell numberOfLines={6} style={{ flex: 1.5 }}>{ita.itemabrev}</DataTableCell>
-                            <DataTableCell numberOfLines={6} numeric style={{ flex: 1 }}>
-                                <TextMask
-                                    type={'money'}
-                                    options={{
-                                        precision: 0,
-                                        separator: '.',
-                                        delimiter: '',
-                                        unit: '',
-                                        suffixUnit: ''
-                                    }}
-                                    value={ita.quilometros}
-                                />
-                            </DataTableCell>
-                            <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-end' }}>
-                                <FormCompleteActionsRow 
-                                    itemIndex={index}
-                                    itemIndexInRow={indexB}
-                                    showTypes={['thumbsup', 'thumbsdown']}
-                                    initialIcon={ita.action === 1 ? 'thumbsup' : 'thumbsdown'}
-                                    enableTrash
-                                    onChangeActionsRows={this.onChangeConfirmActionsRows} 
-                                />
+                    _.map(item, (ita, indexB) => {
+                        const debouncedSaveManutChanges = _.debounce(this.saveManutChanges, 1000);
+                        return (
+                            <View style={{ flex: 1, flexDirection: 'row', marginBottom: 5 }}>
+                                <DataTableCell numberOfLines={6} style={{ flex: 1.5 }}>{ita.itemabrev}</DataTableCell>
+                                <DataTableCell numberOfLines={6} numeric style={{ flex: 1 }}>
+                                    <TextMask
+                                        type={'money'}
+                                        options={{
+                                            precision: 0,
+                                            separator: '.',
+                                            delimiter: '',
+                                            unit: '',
+                                            suffixUnit: ''
+                                        }}
+                                        value={ita.quilometros}
+                                    />
+                                </DataTableCell>
+                                <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-end' }}>
+                                    <FormCompleteActionsRow 
+                                        itemIndex={index}
+                                        itemIndexInRow={indexB}
+                                        showTypes={['thumbsup', 'thumbsdown']}
+                                        initialIcon={ita.action === 1 ? 'thumbsup' : 'thumbsdown'}
+                                        enableTrash
+                                        onPressTouchTrashCallback={this.onPressConfirmTrashIcon}
+                                        onChangeActionsRows={(indexZ, action, itemIndexInRowZ) => {
+                                            if (this.refAccordionConfirmManuts.current) {
+                                                this.refAccordionConfirmManuts.current.changeTextFooter('Salvando...');
+                                                this.refAccordionConfirmManuts.current.showFooter();
+                                            }
+                                    
+                                            debouncedSaveManutChanges(indexZ, action, itemIndexInRowZ);
+                                        }} 
+                                    />
+                                </View>
                             </View>
-                        </View>
-                    ))
+                        );
+                    })
                 }
             </View>
         </DataTable.Row>
@@ -515,7 +646,7 @@ class ManutTabViewMain extends React.PureComponent {
         <View style={{ width: '100%', height: 60, paddingHorizontal: 15 }}>
             <View style={{ width: '100%', height: 50, alignItems: 'flex-end', justifyContent: 'center' }}>
                 <TouchableOpacity
-                    onPress={this.onPressSaveActions}
+                    onPress={this.onPressSaveActionsAtras}
                 >
                     <View 
                         style={{
@@ -745,6 +876,10 @@ const mapStateToProps = (state) => ({
 });
 
 export default connect(mapStateToProps, {
-    /* modifyActionsRows,
-    modifyIsLoadingComplete */
+    modifyAlertInit,
+    modifyAlertTitle,
+    modifyAlertMessage,
+    modifyAlertConfirmFunction,
+    modifyAlertCancelFunction,
+    modifyAlertVisible
 })(ManutTabViewMain);

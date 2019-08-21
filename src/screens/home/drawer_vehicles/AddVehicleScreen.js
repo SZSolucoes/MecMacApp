@@ -641,7 +641,8 @@ class AddVehicleScreen extends React.PureComponent {
                     <AwesomeAlert
                         show={this.state.loadingCheckExist}
                         showProgress
-                        title={'Consultando Veículo...'}
+                        title={'Consultando veículo...'}
+                        titleStyle={{ color: colorAppPrimary, fontSize: 14 }}
                         closeOnTouchOutside={false}
                         closeOnHardwareBackPress={false}
                     />

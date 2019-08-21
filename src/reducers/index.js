@@ -6,6 +6,7 @@ import HomeBottomActionSheetReducer from './HomeBottomActionSheetReducer';
 import SignInReducer from './SignInReducer';
 import HomeDrawerReducer from './HomeDrawerReducer';
 import AddVehicleReducer from './AddVehicleReducer';
+import ManutTabReducer from './ManutTabReducer';
 
 export default combineReducers({
     SystemEventsReducer,
@@ -14,5 +15,6 @@ export default combineReducers({
     HomeBottomActionSheetReducer,
     SignInReducer,
     HomeDrawerReducer,
-    AddVehicleReducer
+    AddVehicleReducer,
+    ManutTabReducer
 });
