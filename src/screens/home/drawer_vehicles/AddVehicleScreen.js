@@ -39,6 +39,7 @@ import { apiPostUserVehicles, apiGetCheckVehicleExist } from '../../utils/api/Ap
 import AddVehicleProgress from './AddVehicleProgress';
 import { modifyShowHomeNewVehicleTooltip } from '../../../actions/CustomHomeTabBarActions';
 import { modifyMenuChoosed } from '../../../actions/HomeDrawerActions';
+import { writeVehicle } from '../../../storage/RealmManager';
 
 const PAGEINITIAL = 0;
 const PAGEKM = 1;
@@ -223,6 +224,17 @@ class AddVehicleScreen extends React.PureComponent {
 
                         if (retSuccess) {
                             this.setState({ alertProgressVisible: false, alertProgressSuccess: true });
+                            writeVehicle([{
+                                user_email: userInfo.email || DESENV_EMAIL,
+                                manufacturer,
+                                model,
+                                year,
+                                price: null,
+                                fuel: fuel.join('|'),
+                                fipe_ref: null,
+                                nickname: validNickname.trim(),
+                                quilometers: parseInt(quilometers, 10)
+                            }]);
                         } else {
                             this.setState({ alertProgressVisible: false, alertProgressError: true });
                         }

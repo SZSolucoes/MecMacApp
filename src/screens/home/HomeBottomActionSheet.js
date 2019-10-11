@@ -16,6 +16,7 @@ import { Checkbox, Card } from 'react-native-paper';
 import Animated from 'react-native-reanimated';
 import _ from 'lodash';
 import { TextMask } from 'react-native-masked-text';
+import AsyncStorage from '@react-native-community/async-storage';
 
 import { 
     modifyBacChangePosition, 
@@ -65,6 +66,12 @@ class HomeBottomActionSheet extends React.PureComponent {
         if (vehicle.uniqueId !== this.props.vehicleSelected.uniqueId) {
             this.bacChangePosition(0);
             this.props.modifyVehicleSelected({ ...vehicle });
+           
+            try {
+                AsyncStorage.setItem('@userVehicleSelected', JSON.stringify(vehicle));
+            } catch (e) {
+                console.log(e);
+            }
         }
     }
 

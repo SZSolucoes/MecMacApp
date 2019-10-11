@@ -1,5 +1,6 @@
 /* eslint-disable max-len */
 import Realm from 'realm';
+import _ from 'lodash';
 import { apiGetManufacturesAndModels } from '../screens/utils/api/ApiManagerConsumer';
 import { AllSchemasArray } from './RealmSchemas';
 
@@ -35,5 +36,45 @@ export const realmFetchsInit = async () => {
     } catch (e) {
         console.log(e);
     }
+};
+
+export const getRealmVehicles = () => {
+    try {
+        const realUserVehicles = realmAllSchemesInstance.objects('UserVehicle');
+        
+        if (realUserVehicles && realUserVehicles.length) {
+            const vehicles = [];
+
+            for (let index = 0; index < realUserVehicles.length; index++) {
+                const element = realUserVehicles[index];
+
+                vehicles.push({ ...element });
+            }
+            
+            return _.orderBy(vehicles, ['nickname'], ['asc']);
+        }
+    } catch (e) {
+        console.log(e);
+    }
+
+    return [];
+};
+
+export const writeVehicles = (vehicles = []) => {
+    try {
+        realmAllSchemesInstance.write(() => {
+            for (let index = 0; index < vehicles.length; index++) {
+                const element = vehicles[index];
+                
+                realmAllSchemesInstance.create('UserVehicle', element, true);
+            }
+        });  
+        
+        return true;
+    } catch (e) {
+        console.log(e);
+    }
+
+    return false;
 };
 

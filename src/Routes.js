@@ -3,7 +3,6 @@ import React from 'react';
 import { 
     createAppContainer, 
     createStackNavigator
-    /* createDrawerNavigator */
 } from 'react-navigation';
 import createAnimatedSwitchNavigator from 'react-navigation-animated-switch';
 import { Transition } from 'react-native-reanimated';
@@ -18,9 +17,8 @@ import SignInScreen from './screens/signin/SignInScreen';
 import WelcomeScreen from './WelcomeScreen';
 import AddVehicleScreen from './screens/home/drawer_vehicles/AddVehicleScreen';
 import AddVehicleFragmentScreen from './screens/home/drawer_vehicles/AddVehicleFragmentScreen';
-import TransitionsScreens from './screens/utils/TransitionsScreens';
 import ProfileScreen from './screens/home/ProfileScreen';
-//import TransitionsScreens from './screens/utils/TransitionsScreens';
+import SelectVehicleScreen from './screens/select_vehicle/SelectVehicleScreen';
 
 const styles = {
     title: {
@@ -43,39 +41,18 @@ const styles = {
     },
 };
 
-// Rotas do start na aplicacao
-const StartStack = createStackNavigator(
+const AppStack = createStackNavigator(
     { 
         Loading: {
             screen: LoadingScreen
         },
         Welcome: {
             screen: WelcomeScreen
-        }
-    }
-);
-
-// Rotas de autenticacao
-const AuthStack = createStackNavigator(
-    { 
-        SignIn: SignInScreen 
-    },
-    {
-        defaultNavigationOptions: {
-            headerStyle: {
-                backgroundColor: colorAppPrimary,
-            },
-            headerTintColor: '#fff',
-            headerTitleStyle: {
-                ...styles.title
-            },
-        }
-    }
-);
-
-// Rotas principais
-const AppStack = createStackNavigator(
-    { 
+        },
+        SignIn: SignInScreen,
+        SelectVehicle: {
+            screen: SelectVehicleScreen
+        },
         Home: {
             screen: HomeNavigator
         },
@@ -90,19 +67,24 @@ const AppStack = createStackNavigator(
         }
     },
     {
-        initialRouteName: 'Home',
-        transitionConfig: TransitionsScreens
+        defaultNavigationOptions: {
+            headerStyle: {
+                backgroundColor: colorAppPrimary,
+            },
+            headerTintColor: '#fff',
+            headerTitleStyle: {
+                ...styles.title
+            },
+        }
     }
 );
 
 const Routes = createAppContainer(createAnimatedSwitchNavigator(
     {
-        Start: StartStack,
         App: AppStack,
-        Auth: AuthStack,
     },
     {
-        initialRouteName: 'Start',
+        initialRouteName: 'App',
         transition: (
             <Transition.In type={'fade'} durationMs={200} delayMs={200} />
         )

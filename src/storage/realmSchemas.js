@@ -91,6 +91,21 @@ export const FipeFileVersionSchema = {
     }
 };
 
+export const UserVehicleSchema = {
+    name: 'UserVehicle',
+    properties: {
+        user_email: 'string',
+        manufacturer: 'string',
+        model: 'string',
+        year: 'string',
+        price: 'double?',
+        fuel: 'string?',
+        fipe_ref: 'string?',
+        nickname: 'string',
+        quilometers: 'double?'
+    }
+};
+
 export const AllSchemasArray = [
     CarSchema, 
     MotorbikeSchema, 
@@ -102,5 +117,6 @@ export const AllSchemasArray = [
     FipeFileVersionSchema,
     AnosModeloSchema,
     FipeAnosModeloSchema,
-    FipeAnosModelosSchema
+    FipeAnosModelosSchema,
+    UserVehicleSchema
 ];

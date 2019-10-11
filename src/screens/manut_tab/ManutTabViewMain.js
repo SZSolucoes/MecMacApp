@@ -52,6 +52,12 @@ class ManutTabViewMain extends React.PureComponent {
         };
     }
 
+    componentDidMount = () => {
+        if (this.props.vehicleSelected.uniqueId) {
+            this.fetchManuts();
+        }
+    }
+
     componentDidUpdate = (prevProps) => {
         if (this.props.vehicleSelected.uniqueId) {
             if (prevProps.vehicleSelected.uniqueId !== this.props.vehicleSelected.uniqueId) {
@@ -690,7 +696,7 @@ class ManutTabViewMain extends React.PureComponent {
         <ScrollView contentContainerStyle={{ flexGrow: 1 }} bounces={false}>
             <View style={{ flex: 1 }}>
                 <CardAccordion
-                    key={'manutprox'}
+                    keyCard={'manutprox'}
                     ref={this.refAccordionProxManuts}
                     title={'Próximas'}
                     titleStyle={{ fontSize: normalize(16), fontFamily: 'OpenSans-SemiBold' }}
@@ -711,7 +717,7 @@ class ManutTabViewMain extends React.PureComponent {
                     </DataTable>
                 </CardAccordion>
                 <CardAccordion
-                    key={'manutatras'}
+                    keyCard={'manutatras'}
                     ref={this.refAccordionAtrasManuts}
                     title={'Atrasadas'}
                     titleStyle={{ fontSize: normalize(16), fontFamily: 'OpenSans-SemiBold' }}
@@ -785,7 +791,7 @@ class ManutTabViewMain extends React.PureComponent {
                     </DataTable>
                 </CardAccordion>
                 <CardAccordion
-                    key={'manutconfirm'}
+                    keyCard={'manutconfirm'}
                     ref={this.refAccordionConfirmManuts}
                     title={'Confirmadas'}
                     titleStyle={{ fontSize: normalize(16), fontFamily: 'OpenSans-SemiBold' }}

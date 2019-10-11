@@ -18,10 +18,10 @@ import { Appbar, Divider } from 'react-native-paper';
 import SplashScreen from 'react-native-splash-screen';
 
 import Images from '../utils/AssetsManager';
-import { colorAppPrimary } from '../utils/Constants';
+import { colorAppPrimary, DESENV_EMAIL } from '../utils/Constants';
 import { getDeviceInfos } from '../utils/device/DeviceInfos';
 
-import { apiPostUser } from '../utils/api/ApiManagerConsumer';
+import { apiPostUser, apiGetUserVehicles } from '../utils/api/ApiManagerConsumer';
 import { initializeBatchs } from '../utils/InitConfigs';
 import { renderOpacityStatusBar } from '../utils/Screen';
 import { modifyHandleFacebookLogout, modifyHandleGoogleLogout } from '../../actions/SignInActions';
@@ -223,7 +223,19 @@ class SignInScreen extends React.PureComponent {
             console.log('AsyncStorage error');
         }
 
-        this.props.navigation.navigate('App');
+        try {
+            const email = userJson.email || DESENV_EMAIL;
+            const vehicles = await apiGetUserVehicles({ user_email: email });
+
+            if (vehicles && vehicles.data && vehicles.data.data && vehicles.data.data.length) {
+                this.props.navigation.navigate('SelectVehicle', { vehiclesData: [...vehicles.data.data] });
+                return;
+            }
+        } catch (e) {
+            console.log(e);
+        }
+
+        this.props.navigation.navigate('Home');
         initializeBatchs();
     };
 

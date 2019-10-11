@@ -310,7 +310,7 @@ class FormComplete extends React.PureComponent {
         <ScrollView contentContainerStyle={{ flexGrow: 1 }} bounces={false}>
             <View style={{ flex: 1 }}>
                 <CardAccordion
-                    key={'manutproxformcomplete'}
+                    keyCard={'manutproxformcomplete'}
                     ref={this.refAccordionProxManuts}
                     title={'Manutenções próximas'}
                     titleStyle={{ fontSize: normalize(14), fontFamily: 'OpenSans-SemiBold' }}
@@ -331,7 +331,7 @@ class FormComplete extends React.PureComponent {
                     </DataTable>
                 </CardAccordion>
                 <CardAccordion
-                    key={'manutproxatrasformcomplete'}
+                    keyCard={'manutproxatrasformcomplete'}
                     ref={this.refAccordionAtrasManuts}
                     title={'Manutenções atrasadas'}
                     titleStyle={{ fontSize: normalize(14), fontFamily: 'OpenSans-SemiBold' }}

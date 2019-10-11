@@ -77,13 +77,14 @@ class CardAccordion extends React.PureComponent {
             titleStyle,
             titleLeftComponent,
             content,
-            children
+            children,
+            keyCard
         } = this.props;
 
         return (
             <Card style={{ marginHorizontal: 10, marginTop: 10 }}>
                 <Animated.Code
-                    key={`${this.props.key}${this.state.viewHeight}`}
+                    key={`${keyCard}${this.state.viewHeight}`}
                 >
                     {
                         () =>
@@ -185,7 +186,7 @@ class CardAccordion extends React.PureComponent {
                                     {
                                         this.props.enableFooterAnim && (
                                             <Animated.Code
-                                                key={`${this.props.key}footer`}
+                                                key={`${keyCard}footer`}
                                             >
                                                 {
                                                     () =>
