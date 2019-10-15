@@ -53,7 +53,7 @@ class FormKM extends React.PureComponent {
                                     backgroundColor: 'white',
                                     marginBottom: 5
                                 }}
-                                maxLength={20}
+                                maxLength={9}
                                 render={props =>
                                     <TextInputMask
                                         {...props}

@@ -88,14 +88,15 @@ class HomeDrawer extends React.PureComponent {
                     { 
                         text: 'Sim', 
                         onPress: async () => {
-                            await AsyncStorage.removeItem('@isFirstOpened');
+                            //await AsyncStorage.removeItem('@isFirstOpened');
                             await AsyncStorage.removeItem('@isUserLogged');
                             await AsyncStorage.removeItem('@userProfileJson');
 
                             /* await this.props.handleFacebookLogout();
                             await this.props.handleGoogleLogout(); */
 
-                            this.props.navigation.navigate('Auth');
+                            this.closeDrawer();
+                            this.props.navigation.replace('SignIn');
                         }
                     }
                 ],

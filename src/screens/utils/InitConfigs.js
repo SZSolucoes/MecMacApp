@@ -11,6 +11,10 @@ import { realmFetchsInit } from '../../storage/RealmManager';
 import { checkIsConnected } from './device/DeviceInfos';
 import { colorAppPrimary } from './Constants';
 
+const DefaultTextColor = DefaultTheme.colors.text;
+//const DefaultPrimaryColor = DefaultTheme.colors.primary;
+const DefaultPlaceHolderColor = DefaultTheme.colors.placeholder;
+
 export const initConfigs = () => {
     /* const googleScopes = {
         scopes: ['https://www.googleapis.com/auth/drive.readonly']
@@ -31,7 +35,7 @@ export const initConfigs = () => {
     
     Axios.defaults.timeout = 10000; // Timeout default para o Axios
 
-    DefaultTheme.colors.primary = colorAppPrimary;
+    initDefaultTheme();
     
     console.disableYellowBox = true;
 
@@ -71,5 +75,11 @@ export const initAsyncFetchs = async () => {
     if (isConnected) {
         await realmFetchsInit();
     }
+};
+
+export const initDefaultTheme = () => {
+    DefaultTheme.colors.text = DefaultTextColor;
+    DefaultTheme.colors.primary = colorAppPrimary;
+    DefaultTheme.colors.placeholder = DefaultPlaceHolderColor;
 };
 

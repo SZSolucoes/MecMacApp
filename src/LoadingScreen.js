@@ -43,7 +43,7 @@ export default class LoadingScreen extends React.PureComponent {
 
                 this.props.navigation.navigate('Home');
             } else {
-                this.props.navigation.navigate('Auth');
+                this.props.navigation.navigate('SignIn');
             }
         } catch (e) {
             console.log('AsyncStorage error');
