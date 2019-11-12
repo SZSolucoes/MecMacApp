@@ -3,9 +3,9 @@ import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { List } from 'react-native-paper';
 import Animated from 'react-native-reanimated';
-import { runSpring } from '../utils/ReanimatedUtils';
+import { runSpringDefault } from '../utils/ReanimatedUtils';
 
-const { Value, block, cond, eq, call } = Animated;
+const { Value, block, cond, eq, call, set } = Animated;
 
 class ListAccordion extends React.PureComponent {
     constructor(props) {
@@ -17,6 +17,7 @@ class ListAccordion extends React.PureComponent {
         this.lockedAnim = false;
 
         this.animToggle = new Value(-1);
+        this.animToggleControl = new Value(-1);
 
         this.state = {
             expanded: this.props.expanded || false,
@@ -120,8 +121,8 @@ class ListAccordion extends React.PureComponent {
                             block([
                                 cond(
                                     eq(expanded, true), 
-                                    runSpring(this.animToggle, this.viewHeightContent),
-                                    runSpring(this.animToggle, 0)
+                                    set(this.animToggle, runSpringDefault(this.animToggleControl, this.viewHeightContent)),
+                                    set(this.animToggle, runSpringDefault(this.animToggle, 0))
                                 ),
                                 call([], this.unlockAnim)
                             ])

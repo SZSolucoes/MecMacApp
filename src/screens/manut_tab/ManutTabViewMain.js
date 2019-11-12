@@ -28,6 +28,7 @@ import {
 } from '../../actions/ManutTabActions';
 
 const maxAccordionSize = Dimensions.get('window').height / 2.5;
+const maxManutsSizePerTopic = 50;
 
 class ManutTabViewMain extends React.PureComponent {
     constructor(props) {
@@ -283,8 +284,6 @@ class ManutTabViewMain extends React.PureComponent {
             if (this.refAccordionConfirmManuts.current) this.refAccordionConfirmManuts.current.openAccordion();
         }
 
-        this.setState({ isLoading: true });
-
         try {
             const funExec = async () => {
                 const ret = await apiGetManut({
@@ -299,10 +298,10 @@ class ManutTabViewMain extends React.PureComponent {
 
                 const validRet = ret.data && ret.data.success && ret.data.data;
         
-                if (validRet && ret.data.data.prox) proxData = [...ret.data.data.prox];
+                if (validRet && ret.data.data.prox) proxData = _.slice(ret.data.data.prox, 0, maxManutsSizePerTopic);
 
                 if (validRet && ret.data.data.atras) {
-                    atrasData = [...ret.data.data.atras];
+                    atrasData = _.slice(ret.data.data.atras, 0, maxManutsSizePerTopic);
                     atrasData = _.groupBy(atrasData, 'itemabrev');
                     atrasData = _.orderBy(atrasData, (itd) => _.maxBy(itd, 'quilometros').quilometros, ['desc']);
 
@@ -319,18 +318,23 @@ class ManutTabViewMain extends React.PureComponent {
                 }
 
                 if (validRet && ret.data.data.confirm) {
-                    confirmData = [...ret.data.data.confirm];
+                    confirmData = _.slice(ret.data.data.confirm, 0, maxManutsSizePerTopic);
                     confirmData = _.groupBy(confirmData, 'itemabrev');
                     confirmData = _.orderBy(confirmData, (itd) => _.maxBy(itd, 'quilometros').quilometros, ['desc']);
                 }
                 
                 this.setState(
-                    { isLoading: false, itemsProx: proxData, itemsAtras: atrasData, itemsConfirm: confirmData },
+                    { 
+                        isLoading: false, 
+                        itemsProx: proxData,
+                        itemsAtras: atrasData,
+                        itemsConfirm: confirmData
+                    },
                     () => false
                 );
             };
-    
-            funExec();
+
+            this.setState({ isLoading: true }, funExec);
         } catch (e) {
             this.setState(
                 { isLoading: false },

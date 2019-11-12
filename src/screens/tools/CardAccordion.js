@@ -56,16 +56,22 @@ class CardAccordion extends React.PureComponent {
 
     hideFooter = () => this.animTtriggerFooter.setValue(0);
 
+    runAccordionControl = () => {
+        setTimeout(this.runAccordionControlTimeout, 500);
+    }
+
+    runAccordionControlTimeout = () => {
+        if (this.stateAccordion) {
+            this.openAccordion();
+        } else {
+            this.closeAccordion();
+        }
+    }
+
     updateAnimated = (newHeight) => {
         this.setState(
             { viewHeight: newHeight },
-            () => {
-                if (this.stateAccordion) {
-                    this.openAccordion();
-                } else {
-                    this.closeAccordion();
-                }
-            }
+            this.runAccordionControl
         );
     }
 

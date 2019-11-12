@@ -163,6 +163,7 @@ class HomeBottomActionSheet extends React.PureComponent {
                     this.state.vehicles.length ?
                         _.map(this.state.vehicles, (item, index) => (
                             <TouchableOpacity
+                                key={index}
                                 onPress={() => this.onPressVehicle(item)}
                                 activeOpacity={1}
                             >

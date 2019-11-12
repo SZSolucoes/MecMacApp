@@ -35,7 +35,7 @@ const BottomTabNavigator = createMaterialTopTabNavigator({
     tabBarPosition: 'bottom',
     swipeEnabled: false,
     animationEnabled: false,
-    lazy: false,
+    lazy: true,
     tabBarComponent: CustomHomeTabBar,
     navigationOptions: {
         header: null

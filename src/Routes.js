@@ -75,6 +75,7 @@ const AppStack = createStackNavigator(
             headerTitleStyle: {
                 ...styles.title
             },
+            gesturesEnabled: false
         }
     }
 );

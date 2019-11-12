@@ -5,7 +5,9 @@ const {
   Value,
   Clock,
   cond,
+  call,
   set,
+  and,
   block,
   clockRunning,
   startClock,
@@ -15,10 +17,11 @@ const {
   SpringUtils
 } = Animated;
 
-export const runTiming = (value, dest, duration = 200, easing = Easing.inOut(Easing.ease)) => {
+export const runTiming = (value, dest, duration = 200, easing = Easing.inOut(Easing.ease), clockN, callBackFinish) => {
     if (!value) return;
 
-    const clock = new Clock();
+    const clock = clockN || new Clock();
+    const funcCallBack = callBackFinish || (() => {});
 
     const state = {
         finished: new Value(0),
@@ -47,15 +50,22 @@ export const runTiming = (value, dest, duration = 200, easing = Easing.inOut(Eas
             ]
         ),
         timing(clock, state, config),
-        cond(state.finished, stopClock(clock)),
+        cond(
+            and(state.finished, clockRunning(clock)), 
+            [
+                set(state.finished, 0),
+                stopClock(clock),  
+                call([value], funcCallBack)
+            ]
+        ),
         state.position
     ]);
 };
 
-export const runSpring = (value, dest, speed = 12, blockFinish = []) => {
+export const runSpring = (value, dest, speed = 12, blockFinish = [], clockN) => {
     if (!value) return;
-    
-    const clock = new Clock();
+
+    const clock = clockN || new Clock();
     
     const state = {
         finished: new Value(0),
@@ -84,7 +94,14 @@ export const runSpring = (value, dest, speed = 12, blockFinish = []) => {
             ]
         ),
         spring(clock, state, config),
-        cond(state.finished, [stopClock(clock), blockFinish]),
+        cond(
+            and(state.finished, clockRunning(clock)), 
+            [
+                set(state.finished, 0),
+                stopClock(clock),  
+                blockFinish
+            ]
+        ),
         state.position
     ]);
 };
